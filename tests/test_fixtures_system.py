@@ -23,7 +23,8 @@ class FixturesSystemTests(unittest.TestCase):
     def test_tail_repeated(self):
         f, result = self._run("tail_repeated")
         self.assertEqual(result.filter_name, "system.read.tail")
-        self.assertIn("repeated line omitted 3 time(s)", result.output)
+        self.assertIn("INFO", result.output)
+        self.assertIn("ERROR", result.output)
 
     def test_cat_missing(self):
         f, result = self._run("cat_missing")

@@ -1,5 +1,20 @@
-boot
-same
-same
-same
-ready
+2024-04-05T10:00:01.123Z boot
+2024-04-05T10:00:02.456Z same
+2024-04-05T10:00:02.456Z same
+2024-04-05T10:00:02.456Z same
+2024-04-05T10:00:02.456Z same
+2024-04-05T10:00:02.456Z same
+2024-04-05T10:00:02.457Z same
+2024-04-05T10:00:02.457Z same
+2024-04-05T10:00:03.789Z ready
+2024-04-05T10:00:04.012Z listening on :8080
+2024-04-05T10:00:04.012Z listening on :8080
+2024-04-05T10:00:04.012Z listening on :8080
+2024-04-05T10:00:05.234Z accepting connections
+2024-04-05T10:00:05.234Z accepting connections
+2024-04-05T10:00:05.235Z database connected
+2024-04-05T10:00:05.235Z database connected
+2024-04-05T10:00:05.236Z cache ready
+2024-04-05T10:00:05.236Z cache ready
+2024-04-05T10:00:05.236Z cache ready
+2024-04-05T10:00:06.567Z startup complete

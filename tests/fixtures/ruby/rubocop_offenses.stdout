@@ -1,2 +1,11 @@
 app/models/user.rb:10:5: C: Layout/TrailingWhitespace: Trailing whitespace detected.
 app/models/user.rb:12:3: W: Lint/UselessAssignment: Useless assignment to variable - x.
+app/models/post.rb:5:1: C: Naming/VariableName: Use snake_case for variable names.
+app/models/post.rb:15:3: W: Lint/UselessAssignment: Useless assignment to variable - value.
+app/controllers/api.rb:8:5: C: Layout/LineLength: Line is too long.
+app/controllers/api.rb:22:1: W: Lint/AssignmentInCondition: Avoid assignment in conditional.
+app/helpers/formatter.rb:10:3: C: Style/RedundantReturn: Redundant return detected.
+app/helpers/formatter.rb:18:5: W: Lint/UselessAssignment: Useless assignment to variable - temp.
+config/routes.rb:12:1: C: Layout/TrailingWhitespace: Trailing whitespace detected.
+spec/models/user_spec.rb:5:3: W: Lint/UselessAssignment: Useless assignment to variable - result.
+lib/utils.rb:20:5: C: Style/RedundantReturn: Redundant return detected.
