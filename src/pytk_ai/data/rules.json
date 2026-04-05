@@ -1,5 +1,65 @@
 [
   {
+    "pattern": "^(?:uv\\s+pip\\s+list(?:\\s+.*--outdated|\\s+--outdated.*)?|pip\\s+(?:list(?:\\s+.*--outdated|\\s+--outdated.*)?|outdated))(\\s|$)",
+    "rewrite_prefixes": [
+      "uv pip list",
+      "pip list",
+      "pip outdated"
+    ],
+    "category": "PackageManager",
+    "savings_pct": 78.0,
+    "pytk_ai_cmd": "pytk-ai package"
+  },
+  {
+    "pattern": "^uv\\s+sync(\\s|$)",
+    "rewrite_prefixes": [
+      "uv sync"
+    ],
+    "category": "PackageManager",
+    "savings_pct": 80.0,
+    "pytk_ai_cmd": "pytk-ai package"
+  },
+  {
+    "pattern": "^pnpm\\s+(list|ls)(\\s|$)",
+    "rewrite_prefixes": [
+      "pnpm list",
+      "pnpm ls"
+    ],
+    "category": "PackageManager",
+    "savings_pct": 75.0,
+    "pytk_ai_cmd": "pytk-ai package"
+  },
+  {
+    "pattern": "^npm\\s+(list|ls)(\\s|$)",
+    "rewrite_prefixes": [
+      "npm list",
+      "npm ls"
+    ],
+    "category": "PackageManager",
+    "savings_pct": 75.0,
+    "pytk_ai_cmd": "pytk-ai package"
+  },
+  {
+    "pattern": "^bundle\\s+install(\\s|$)",
+    "rewrite_prefixes": [
+      "bundle install"
+    ],
+    "category": "PackageManager",
+    "savings_pct": 85.0,
+    "pytk_ai_cmd": "pytk-ai package"
+  },
+  {
+    "pattern": "^(npx\\s+|pnpm\\s+)?prisma\\s+generate(\\s|$)",
+    "rewrite_prefixes": [
+      "pnpm prisma generate",
+      "npx prisma generate",
+      "prisma generate"
+    ],
+    "category": "PackageManager",
+    "savings_pct": 80.0,
+    "pytk_ai_cmd": "pytk-ai package"
+  },
+  {
     "pattern": "^git\\s+(?:-[Cc]\\s+\\S+\\s+)*(status|log|diff|show|add|commit|push|pull|branch|fetch|stash|worktree)",
     "rewrite_prefixes": [
       "git"

@@ -7,7 +7,7 @@ class PlanRulesTests(unittest.TestCase):
     def test_load_rules_returns_data_from_json(self):
         rules = load_rules()
         self.assertGreater(len(rules), 0)
-        self.assertEqual(rules[0].pytk_ai_cmd, "pytk-ai git")
+        self.assertTrue(any(rule.pytk_ai_cmd == "pytk-ai git" for rule in rules))
 
     def test_match_rule_finds_git_rule(self):
         rule = match_rule("git status")
@@ -33,3 +33,12 @@ class PlanRulesTests(unittest.TestCase):
         rule = match_rule("wc -l src/app.py")
         self.assertIsNotNone(rule)
         self.assertEqual(rule.pytk_ai_cmd, "pytk-ai wc")
+
+    def test_match_rule_covers_phase4_package_commands(self):
+        rule = match_rule("uv sync")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai package")
+
+        rule = match_rule("npx prisma generate")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai package")

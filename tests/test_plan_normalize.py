@@ -57,3 +57,12 @@ class PlanNormalizeTests(unittest.TestCase):
         self.assertEqual(infer_filter_hint("tree -L 2"), "tree")
         self.assertEqual(infer_filter_hint("wc -l src/app.py"), "wc")
         self.assertEqual(infer_filter_hint("diff -u a b"), "diff")
+
+    def test_infer_filter_hint_handles_package_manager_commands(self):
+        self.assertEqual(infer_filter_hint("pip list"), "package")
+        self.assertEqual(infer_filter_hint("uv pip list --outdated"), "package")
+        self.assertEqual(infer_filter_hint("uv sync"), "package")
+        self.assertEqual(infer_filter_hint("npm list"), "package")
+        self.assertEqual(infer_filter_hint("pnpm ls"), "package")
+        self.assertEqual(infer_filter_hint("bundle install"), "package")
+        self.assertEqual(infer_filter_hint("npx prisma generate"), "package")

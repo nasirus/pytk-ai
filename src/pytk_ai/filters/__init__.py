@@ -13,6 +13,7 @@ from .files import filter_file_output
 from .generic import filter_generic_output
 from .git import filter_git_output
 from .go import filter_go_output, filter_golangci_output
+from .packages import filter_package_output
 from .python import filter_python_output
 from .ruby import filter_rspec_output, filter_rubocop_output
 from .system import filter_system_output
@@ -30,6 +31,7 @@ _FILTERS = {
     "ls": filter_system_output,
     "mypy": filter_python_output,
     "next": filter_next_output,
+    "package": filter_package_output,
     "pytest": filter_python_output,
     "read": filter_file_output,
     "rspec": filter_rspec_output,

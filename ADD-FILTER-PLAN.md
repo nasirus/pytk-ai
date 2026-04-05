@@ -147,13 +147,13 @@ Filter module structure rules:
 
 ## Phase 4: Package manager filters
 
-- [ ] `pip list`
-- [ ] `pip outdated`
-- [ ] `uv sync`
-- [ ] `pnpm list`
-- [ ] `npm list`
-- [ ] `bundle install`
-- [ ] `prisma generate`
+- [x] `pip list`
+- [x] `pip outdated`
+- [x] `uv sync`
+- [x] `pnpm list`
+- [x] `npm list`
+- [x] `bundle install`
+- [x] `prisma generate`
 
 ## Phase 5: Container and infra filters
 

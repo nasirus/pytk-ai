@@ -116,6 +116,14 @@ def infer_filter_hint(command: str) -> str | None:
         return "wc"
     if normalized.startswith("diff ") or normalized == "diff":
         return "diff"
+    if normalized.startswith(("pip list", "pip outdated", "uv sync", "bundle install")):
+        return "package"
+    if normalized.startswith("uv pip list"):
+        return "package"
+    if re.match(r"^(?:npm|pnpm)\s+(?:list|ls)(?:\s|$)", normalized):
+        return "package"
+    if re.match(r"^(?:npx\s+|pnpm\s+)?prisma\s+generate(?:\s|$)", normalized):
+        return "package"
     if re.match(r"^cargo\s+(build|clippy|check|fmt)(\s|$)", normalized):
         return "cargo"
     if normalized.startswith("cargo test"):

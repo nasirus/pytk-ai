@@ -67,3 +67,14 @@ class PlanPlannerTests(unittest.TestCase):
         self.assertTrue(plan.managed)
         self.assertEqual(plan.planned_command, "pytk-ai wc -l src/app.py")
         self.assertEqual(plan.filter_hint, "wc")
+
+    def test_plan_command_rewrites_phase4_package_commands(self):
+        plan = plan_command("uv sync")
+        self.assertTrue(plan.managed)
+        self.assertEqual(plan.planned_command, "pytk-ai package")
+        self.assertEqual(plan.filter_hint, "package")
+
+        plan = plan_command("npm list --depth=0")
+        self.assertTrue(plan.managed)
+        self.assertEqual(plan.planned_command, "pytk-ai package --depth=0")
+        self.assertEqual(plan.filter_hint, "package")
