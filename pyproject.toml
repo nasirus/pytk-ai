@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytk-ai"
-version = "0.1.1"
+version = "0.1.2"
 description = "Python command planning, execution, and output filtering for PYTK-AI"
 readme = "README.md"
 requires-python = ">=3.10"
