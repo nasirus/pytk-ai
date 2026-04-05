@@ -5,7 +5,7 @@ import json
 import sys
 from typing import Any
 
-from .rewrite import RewriteResult, rewrite_command, rewrite_exit_code
+from .rewrite import rewrite_command, rewrite_exit_code
 
 
 def _join_command(parts: list[str]) -> str:

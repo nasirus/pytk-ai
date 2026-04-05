@@ -2,14 +2,14 @@
 
 ## Active work
 
-- Define the PTK high-level architecture around an internal planning step plus public execute + strip library/CLI flow.
-- Turn the first next-priority item into a full project plan in `PLAN.md`, centered on internal planning/rewrite and public `ptk run` / `run_command` surfaces.
+- Start Phase 1 by inventorying `src/ptk/rewrite.py` responsibilities and splitting planning logic into architecture-ready modules.
+- Preserve current rewrite behavior while moving toward internal planning plus public `ptk run` / `run_command` surfaces.
 
 
 ## Next priorities
 
-1. Decompose the architecture into a set of Python modules and classes that can be implemented incrementally.
-2. Implement the core command rewrite flow in Python, using the existing Rust code as a reference for logic and behavior.
+1. Create the Phase 1 responsibility inventory for `src/ptk/rewrite.py`.
+2. Introduce the `src/ptk/plan/` package and move pure planning pieces into it incrementally.
 
 ## History
 
@@ -24,3 +24,4 @@
 - 2026-04-05: Added testing guidance to `AGENTS.md` and `PLAN.md` to create systematic function/module tests, target 100% PTK-owned coverage, and avoid testing system or signature-guaranteed behavior.
 - 2026-04-05: Added edit-workflow guidance to `AGENTS.md` and `PLAN.md` to run `uv ruff check` and `uv ruff format` as the last steps before finishing.
 - 2026-04-05: Scoped the `uv ruff check` / `uv ruff format` workflow instruction to `AGENTS.md` only and removed it from `PLAN.md`.
+- 2026-04-05: Completed Phase 0 direction reset in `ARCHITECTURE.md`, `PLAN.md`, `TODO.md`, and `README.md`; clarified that `ptk run` / `run_command` are the migration targets, `rtk/` is reference-only, and `src/ptk/rewrite.py` is transitional rather than a required compatibility facade.

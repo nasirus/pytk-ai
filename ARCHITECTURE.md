@@ -4,6 +4,20 @@
 
 PTK is a Python package and CLI that accepts a bash command as text, executes it, and returns a stripped, token-efficient result.
 
+## Migration status
+
+Current repository status:
+
+- the current Python scaffold still contains rewrite-first pieces such as `src/ptk/rewrite.py` and the temporary `ptk rewrite` CLI path
+- those pieces are transition scaffolding, not the target public contract
+- the target public CLI is `ptk run <command>`
+- the target public library entrypoint is `from ptk.runner import run_command`
+- command rewrite/planning remains internal implementation detail behind execution
+- the Rust tree in `rtk/` is reference material for useful logic only, not a compatibility contract for PTK behavior, module layout, or CLI shape
+- `src/ptk/rewrite.py` is the current implementation host for planning logic, but it is not required to survive as a permanent compatibility facade; Phase 1 may split or remove it as the new `ptk.plan` package lands
+
+This migration target is: build the Python architecture cleanly from scratch while reusing only useful logic.
+
 It must work in two modes:
 
 1. **CLI**
@@ -337,6 +351,13 @@ Implications:
 ---
 
 ## Phased implementation plan
+
+### Phase 0 — public-direction reset
+
+- keep `ptk run` and `run_command` as the migration target public surfaces
+- treat rewrite/planning as internal-only architecture
+- treat `rtk/` as reference input, not a compatibility requirement
+- allow current rewrite-first modules to be transitional and removable
 
 ### Phase 1 — Rewrite core
 

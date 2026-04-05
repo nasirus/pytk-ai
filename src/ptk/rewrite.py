@@ -27,12 +27,12 @@ class RewriteResult:
 _ENV_PREFIX_RE = re.compile(
     r"^(?:sudo\s+|env\s+|[A-Z_][A-Z0-9_]*=(?:\"(?:[^\"\\]|\\.)*\"|'(?:[^'\\]|\\.)*'|[^\s]*)\s+)+"
 )
-_HEAD_N_RE = re.compile(r'^head\s+-(\d+)\s+(.+)$')
-_HEAD_LINES_RE = re.compile(r'^head\s+--lines=(\d+)\s+(.+)$')
-_TAIL_N_RE = re.compile(r'^tail\s+-(\d+)\s+(.+)$')
-_TAIL_N_SPACE_RE = re.compile(r'^tail\s+-n\s+(\d+)\s+(.+)$')
-_TAIL_LINES_EQ_RE = re.compile(r'^tail\s+--lines=(\d+)\s+(.+)$')
-_TAIL_LINES_SPACE_RE = re.compile(r'^tail\s+--lines\s+(\d+)\s+(.+)$')
+_HEAD_N_RE = re.compile(r"^head\s+-(\d+)\s+(.+)$")
+_HEAD_LINES_RE = re.compile(r"^head\s+--lines=(\d+)\s+(.+)$")
+_TAIL_N_RE = re.compile(r"^tail\s+-(\d+)\s+(.+)$")
+_TAIL_N_SPACE_RE = re.compile(r"^tail\s+-n\s+(\d+)\s+(.+)$")
+_TAIL_LINES_EQ_RE = re.compile(r"^tail\s+--lines=(\d+)\s+(.+)$")
+_TAIL_LINES_SPACE_RE = re.compile(r"^tail\s+--lines\s+(\d+)\s+(.+)$")
 
 _RULES_DATA = json.loads(
     resources.files("ptk.data").joinpath("rules.json").read_text(encoding="utf-8")
@@ -51,7 +51,7 @@ RULES: tuple[Rule, ...] = tuple(
 
 
 def _has_disabled_prefix(cmd: str) -> bool:
-    return bool(re.search(r'(?:^|\s)(?:PTK|RTK)_DISABLED=1(?:\s|$)', cmd))
+    return bool(re.search(r"(?:^|\s)(?:PTK|RTK)_DISABLED=1(?:\s|$)", cmd))
 
 
 def _strip_env_prefix(cmd: str) -> tuple[str, str]:
@@ -59,7 +59,7 @@ def _strip_env_prefix(cmd: str) -> tuple[str, str]:
     if not match:
         return "", cmd.strip()
     prefix = match.group(0)
-    return prefix, cmd[len(prefix):].strip()
+    return prefix, cmd[len(prefix) :].strip()
 
 
 def _normalize_absolute_first_token(cmd: str) -> str:
@@ -84,10 +84,10 @@ def _strip_trailing_redirect_suffix(cmd: str) -> tuple[str, str]:
     idx = len(parts)
     while idx > 0:
         tok = parts[idx - 1]
-        if re.match(r'^(?:\d+)?(?:>>?|<|&>).*$', tok):
+        if re.match(r"^(?:\d+)?(?:>>?|<|&>).*$", tok):
             idx -= 1
             continue
-        if idx > 1 and re.match(r'^(?:\d+)?(?:>>?|<|&>)$', tok):
+        if idx > 1 and re.match(r"^(?:\d+)?(?:>>?|<|&>)$", tok):
             idx -= 2
             continue
         break
@@ -136,7 +136,9 @@ def _rewrite_line_range(cmd: str, redirect_suffix: str) -> str | None:
     return None
 
 
-def _rewrite_segment(segment: str, excluded: Sequence[str] = ()) -> RewriteResult | None:
+def _rewrite_segment(
+    segment: str, excluded: Sequence[str] = ()
+) -> RewriteResult | None:
     trimmed = segment.strip()
     if not trimmed:
         return None
@@ -149,11 +151,13 @@ def _rewrite_segment(segment: str, excluded: Sequence[str] = ()) -> RewriteResul
     if cmd_part.startswith("head -") or cmd_part.startswith("tail "):
         rewritten = _rewrite_line_range(cmd_part, redirect_suffix)
         if rewritten is not None:
-            return RewriteResult(output=rewritten, matched=True, changed=(rewritten != trimmed))
+            return RewriteResult(
+                output=rewritten, matched=True, changed=(rewritten != trimmed)
+            )
         return None
 
     if cmd_part.startswith("cat "):
-        args = cmd_part[len("cat "):].lstrip()
+        args = cmd_part[len("cat ") :].lstrip()
         if args.startswith("-") and not (args.startswith("-n ") or args == "-n"):
             return None
 
@@ -183,7 +187,9 @@ def _rewrite_segment(segment: str, excluded: Sequence[str] = ()) -> RewriteResul
         if rest:
             rewritten += f" {rest}"
         rewritten += redirect_suffix
-        return RewriteResult(output=rewritten, matched=True, changed=(rewritten != trimmed))
+        return RewriteResult(
+            output=rewritten, matched=True, changed=(rewritten != trimmed)
+        )
 
     return None
 
@@ -244,7 +250,9 @@ def _scan_compound(cmd: str) -> tuple[list[tuple[str, str | None]], str | None]:
     return segments, None
 
 
-def rewrite_command(cmd: str, excluded: Sequence[str] | None = None) -> RewriteResult | None:
+def rewrite_command(
+    cmd: str, excluded: Sequence[str] | None = None
+) -> RewriteResult | None:
     excluded = tuple(excluded or ())
     trimmed = cmd.strip()
     if not trimmed:
@@ -289,7 +297,9 @@ def rewrite_command(cmd: str, excluded: Sequence[str] | None = None) -> RewriteR
     return RewriteResult(output=output, matched=True, changed=(output != trimmed))
 
 
-def rewrite_exit_code(cmd: str, excluded: Sequence[str] | None = None) -> tuple[int, str | None]:
+def rewrite_exit_code(
+    cmd: str, excluded: Sequence[str] | None = None
+) -> tuple[int, str | None]:
     result = rewrite_command(cmd, excluded=excluded)
     if result is None:
         return 1, None

@@ -62,11 +62,11 @@
 
 ### Phase 0 — reset the public direction
 
-- [ ] Confirm `ARCHITECTURE.md` remains aligned with the simplified direction: rewrite internal, `ptk run` public, library-first execute-and-strip flow.
-- [ ] Remove the assumption that `ptk rewrite` must remain public.
-- [ ] Remove the assumption that `src/ptk/rewrite.py` must remain a compatibility facade.
-- [ ] Record in docs and task notes that Rust behavior is reference input, not a compatibility contract.
-- [ ] Define the current migration target as “build the Python architecture cleanly from scratch while reusing only useful logic”.
+- [x] Confirm `ARCHITECTURE.md` remains aligned with the simplified direction: rewrite internal, `ptk run` public, library-first execute-and-strip flow.
+- [x] Remove the assumption that `ptk rewrite` must remain public.
+- [x] Remove the assumption that `src/ptk/rewrite.py` must remain a compatibility facade.
+- [x] Record in docs and task notes that Rust behavior is reference input, not a compatibility contract.
+- [x] Define the current migration target as “build the Python architecture cleanly from scratch while reusing only useful logic”.
 
 ### Phase 1 — decompose the current code into architecture-ready modules
 
@@ -388,7 +388,7 @@ Make PTK easy to ship and maintain.
 
 ## Recommended execution order
 
-- [ ] 1. Phase 0 decisions
+- [x] 1. Phase 0 decisions
 - [ ] 2. Packet A
 - [ ] 3. Packet B + Packet C in parallel
 - [ ] 4. Packet D
