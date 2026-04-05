@@ -179,14 +179,19 @@ Filter module structure rules:
 
 ## Cross-cutting tasks
 
-- [ ] Expand planner rules so new filters are discoverable and selected correctly.
-- [ ] Add per-filter regression tests in `tests/`.
-- [ ] Add failure-mode tests to ensure raw output is preserved when needed.
-- [ ] Add benchmark scenarios for each high-value filter family.
-- [ ] Record token-savings evidence before and after each filter lands.
-- [ ] Define when a filter should summarize success only, failure only, or both.
-- [ ] Decide whether filter behavior should differ for interactive vs hook use.
-- [ ] Add structured metrics support for filter benchmarking and future `gain`-style analytics.
+- [x] Expand planner rules so new filters are discoverable and selected correctly.
+- [x] Add per-filter regression tests in `tests/`.
+- [x] Add failure-mode tests to ensure raw output is preserved when needed.
+- [x] Add benchmark scenarios for each high-value filter family.
+  - Covered in `labs/compare_bash_and_pytk_ai.py --filter-benchmarks`.
+- [x] Record token-savings evidence before and after each filter lands.
+  - Sample benchmark mode now emits structured raw-vs-filtered metrics in text or JSON.
+- [x] Define when a filter should summarize success only, failure only, or both.
+  - Shared `FilterPolicy` metadata now records the chosen summary scope per filter family.
+- [x] Decide whether filter behavior should differ for interactive vs hook use.
+  - Current decision: no behavior split; record the usage mode in metrics, but keep filter output identical until a concrete hook-specific need appears.
+- [x] Add structured metrics support for filter benchmarking and future `gain`-style analytics.
+  - Shared `FilterMetrics` now flow through `FilterResult` and `CommandResult`.
 
 ## Suggested implementation order
 
@@ -199,8 +204,8 @@ Filter module structure rules:
 
 ## Done criteria for each filter
 
-- [ ] Planner recognizes the command correctly.
-- [ ] Output is materially smaller on realistic noisy examples.
-- [ ] Success and failure behavior are both tested.
-- [ ] Filter preserves actionable information for agent decision-making.
-- [ ] Benchmark evidence is captured in `labs/compare_bash_and_pytk_ai.py` or a dedicated benchmark.
+- [x] Planner recognizes the command correctly.
+- [x] Output is materially smaller on realistic noisy examples.
+- [x] Success and failure behavior are both tested.
+- [x] Filter preserves actionable information for agent decision-making.
+- [x] Benchmark evidence is captured in `labs/compare_bash_and_pytk_ai.py` or a dedicated benchmark.

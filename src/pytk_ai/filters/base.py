@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import math
 import re
 
-from ..models import FilterResult
+from ..models import FilterMetrics, FilterResult, FilterUsageMode, OutputMetrics
+from .policy import policy_for_filter_name
 
 _ANSI_RE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
@@ -68,6 +70,72 @@ def truncate_lines(text: str, max_lines: int) -> tuple[str, bool]:
             + lines[-tail_count:]
         )
     return "\n".join(kept).strip(), True
+
+
+def combine_command_streams(stdout: str, stderr: str, exit_code: int) -> str:
+    stdout = stdout.rstrip()
+    stderr = stderr.rstrip()
+    if exit_code == 0:
+        parts = [part for part in (stdout, stderr) if part]
+    else:
+        parts = [part for part in (stderr, stdout) if part]
+    return "\n".join(parts)
+
+
+def estimate_tokens(text: str) -> int:
+    if not text:
+        return 0
+    return max(1, math.ceil(len(text) / 4))
+
+
+def output_metrics(text: str) -> OutputMetrics:
+    return OutputMetrics(
+        chars=len(text),
+        lines=0 if not text else len(text.splitlines()),
+        tokens=estimate_tokens(text),
+    )
+
+
+def build_filter_metrics(
+    raw_text: str,
+    filtered_text: str,
+    *,
+    usage_mode: FilterUsageMode,
+) -> FilterMetrics:
+    raw = output_metrics(raw_text)
+    filtered = output_metrics(filtered_text)
+    saved_tokens = raw.tokens - filtered.tokens
+    saved_pct = ((saved_tokens / raw.tokens) * 100.0) if raw.tokens else 0.0
+    return FilterMetrics(
+        usage_mode=usage_mode,
+        estimator="chars/4-estimate",
+        raw=raw,
+        filtered=filtered,
+        saved_chars=raw.chars - filtered.chars,
+        saved_lines=raw.lines - filtered.lines,
+        saved_tokens=saved_tokens,
+        saved_pct=saved_pct,
+    )
+
+
+def finalize_filter_result(
+    result: FilterResult,
+    *,
+    stdout: str,
+    stderr: str,
+    exit_code: int,
+    usage_mode: FilterUsageMode,
+) -> FilterResult:
+    raw_text = combine_command_streams(stdout, stderr, exit_code)
+    filter_name = result.filter_name
+    return FilterResult(
+        output=result.output,
+        filter_name=filter_name,
+        error=result.error,
+        truncated=result.truncated,
+        metrics=build_filter_metrics(raw_text, result.output, usage_mode=usage_mode),
+        policy=policy_for_filter_name(filter_name),
+    )
 
 
 def make_filter_result(

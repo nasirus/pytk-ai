@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import statistics
 import subprocess
@@ -17,6 +18,8 @@ SRC_DIR = PROJECT_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
+from pytk_ai.filters import filter_output  # noqa: E402
+from pytk_ai.plan import plan_command  # noqa: E402
 from pytk_ai.runner import run_command  # noqa: E402
 
 
@@ -50,6 +53,27 @@ class BenchmarkResult(NamedTuple):
     pytk_ai_output: OutputStats
 
 
+class FilterSampleScenario(NamedTuple):
+    family: str
+    title: str
+    command: str
+    stdout: str
+    stderr: str = ""
+    exit_code: int = 0
+
+
+class FilterSampleResult(NamedTuple):
+    family: str
+    title: str
+    command: str
+    filter_name: str
+    policy: str
+    raw_output: OutputStats
+    filtered_output: OutputStats
+    saved_tokens: int
+    saved_pct: float
+
+
 SCENARIOS: tuple[Scenario, ...] = (
     Scenario(title="List repository root", command="ls"),
     Scenario(title="List PYTK-AI package files", command="ls src/pytk_ai"),
@@ -68,6 +92,121 @@ SCENARIOS: tuple[Scenario, ...] = (
     ),
 )
 
+FILTER_SAMPLE_SCENARIOS: tuple[FilterSampleScenario, ...] = (
+    FilterSampleScenario(
+        family="git",
+        title="git diff patch trimming",
+        command="git diff -- src/app.py",
+        stdout=(
+            "diff --git a/src/app.py b/src/app.py\n"
+            "index 1234567..89abcde 100644\n"
+            "--- a/src/app.py\n"
+            "+++ b/src/app.py\n"
+            "@@ -1,8 +1,10 @@\n"
+            "-old line\n"
+            "+new line\n"
+            " context 1\n"
+            " context 2\n"
+            " context 3\n"
+            " context 4\n"
+            " context 5\n"
+            " context 6\n"
+            " context 7\n"
+            " context 8\n"
+        ),
+    ),
+    FilterSampleScenario(
+        family="tests",
+        title="cargo test failure grouping",
+        command="cargo test",
+        stdout=(
+            "running 3 tests\n"
+            "test parser::ok_case ... ok\n"
+            "test parser::bad_case ... FAILED\n"
+            "test parser::other_case ... ok\n\n"
+            "failures:\n\n"
+            "---- parser::bad_case stdout ----\n"
+            "thread 'parser::bad_case' panicked at src/lib.rs:42:9:\n"
+            "assertion `left == right` failed\n"
+            "left: 1\n"
+            "right: 2\n\n"
+            "failures:\n"
+            "    parser::bad_case\n\n"
+            "test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out\n"
+        ),
+        exit_code=101,
+    ),
+    FilterSampleScenario(
+        family="build",
+        title="next build route summary",
+        command="next build",
+        stdout=(
+            "Route (app)                              Size     First Load JS\n"
+            "┌ ○ /                                    180 B           102 kB\n"
+            "├ ○ /_not-found                          902 B           103 kB\n"
+            "├ ƒ /api/health                          150 B           101 kB\n"
+            "├ ƒ /dashboard                           3.25 kB         120 kB\n"
+            "├ ƒ /dashboard/settings                  2.98 kB         119 kB\n"
+            "├ ƒ /projects/[id]                       4.10 kB         124 kB\n"
+            "└ ○ /signin                              1.85 kB         110 kB\n"
+            "+ First Load JS shared by all            101 kB\n"
+        ),
+    ),
+    FilterSampleScenario(
+        family="files",
+        title="tail repeated log spam",
+        command="tail -n 20 app.log",
+        stdout=(
+            "INFO worker started\n"
+            "INFO worker started\n"
+            "INFO worker started\n"
+            "INFO worker started\n"
+            "INFO worker started\n"
+            "INFO worker started\n"
+            "INFO worker started\n"
+            "INFO worker started\n"
+            "WARN retrying request\n"
+            "WARN retrying request\n"
+            "WARN retrying request\n"
+            "ERROR failed to reach upstream\n"
+            "ERROR failed to reach upstream\n"
+            "ERROR failed to reach upstream\n"
+            "ERROR failed to reach upstream\n"
+        ),
+    ),
+    FilterSampleScenario(
+        family="packages",
+        title="pip outdated package table",
+        command="pip list --outdated",
+        stdout=(
+            "Package    Version Latest Type\n"
+            "---------- ------- ------ -----\n"
+            "httpx      0.27.0  0.28.1 wheel\n"
+            "pydantic   2.8.0   2.9.2  wheel\n"
+        ),
+    ),
+    FilterSampleScenario(
+        family="infra",
+        title="docker ps compact listing",
+        command="docker ps",
+        stdout=(
+            "CONTAINER ID   IMAGE               COMMAND                  CREATED         STATUS         PORTS                    NAMES\n"
+            'abc123def456   postgres:16         "docker-entrypoint.s…"   2 hours ago     Up 2 hours     0.0.0.0:5432->5432/tcp   db\n'
+            'fedcba654321   redis:7             "docker-entrypoint.s…"   90 minutes ago  Up 90 minutes  0.0.0.0:6379->6379/tcp   cache\n'
+        ),
+    ),
+    FilterSampleScenario(
+        family="github-api",
+        title="gh pr list default table",
+        command="gh pr list",
+        stdout=(
+            "Showing 2 of 2 open pull requests in org/repo\n\n"
+            "#14  fix parser edge cases     main <- fix/parser   OPEN   2026-04-05\n"
+            "#12  add benchmark reporting   main <- feat/bench   OPEN   2026-04-04\n"
+        ),
+    ),
+)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -83,6 +222,17 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=10,
         help="number of timed runs per benchmark scenario",
+    )
+    parser.add_argument(
+        "--filter-benchmarks",
+        action="store_true",
+        help="run deterministic sample-based filter benchmarks across filter families",
+    )
+    parser.add_argument(
+        "--format",
+        choices=("text", "json"),
+        default="text",
+        help="output format for benchmark reports",
     )
     args = parser.parse_args()
     if args.iterations < 1:
@@ -324,6 +474,43 @@ def benchmark_scenarios(iterations: int) -> list[BenchmarkResult]:
         workspace.cleanup()
 
 
+def benchmark_filter_samples() -> list[FilterSampleResult]:
+    results: list[FilterSampleResult] = []
+    for scenario in FILTER_SAMPLE_SCENARIOS:
+        result = filter_output(
+            scenario.command,
+            scenario.stdout,
+            scenario.stderr,
+            scenario.exit_code,
+            plan=plan_command(scenario.command),
+        )
+        metrics = result.metrics
+        if metrics is None:
+            continue
+        results.append(
+            FilterSampleResult(
+                family=scenario.family,
+                title=scenario.title,
+                command=scenario.command,
+                filter_name=result.filter_name or "unknown",
+                policy=(result.policy.summary_scope if result.policy else "unknown"),
+                raw_output=OutputStats(
+                    chars=metrics.raw.chars,
+                    lines=metrics.raw.lines,
+                    tokens=metrics.raw.tokens,
+                ),
+                filtered_output=OutputStats(
+                    chars=metrics.filtered.chars,
+                    lines=metrics.filtered.lines,
+                    tokens=metrics.filtered.tokens,
+                ),
+                saved_tokens=metrics.saved_tokens,
+                saved_pct=metrics.saved_pct,
+            )
+        )
+    return results
+
+
 def format_percent(value: float) -> str:
     return f"{value:.1f}%"
 
@@ -454,8 +641,77 @@ def print_benchmark_report(results: list[BenchmarkResult], *, iterations: int) -
         )
 
 
+def print_filter_benchmark_report(
+    results: list[FilterSampleResult], *, output_format: str
+) -> None:
+    if output_format == "json":
+        payload = [
+            {
+                "family": result.family,
+                "title": result.title,
+                "command": result.command,
+                "filter_name": result.filter_name,
+                "policy": result.policy,
+                "raw_output": result.raw_output._asdict(),
+                "filtered_output": result.filtered_output._asdict(),
+                "saved_tokens": result.saved_tokens,
+                "saved_pct": result.saved_pct,
+            }
+            for result in results
+        ]
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return
+
+    rows = [
+        (
+            result.family,
+            result.filter_name,
+            result.policy,
+            str(result.raw_output.tokens),
+            str(result.filtered_output.tokens),
+            str(result.saved_tokens),
+            format_percent(result.saved_pct),
+        )
+        for result in results
+    ]
+    print("Token estimator: chars/4 estimate")
+    print(
+        "Usage mode decision: interactive and hook currently share the same filter output."
+    )
+    print()
+    print(
+        format_table(
+            (
+                "family",
+                "filter",
+                "policy",
+                "raw tok",
+                "filtered tok",
+                "saved",
+                "saved %",
+            ),
+            rows,
+        )
+    )
+    print()
+    for result in results:
+        print(f"{result.family}: {result.title}")
+        print(f"  command: {result.command}")
+        print(f"  filter: {result.filter_name}")
+        print(
+            "  tokens:"
+            f" {result.raw_output.tokens} -> {result.filtered_output.tokens}"
+            f" ({result.saved_tokens} saved, {format_percent(result.saved_pct)})"
+        )
+
+
 def main() -> None:
     args = parse_args()
+    if args.filter_benchmarks:
+        print_filter_benchmark_report(
+            benchmark_filter_samples(), output_format=args.format
+        )
+        return
     if args.benchmark:
         print_benchmark_report(
             benchmark_scenarios(args.iterations), iterations=args.iterations

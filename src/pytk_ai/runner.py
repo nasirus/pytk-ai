@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .filters import filter_output
-from .models import CommandResult
+from .models import CommandResult, FilterUsageMode
 from .plan import plan_command
 from .subprocess_utils import execute_raw
 
@@ -15,6 +15,7 @@ def run_command(
     plan: bool = True,
     excluded: tuple[str, ...] | None = None,
     max_output_lines: int = 200,
+    usage_mode: FilterUsageMode = "interactive",
 ) -> CommandResult:
     if not command.strip():
         return CommandResult(
@@ -29,6 +30,8 @@ def run_command(
             exit_code=1,
             error="empty-command",
             skip_reason="empty-command",
+            filter_metrics=None,
+            filter_policy=None,
         )
 
     command_plan = plan_command(command, excluded=excluded) if plan else None
@@ -46,6 +49,7 @@ def run_command(
         execution.exit_code,
         plan=command_plan,
         max_output_lines=max_output_lines,
+        usage_mode=usage_mode,
     )
     errors = [error for error in (execution.error, filtered.error) if error]
     return CommandResult(
@@ -61,4 +65,6 @@ def run_command(
         filter_name=filtered.filter_name,
         error="; ".join(errors) if errors else None,
         skip_reason=command_plan.skip_reason if command_plan else None,
+        filter_metrics=filtered.metrics,
+        filter_policy=filtered.policy,
     )

@@ -69,6 +69,7 @@ def _run_command(args: argparse.Namespace) -> int:
         command,
         excluded=tuple(args.exclude or ()),
         max_output_lines=args.max_output_lines,
+        usage_mode=args.usage_mode,
     )
     if result.filtered_output:
         sys.stdout.write(result.filtered_output)
@@ -122,6 +123,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=200,
         help="maximum number of filtered output lines",
+    )
+    run.add_argument(
+        "--usage-mode",
+        choices=("interactive", "hook"),
+        default="interactive",
+        help="record whether filtering is being used directly or via a hook",
     )
     run.set_defaults(func=_run_command)
 

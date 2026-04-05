@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from ..models import FilterResult
+from ..models import FilterResult, FilterUsageMode
 from ..plan import CommandPlan
 from ..plan.normalize import infer_filter_hint
+from .base import finalize_filter_result
 from .build import (
     filter_cargo_output,
     filter_lint_output,
@@ -61,6 +62,7 @@ def filter_output(
     *,
     plan: CommandPlan | None = None,
     max_output_lines: int = 200,
+    usage_mode: FilterUsageMode = "interactive",
 ) -> FilterResult:
     filter_hint = (
         plan.filter_hint
@@ -69,12 +71,18 @@ def filter_output(
     )
     filter_func = _FILTERS.get(filter_hint, filter_generic_output)
     try:
-        return filter_func(
-            command,
-            stdout,
-            stderr,
-            exit_code,
-            max_output_lines=max_output_lines,
+        return finalize_filter_result(
+            filter_func(
+                command,
+                stdout,
+                stderr,
+                exit_code,
+                max_output_lines=max_output_lines,
+            ),
+            stdout=stdout,
+            stderr=stderr,
+            exit_code=exit_code,
+            usage_mode=usage_mode,
         )
     except Exception as exc:
         fallback = filter_generic_output(
@@ -84,9 +92,15 @@ def filter_output(
             exit_code,
             max_output_lines=max_output_lines,
         )
-        return FilterResult(
-            output=fallback.output,
-            filter_name=fallback.filter_name,
-            error=f"{filter_hint or 'unknown'} filter failed: {exc}",
-            truncated=fallback.truncated,
+        return finalize_filter_result(
+            FilterResult(
+                output=fallback.output,
+                filter_name=fallback.filter_name,
+                error=f"{filter_hint or 'unknown'} filter failed: {exc}",
+                truncated=fallback.truncated,
+            ),
+            stdout=stdout,
+            stderr=stderr,
+            exit_code=exit_code,
+            usage_mode=usage_mode,
         )
