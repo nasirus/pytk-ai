@@ -69,7 +69,7 @@
     "pytk_ai_cmd": "pytk-ai git"
   },
   {
-    "pattern": "^gh\\s+(pr|issue|run|repo|api|release)",
+    "pattern": "^gh\\s+(?:pr\\s+(?:list|view)|issue\\s+list|run\\s+list)(\\s|$)",
     "rewrite_prefixes": [
       "gh"
     ],

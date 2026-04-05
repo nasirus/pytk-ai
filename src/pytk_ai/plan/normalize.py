@@ -132,6 +132,14 @@ def infer_filter_hint(command: str) -> str | None:
         return "test"
     if normalized.startswith("git "):
         return "git"
+    if re.match(r"^gh\s+pr\s+(?:list|view)(?:\s|$)", normalized):
+        return "gh"
+    if re.match(r"^gh\s+issue\s+list(?:\s|$)", normalized):
+        return "gh"
+    if re.match(r"^gh\s+run\s+list(?:\s|$)", normalized):
+        return "gh"
+    if normalized.startswith("gh "):
+        return None
     if re.match(r"^(?:npx\s+|pnpm\s+)?tsc(\s|$)", normalized):
         return "tsc"
     if re.match(r"^(?:npx\s+|pnpm\s+)?next\s+build(\s|$)", normalized):
@@ -185,6 +193,10 @@ def infer_filter_hint(command: str) -> str | None:
         return "terraform"
     if normalized.startswith("terraform "):
         return None
+    if normalized.startswith("curl ") or normalized == "curl":
+        return "curl"
+    if normalized.startswith("wget ") or normalized == "wget":
+        return "wget"
     if normalized.startswith("ls"):
         return "ls"
     if normalized.startswith("find ") or normalized == "find":

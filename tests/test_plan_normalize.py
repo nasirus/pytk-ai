@@ -74,3 +74,14 @@ class PlanNormalizeTests(unittest.TestCase):
         self.assertEqual(infer_filter_hint("aws ec2 describe-instances"), "aws")
         self.assertEqual(infer_filter_hint("terraform validate"), "terraform")
         self.assertIsNone(infer_filter_hint("docker compose up -d"))
+
+    def test_infer_filter_hint_handles_phase6_github_and_api_commands(self):
+        self.assertEqual(infer_filter_hint("gh pr list"), "gh")
+        self.assertEqual(infer_filter_hint("gh pr view 42"), "gh")
+        self.assertEqual(infer_filter_hint("gh issue list"), "gh")
+        self.assertEqual(infer_filter_hint("gh run list"), "gh")
+        self.assertEqual(infer_filter_hint("curl https://api.example.com"), "curl")
+        self.assertEqual(
+            infer_filter_hint("wget https://example.com/file.tar.gz"), "wget"
+        )
+        self.assertIsNone(infer_filter_hint("gh issue view 42"))

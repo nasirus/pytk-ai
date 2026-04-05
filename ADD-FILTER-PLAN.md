@@ -170,12 +170,12 @@ Filter module structure rules:
 
 ## Phase 6: GitHub and API-oriented filters
 
-- [ ] `gh pr list`
-- [ ] `gh pr view`
-- [ ] `gh issue list`
-- [ ] `gh run list`
-- [ ] `curl` for JSON/schema summarization
-- [ ] `wget` progress/output cleanup
+- [x] `gh pr list`
+- [x] `gh pr view`
+- [x] `gh issue list`
+- [x] `gh run list`
+- [x] `curl` for JSON/schema summarization
+- [x] `wget` progress/output cleanup
 
 ## Cross-cutting tasks
 

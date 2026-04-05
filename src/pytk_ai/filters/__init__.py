@@ -11,6 +11,7 @@ from .build import (
 )
 from .files import filter_file_output
 from .generic import filter_generic_output
+from .github_api import filter_github_api_output
 from .git import filter_git_output
 from .go import filter_go_output, filter_golangci_output
 from .infra import filter_infra_output
@@ -23,9 +24,11 @@ from .tests import filter_test_output
 _FILTERS = {
     "aws": filter_infra_output,
     "cargo": filter_cargo_output,
+    "curl": filter_github_api_output,
     "diff": filter_file_output,
     "docker": filter_infra_output,
     "find": filter_file_output,
+    "gh": filter_github_api_output,
     "git": filter_git_output,
     "go": filter_go_output,
     "golangci-lint": filter_golangci_output,
@@ -46,6 +49,7 @@ _FILTERS = {
     "tsc": filter_tsc_output,
     "terraform": filter_infra_output,
     "wc": filter_file_output,
+    "wget": filter_github_api_output,
 }
 
 

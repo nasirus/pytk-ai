@@ -59,3 +59,20 @@ class PlanRulesTests(unittest.TestCase):
         rule = match_rule("terraform validate")
         self.assertIsNotNone(rule)
         self.assertEqual(rule.pytk_ai_cmd, "pytk-ai terraform")
+
+    def test_match_rule_covers_phase6_github_and_api_commands(self):
+        rule = match_rule("gh pr list")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai gh")
+
+        rule = match_rule("gh issue list")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai gh")
+
+        rule = match_rule("curl https://api.example.com")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai curl")
+
+        rule = match_rule("wget https://example.com/file.tar.gz")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai wget")

@@ -102,3 +102,34 @@ class PlanPlannerTests(unittest.TestCase):
         self.assertTrue(plan.managed)
         self.assertEqual(plan.planned_command, "pytk-ai terraform validate -json")
         self.assertEqual(plan.filter_hint, "terraform")
+
+    def test_plan_command_rewrites_phase6_github_and_api_commands(self):
+        plan = plan_command("gh pr list")
+        self.assertTrue(plan.managed)
+        self.assertEqual(plan.planned_command, "pytk-ai gh pr list")
+        self.assertEqual(plan.filter_hint, "gh")
+
+        plan = plan_command("gh pr view 42")
+        self.assertTrue(plan.managed)
+        self.assertEqual(plan.planned_command, "pytk-ai gh pr view 42")
+        self.assertEqual(plan.filter_hint, "gh")
+
+        plan = plan_command("curl https://api.example.com/users")
+        self.assertTrue(plan.managed)
+        self.assertEqual(
+            plan.planned_command, "pytk-ai curl https://api.example.com/users"
+        )
+        self.assertEqual(plan.filter_hint, "curl")
+
+        plan = plan_command("wget https://example.com/file.tar.gz")
+        self.assertTrue(plan.managed)
+        self.assertEqual(
+            plan.planned_command,
+            "pytk-ai wget https://example.com/file.tar.gz",
+        )
+        self.assertEqual(plan.filter_hint, "wget")
+
+    def test_plan_command_keeps_structured_gh_output_raw(self):
+        plan = plan_command("gh pr view 42 --json number,title")
+        self.assertFalse(plan.managed)
+        self.assertEqual(plan.skip_reason, "gh-structured-output")
