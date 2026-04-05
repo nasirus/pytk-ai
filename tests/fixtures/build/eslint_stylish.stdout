@@ -1,0 +1,26 @@
+/repo/src/app.ts
+  1:7   error    'value' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  4:1   warning  Unexpected console statement                no-console
+  15:3  error    Missing return type on function             @typescript-eslint/explicit-function-return-type
+
+/repo/src/lib.ts
+  2:3   error    Missing return type on function  @typescript-eslint/explicit-function-return-type
+  8:5   warning  Unexpected console statement     no-console
+  12:1  error    Unexpected var                   no-var
+
+/repo/src/utils.ts
+  3:7   error    'helper' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  18:1  error    Missing return type on function             @typescript-eslint/explicit-function-return-type
+  25:5  warning  Unexpected console statement                no-console
+
+/repo/src/middleware.ts
+  1:1  error    Unexpected var                   no-var
+  10:3  error    Missing return type on function  @typescript-eslint/explicit-function-return-type
+  22:7  error    'x' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+/repo/src/validators.ts
+  5:1  error    Missing return type on function             @typescript-eslint/explicit-function-return-type
+  12:5  warning  Unexpected console statement                no-console
+  18:1  error    Unexpected var                             no-var
+
+✖ 17 problems (12 errors, 5 warnings)

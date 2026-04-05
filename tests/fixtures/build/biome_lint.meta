@@ -1,0 +1,1 @@
+{"command": "biome lint src", "exit_code": 1, "filter_name": "lint.biome"}

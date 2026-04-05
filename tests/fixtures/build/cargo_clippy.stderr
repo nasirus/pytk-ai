@@ -1,0 +1,4 @@
+warning: this `map_or` can be simplified
+ --> src/lib.rs:10:9
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_map_or

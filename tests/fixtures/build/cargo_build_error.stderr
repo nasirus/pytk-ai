@@ -1,0 +1,12 @@
+Compiling demo v0.1.0 (/tmp/demo)
+error[E0425]: cannot find value `missing` in this scope
+ --> src/main.rs:2:5
+  |
+2 |     missing();
+  |     ^^^^^^^ not found in this scope
+
+warning: unused variable: `x`
+ --> src/lib.rs:4:9
+  |
+4 |     let x = 1;
+  |         ^ help: if this is intentional, prefix it with an underscore: `_x`

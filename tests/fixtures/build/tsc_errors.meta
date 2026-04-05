@@ -1,0 +1,1 @@
+{"command": "tsc --noEmit", "exit_code": 2, "filter_name": "tsc"}

@@ -1,0 +1,4 @@
+Failed to compile.
+
+./src/app/page.tsx:7:12
+Type error: Type 'string' is not assignable to type 'number'.

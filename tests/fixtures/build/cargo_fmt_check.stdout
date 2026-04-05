@@ -1,0 +1,7 @@
+Would reformat: src/lib.rs
+Would reformat: tests/test_app.rs
+Would reformat: src/main.rs
+Would reformat: src/models/user.rs
+Would reformat: src/handlers/api.rs
+Would reformat: src/utils/helpers.rs
+Would reformat: examples/demo.rs

@@ -1,0 +1,1 @@
+{"command": "eslint src", "exit_code": 1, "filter_name": "lint.eslint"}
