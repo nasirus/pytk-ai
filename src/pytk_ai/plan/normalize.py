@@ -162,6 +162,29 @@ def infer_filter_hint(command: str) -> str | None:
         return "rspec"
     if re.match(r"^(?:bundle\s+exec\s+)?rubocop(\s|$)", normalized):
         return "rubocop"
+    if re.match(r"^docker\s+(?:ps|images|logs)(?:\s|$)", normalized):
+        return "docker"
+    if re.match(r"^docker\s+compose\s+ps(?:\s|$)", normalized):
+        return "docker"
+    if normalized.startswith("docker "):
+        return None
+    if re.match(r"^kubectl\s+(?:pods|services|logs)(?:\s|$)", normalized):
+        return "kubectl"
+    if re.match(r"^kubectl\s+get\s+(?:pods|services)(?:\s|$)", normalized):
+        return "kubectl"
+    if normalized.startswith("kubectl "):
+        return None
+    if re.match(
+        r"^aws\s+\S+\s+(?:describe|get|list)(?:-[a-z0-9-]+)?(?:\s|$)",
+        normalized,
+    ) or re.match(r"^aws\s+(?:sts\s+get-caller-identity|s3\s+ls)(?:\s|$)", normalized):
+        return "aws"
+    if normalized.startswith("aws "):
+        return None
+    if re.match(r"^terraform\s+(?:plan|validate)(?:\s|$)", normalized):
+        return "terraform"
+    if normalized.startswith("terraform "):
+        return None
     if normalized.startswith("ls"):
         return "ls"
     if normalized.startswith("find ") or normalized == "find":

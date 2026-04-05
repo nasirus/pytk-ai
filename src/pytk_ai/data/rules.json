@@ -255,7 +255,7 @@
     "pytk_ai_cmd": "pytk-ai prisma"
   },
   {
-    "pattern": "^docker\\s+(ps|images|logs|run|exec|build|compose\\s+(ps|logs|build))",
+    "pattern": "^docker\\s+(ps|images|logs|compose\\s+ps)(\\s|$)",
     "rewrite_prefixes": [
       "docker"
     ],
@@ -264,13 +264,22 @@
     "pytk_ai_cmd": "pytk-ai docker"
   },
   {
-    "pattern": "^kubectl\\s+(get|logs|describe|apply)",
+    "pattern": "^kubectl\\s+((get\\s+)?(pods|services)|logs)(\\s|$)",
     "rewrite_prefixes": [
       "kubectl"
     ],
     "category": "Infra",
     "savings_pct": 85.0,
     "pytk_ai_cmd": "pytk-ai kubectl"
+  },
+  {
+    "pattern": "^aws\\s+\\S+\\s+((describe|get|list)(-[a-z0-9-]+)?|sts\\s+get-caller-identity|s3\\s+ls)(\\s|$)",
+    "rewrite_prefixes": [
+      "aws"
+    ],
+    "category": "Infra",
+    "savings_pct": 80.0,
+    "pytk_ai_cmd": "pytk-ai aws"
   },
   {
     "pattern": "^tree(\\s|$)",
@@ -682,7 +691,7 @@
     "pytk_ai_cmd": "pytk-ai systemctl"
   },
   {
-    "pattern": "^terraform\\s+plan",
+    "pattern": "^terraform\\s+(plan|validate)(\\s|$)",
     "rewrite_prefixes": [
       "terraform"
     ],

@@ -78,3 +78,27 @@ class PlanPlannerTests(unittest.TestCase):
         self.assertTrue(plan.managed)
         self.assertEqual(plan.planned_command, "pytk-ai package --depth=0")
         self.assertEqual(plan.filter_hint, "package")
+
+    def test_plan_command_rewrites_phase5_infra_commands(self):
+        plan = plan_command("docker ps")
+        self.assertTrue(plan.managed)
+        self.assertEqual(plan.planned_command, "pytk-ai docker ps")
+        self.assertEqual(plan.filter_hint, "docker")
+
+        plan = plan_command("kubectl get pods -A")
+        self.assertTrue(plan.managed)
+        self.assertEqual(plan.planned_command, "pytk-ai kubectl get pods -A")
+        self.assertEqual(plan.filter_hint, "kubectl")
+
+        plan = plan_command("aws ec2 describe-instances --output table")
+        self.assertTrue(plan.managed)
+        self.assertEqual(
+            plan.planned_command,
+            "pytk-ai aws ec2 describe-instances --output table",
+        )
+        self.assertEqual(plan.filter_hint, "aws")
+
+        plan = plan_command("terraform validate -json")
+        self.assertTrue(plan.managed)
+        self.assertEqual(plan.planned_command, "pytk-ai terraform validate -json")
+        self.assertEqual(plan.filter_hint, "terraform")

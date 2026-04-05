@@ -66,3 +66,11 @@ class PlanNormalizeTests(unittest.TestCase):
         self.assertEqual(infer_filter_hint("pnpm ls"), "package")
         self.assertEqual(infer_filter_hint("bundle install"), "package")
         self.assertEqual(infer_filter_hint("npx prisma generate"), "package")
+
+    def test_infer_filter_hint_handles_phase5_infra_commands(self):
+        self.assertEqual(infer_filter_hint("docker ps"), "docker")
+        self.assertEqual(infer_filter_hint("docker compose ps"), "docker")
+        self.assertEqual(infer_filter_hint("kubectl get pods -A"), "kubectl")
+        self.assertEqual(infer_filter_hint("aws ec2 describe-instances"), "aws")
+        self.assertEqual(infer_filter_hint("terraform validate"), "terraform")
+        self.assertIsNone(infer_filter_hint("docker compose up -d"))

@@ -157,16 +157,16 @@ Filter module structure rules:
 
 ## Phase 5: Container and infra filters
 
-- [ ] `docker ps`
-- [ ] `docker images`
-- [ ] `docker logs`
-- [ ] `docker compose ps`
-- [ ] `kubectl pods`
-- [ ] `kubectl services`
-- [ ] `kubectl logs`
-- [ ] `aws` high-volume read commands
-- [ ] `terraform plan`
-- [ ] `terraform validate`
+- [x] `docker ps`
+- [x] `docker images`
+- [x] `docker logs`
+- [x] `docker compose ps`
+- [x] `kubectl pods`
+- [x] `kubectl services`
+- [x] `kubectl logs`
+- [x] `aws` high-volume read commands
+- [x] `terraform plan`
+- [x] `terraform validate`
 
 ## Phase 6: GitHub and API-oriented filters
 

@@ -42,3 +42,20 @@ class PlanRulesTests(unittest.TestCase):
         rule = match_rule("npx prisma generate")
         self.assertIsNotNone(rule)
         self.assertEqual(rule.pytk_ai_cmd, "pytk-ai package")
+
+    def test_match_rule_covers_phase5_infra_commands(self):
+        rule = match_rule("docker ps")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai docker")
+
+        rule = match_rule("kubectl get services")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai kubectl")
+
+        rule = match_rule("aws ec2 describe-instances")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai aws")
+
+        rule = match_rule("terraform validate")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai terraform")
