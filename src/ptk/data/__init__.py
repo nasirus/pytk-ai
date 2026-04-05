@@ -1,0 +1,1 @@
+"""Packaged command registry data for PTK AI."""
