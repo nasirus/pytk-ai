@@ -137,12 +137,12 @@ Filter module structure rules:
 
 ## Phase 3: File and search filters
 
-- [ ] `tree`
-- [ ] `wc`
-- [ ] `diff`
-- [ ] `read`
+- [x] `tree`
+- [x] `wc`
+- [x] `diff`
+- [x] `read`
   - Add command-specific behavior rather than using the current system fallback.
-- [ ] `rg`
+- [x] `rg`
   - Add grouped/multi-file search summaries beyond plain passthrough.
 
 ## Phase 4: Package manager filters

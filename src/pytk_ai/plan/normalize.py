@@ -110,6 +110,12 @@ def infer_filter_hint(command: str) -> str | None:
         return "read"
     if normalized.startswith(("rg ", "grep ")):
         return "grep"
+    if normalized.startswith("tree") and (normalized == "tree" or normalized[4] == " "):
+        return "tree"
+    if normalized.startswith("wc") and (normalized == "wc" or normalized[2] == " "):
+        return "wc"
+    if normalized.startswith("diff ") or normalized == "diff":
+        return "diff"
     if re.match(r"^cargo\s+(build|clippy|check|fmt)(\s|$)", normalized):
         return "cargo"
     if normalized.startswith("cargo test"):

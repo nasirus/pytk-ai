@@ -222,7 +222,16 @@
     "pytk_ai_cmd": "pytk-ai tree"
   },
   {
-    "pattern": "^diff\\s+",
+    "pattern": "^wc(\\s|$)",
+    "rewrite_prefixes": [
+      "wc"
+    ],
+    "category": "Files",
+    "savings_pct": 55.0,
+    "pytk_ai_cmd": "pytk-ai wc"
+  },
+  {
+    "pattern": "^diff(\\s|$)",
     "rewrite_prefixes": [
       "diff"
     ],

@@ -9,6 +9,7 @@ from .build import (
     filter_next_output,
     filter_tsc_output,
 )
+from .files import filter_file_output
 from .generic import filter_generic_output
 from .git import filter_git_output
 from .go import filter_go_output, filter_golangci_output
@@ -19,22 +20,25 @@ from .tests import filter_test_output
 
 _FILTERS = {
     "cargo": filter_cargo_output,
-    "find": filter_system_output,
+    "diff": filter_file_output,
+    "find": filter_file_output,
     "git": filter_git_output,
     "go": filter_go_output,
     "golangci-lint": filter_golangci_output,
-    "grep": filter_system_output,
+    "grep": filter_file_output,
     "lint": filter_lint_output,
     "ls": filter_system_output,
     "mypy": filter_python_output,
     "next": filter_next_output,
     "pytest": filter_python_output,
-    "read": filter_system_output,
+    "read": filter_file_output,
     "rspec": filter_rspec_output,
     "rubocop": filter_rubocop_output,
     "ruff": filter_python_output,
     "test": filter_test_output,
+    "tree": filter_file_output,
     "tsc": filter_tsc_output,
+    "wc": filter_file_output,
 }
 
 
