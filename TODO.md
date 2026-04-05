@@ -29,3 +29,10 @@
 - 2026-04-05: Validated PTK-owned coverage with `python -m trace --count --summary`, confirmed 100% execution coverage for the implemented PTK modules under the new test suite, and closed the remaining `PLAN.md` coverage checklist items.
 - 2026-04-05: Added a `labs/` sandbox with a small script that compares classic bash subprocess output against PTK output for the same command.
 - 2026-04-05: Expanded the `labs/` comparison script into a multi-scenario runner covering file listing, grep, and git-oriented command cases.
+- 2026-04-05: Extended `labs/compare_bash_and_ptk.py` with a reproducible benchmark mode that measures bash vs PTK runtime overhead and estimated token savings on large `ls`, `find`, and `git status` scenarios.
+- 2026-04-05: Added a high-volume repetitive-output scenario and per-scenario token stats to `labs/compare_bash_and_ptk.py` so token savings are obvious in the default side-by-side comparison mode.
+- 2026-04-05: Added `ADD-FILTER-PLAN.md` to track the missing high-value filters, implementation phases, and done criteria for future PTK sessions.
+- 2026-04-05: Updated `ADD-FILTER-PLAN.md` to require future filter work to consult the legacy `/rtk` repository docs and implementations before reimplementing filters in Python.
+- 2026-04-05: Updated `ADD-FILTER-PLAN.md` to require future filters to stay modular inside `src/ptk/filters/`, with shared logic isolated and dispatch kept in `filters/__init__.py`.
+- 2026-04-05: Completed `ADD-FILTER-PLAN.md` Phase 1 by adding modular high-value git, test-wrapper, cargo-test, ruff-check, and read-command filters; expanded planner coverage for generic `* test` wrappers; and added focused regression tests for the new success/failure paths.
+- 2026-04-05: Fixed Phase 1 regressions by limiting the test filter to `cargo test`, preserving full `git branch -vv` local branch lines, and keeping exit-0 `git add` warnings visible.

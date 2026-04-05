@@ -14,9 +14,15 @@ class PlanPlannerTests(unittest.TestCase):
 
     def test_plan_command_preserves_compound_commands(self):
         plan = plan_command("git add . && cargo test")
-        self.assertEqual(plan.planned_command, "ptk git add . && ptk cargo test")
+        self.assertEqual(plan.planned_command, "ptk git add . && ptk test")
         self.assertEqual(len(plan.segments), 2)
         self.assertTrue(all(segment.managed for segment in plan.segments))
+
+    def test_plan_command_rewrites_cargo_test_to_test_filter_hint(self):
+        plan = plan_command("cargo test --lib")
+        self.assertTrue(plan.managed)
+        self.assertEqual(plan.planned_command, "ptk test --lib")
+        self.assertEqual(plan.filter_hint, "test")
 
     def test_plan_command_keeps_unsupported_segments_raw(self):
         plan = plan_command("git status && htop")
@@ -49,3 +55,9 @@ class PlanPlannerTests(unittest.TestCase):
         plan = plan_command("  ")
         self.assertEqual(plan.skip_reason, "empty-command")
         self.assertEqual(plan.execution_command, "")
+
+    def test_plan_command_rewrites_generic_test_wrappers(self):
+        plan = plan_command("npm test")
+        self.assertTrue(plan.managed)
+        self.assertEqual(plan.planned_command, "ptk test")
+        self.assertEqual(plan.filter_hint, "test")

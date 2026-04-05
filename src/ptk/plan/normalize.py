@@ -110,6 +110,10 @@ def infer_filter_hint(command: str) -> str | None:
         return "read"
     if normalized.startswith(("rg ", "grep ")):
         return "grep"
+    if normalized.startswith("cargo test"):
+        return "test"
+    if re.match(r"^(?:npm|pnpm|yarn|make)\s+test(?:\s|$)", normalized):
+        return "test"
     if normalized.startswith("git "):
         return "git"
     if (

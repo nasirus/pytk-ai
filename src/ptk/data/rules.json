@@ -18,7 +18,16 @@
     "savings_pct": 82.0
   },
   {
-    "pattern": "^cargo\\s+(build|test|clippy|check|fmt|install)",
+    "pattern": "^cargo\\s+test(\\s|$)",
+    "ptk_cmd": "ptk test",
+    "rewrite_prefixes": [
+      "cargo test"
+    ],
+    "category": "Tests",
+    "savings_pct": 90.0
+  },
+  {
+    "pattern": "^cargo\\s+(build|clippy|check|fmt|install)",
     "ptk_cmd": "ptk cargo",
     "rewrite_prefixes": [
       "cargo"
@@ -34,6 +43,18 @@
     ],
     "category": "PackageManager",
     "savings_pct": 80.0
+  },
+  {
+    "pattern": "^(npm|pnpm|yarn|make)\\s+test(\\s|$)",
+    "ptk_cmd": "ptk test",
+    "rewrite_prefixes": [
+      "pnpm test",
+      "npm test",
+      "yarn test",
+      "make test"
+    ],
+    "category": "Tests",
+    "savings_pct": 90.0
   },
   {
     "pattern": "^npm\\s+(run|exec)",

@@ -18,3 +18,13 @@ class PlanRulesTests(unittest.TestCase):
         rule = match_rule("pytest -q")
         self.assertIsNotNone(rule)
         self.assertEqual(rule_filter_hint(rule), "pytest")
+
+    def test_match_rule_finds_generic_test_wrapper_rule(self):
+        rule = match_rule("npm test")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.ptk_cmd, "ptk test")
+
+    def test_match_rule_finds_cargo_test_rule_before_generic_cargo_rule(self):
+        rule = match_rule("cargo test --lib")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.ptk_cmd, "ptk test")

@@ -7,6 +7,7 @@ from .generic import filter_generic_output
 from .git import filter_git_output
 from .python import filter_python_output
 from .system import filter_system_output
+from .tests import filter_test_output
 
 _FILTERS = {
     "find": filter_system_output,
@@ -17,6 +18,7 @@ _FILTERS = {
     "pytest": filter_python_output,
     "read": filter_system_output,
     "ruff": filter_python_output,
+    "test": filter_test_output,
 }
 
 
