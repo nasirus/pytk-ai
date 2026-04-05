@@ -2,10 +2,6 @@
 
 ## Active work
 
-- [ ] Expand rewrite coverage beyond the current core rule set.
-- [ ] Port the remaining hook integrations if needed by the target agent harness.
-- [ ] Add packaging/release automation for PyPI.
-- [ ] Decide whether PTK should keep compatibility aliases for legacy RTK environment variables and hook outputs.
 
 ## Next priorities
 
@@ -17,4 +13,4 @@
 
 - 2026-04-05: Created the initial Python PTK scaffold, renamed the package from `rtk` to `ptk`, and verified the core rewrite flow.
 - 2026-04-05: Added the first hook JSON responses for Claude and Cursor.
-- 2026-04-05: Added token-frugal mode guidance to `INSTRUCTIONS.md`, including the prompt block and terse-output safety notes.
+- 2026-04-05: Added token-frugal mode guidance to `INSTRUCTIONS.md`, then tightened it into a brief XML-tagged prompt block.
