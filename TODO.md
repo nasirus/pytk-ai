@@ -3,6 +3,7 @@
 ## Active work
 
 - Define the PTK high-level architecture around an internal planning step plus public execute + strip library/CLI flow.
+- Turn the first next-priority item into a full project plan in `PLAN.md`, centered on internal planning/rewrite and public `ptk run` / `run_command` surfaces.
 
 
 ## Next priorities
@@ -17,3 +18,6 @@
 - 2026-04-05: Added token-frugal mode guidance to `INSTRUCTIONS.md`, then tightened it into a brief XML-tagged prompt block.
 - 2026-04-05: Simplified `ARCHITECTURE.md` so `ptk run` is the main public interface and command rewrite remains an internal planning step rather than a required public CLI feature.
 - 2026-04-05: Added `ARCHITECTURE.md` to define the PTK target architecture as a Python library/CLI for command rewrite, execution, and stripped output.
+- 2026-04-05: Added `PLAN.md` with a detailed isolated checklist for decomposing the architecture into incremental modules/classes for later parallel execution.
+- 2026-04-05: Rewrote `PLAN.md` as a full task plan for the new Python-first PTK architecture, explicitly treating rewrite as internal and `ptk run` as the public CLI surface, without legacy Rust compatibility requirements.
+- 2026-04-05: Added a workflow rule in `AGENTS.md` to append new `TODO.md` history notes at the end of the `## History` section.

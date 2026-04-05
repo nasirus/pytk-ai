@@ -40,4 +40,5 @@ Prefer adding a small regression test whenever a bug is fixed.
 
 - Keep changes tight and reviewable.
 - Use `TODO.md` for active work, follow-ups, and short historical notes.
+- When updating `TODO.md`, append each new history note at the end of the `## History` section instead of inserting it at the top.
 - Avoid writing large grep-able inventories here; keep this file as operating guidance.
