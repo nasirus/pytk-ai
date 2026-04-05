@@ -8,6 +8,8 @@
 - Public CLI surface should converge on `ptk run <command>`.
 - Command rewrite/planning remains internal implementation detail.
 - Public Python API should converge on execute-and-strip entrypoints, not public rewrite entrypoints.
+- Testing is systematic at function and module level, with a target of 100% coverage for PTK-owned logic.
+- Tests should not restate guarantees already provided by Python, the standard library, or a function signature; they should focus on PTK behavior, branching, contracts, and failure modes.
 
 ## Target end state
 
@@ -254,6 +256,9 @@ Restructure tests around the new architecture and keep each work area isolated.
 
 #### Tasks
 
+- [ ] Treat test creation as required work for every new module and every non-trivial function.
+- [ ] Aim for 100% coverage across PTK-owned logic.
+- [ ] Do not add tests that only re-verify Python/runtime/stdlib guarantees or obvious type-signature behavior; spend coverage budget on PTK-specific logic, branches, contracts, and failure modes.
 - [ ] Replace `tests/test_rewrite.py` with architecture-aligned tests.
 - [ ] Add planning-focused tests:
   - `tests/test_plan_rules.py`
@@ -284,6 +289,9 @@ Restructure tests around the new architecture and keep each work area isolated.
 #### Definition of done
 
 - [ ] Each architectural layer has direct tests.
+- [ ] Each PTK module has dedicated tests.
+- [ ] Each non-trivial PTK function has direct or indirect behavioral coverage.
+- [ ] Coverage target is effectively 100% for PTK-owned logic.
 - [ ] CLI tests cover only CLI contract, not planner internals.
 
 ### Phase 9 — packaging and developer ergonomics
@@ -375,6 +383,7 @@ Make PTK easy to ship and maintain.
 
 - [ ] Files:
   - `tests/*`
+- [ ] Rule: create/expand tests alongside each implementation packet instead of deferring all coverage to the end.
 - [ ] Can run in parallel by layer after interfaces are frozen.
 
 ## Recommended execution order
@@ -396,4 +405,6 @@ Make PTK easy to ship and maintain.
 - [ ] planning/rewrite is internal-only.
 - [ ] no compatibility scaffolding remains just to mirror Rust.
 - [ ] tests cover planner, runner, filters, and CLI.
+- [ ] tests systematically cover each PTK module and non-trivial function.
+- [ ] coverage target is met for PTK-owned logic without wasting tests on system/signature guarantees.
 - [ ] docs and package metadata match actual PTK behavior.

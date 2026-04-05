@@ -21,3 +21,6 @@
 - 2026-04-05: Added `PLAN.md` with a detailed isolated checklist for decomposing the architecture into incremental modules/classes for later parallel execution.
 - 2026-04-05: Rewrote `PLAN.md` as a full task plan for the new Python-first PTK architecture, explicitly treating rewrite as internal and `ptk run` as the public CLI surface, without legacy Rust compatibility requirements.
 - 2026-04-05: Added a workflow rule in `AGENTS.md` to append new `TODO.md` history notes at the end of the `## History` section.
+- 2026-04-05: Added testing guidance to `AGENTS.md` and `PLAN.md` to create systematic function/module tests, target 100% PTK-owned coverage, and avoid testing system or signature-guaranteed behavior.
+- 2026-04-05: Added edit-workflow guidance to `AGENTS.md` and `PLAN.md` to run `uv ruff check` and `uv ruff format` as the last steps before finishing.
+- 2026-04-05: Scoped the `uv ruff check` / `uv ruff format` workflow instruction to `AGENTS.md` only and removed it from `PLAN.md`.
