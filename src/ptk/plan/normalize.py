@@ -110,12 +110,20 @@ def infer_filter_hint(command: str) -> str | None:
         return "read"
     if normalized.startswith(("rg ", "grep ")):
         return "grep"
+    if re.match(r"^cargo\s+(build|clippy|check|fmt)(\s|$)", normalized):
+        return "cargo"
     if normalized.startswith("cargo test"):
         return "test"
     if re.match(r"^(?:npm|pnpm|yarn|make)\s+test(?:\s|$)", normalized):
         return "test"
     if normalized.startswith("git "):
         return "git"
+    if re.match(r"^(?:npx\s+|pnpm\s+)?tsc(\s|$)", normalized):
+        return "tsc"
+    if re.match(r"^(?:npx\s+|pnpm\s+)?next\s+build(\s|$)", normalized):
+        return "next"
+    if re.match(r"^(?:npx\s+|pnpm\s+)?(?:eslint|biome|lint)(\s|$)", normalized):
+        return "lint"
     if (
         normalized.startswith("python -m pytest")
         or normalized.startswith("pytest ")
@@ -130,6 +138,14 @@ def infer_filter_hint(command: str) -> str | None:
         return "mypy"
     if normalized.startswith("ruff "):
         return "ruff"
+    if normalized.startswith("go "):
+        return "go"
+    if normalized.startswith("golangci-lint"):
+        return "golangci-lint"
+    if re.match(r"^(?:bundle\s+exec\s+)?rspec(\s|$)", normalized):
+        return "rspec"
+    if re.match(r"^(?:bundle\s+exec\s+)?rubocop(\s|$)", normalized):
+        return "rubocop"
     if normalized.startswith("ls"):
         return "ls"
     if normalized.startswith("find ") or normalized == "find":

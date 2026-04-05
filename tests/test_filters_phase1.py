@@ -163,7 +163,7 @@ test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out
             101,
             plan=plan_command("cargo build"),
         )
-        self.assertEqual(result.filter_name, "generic")
+        self.assertEqual(result.filter_name, "cargo.build")
         self.assertIn("cannot find value", result.output)
 
     def test_ruff_check_text_output_is_grouped(self):

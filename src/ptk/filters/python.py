@@ -10,19 +10,151 @@ from .generic import _combine_streams, filter_generic_output
 
 
 def _pytest_summary(text: str) -> str | None:
-    lines = text.splitlines()
-    summary_lines = [
-        line
-        for line in lines
-        if "short test summary info" in line.lower()
-        or line.startswith(("FAILED ", "ERROR "))
-        or (" passed" in line and " in " in line)
-        or (" failed" in line and " in " in line)
-        or (" errors" in line and " in " in line)
-    ]
-    if not summary_lines:
+    failures: list[str] = []
+    current_failure: list[str] = []
+    summary_line = ""
+    in_failures = False
+    in_summary = False
+
+    for raw_line in text.splitlines():
+        stripped = raw_line.strip()
+        if stripped.startswith("===") and "FAILURES" in stripped:
+            in_failures = True
+            in_summary = False
+            continue
+        if stripped.startswith("===") and "short test summary" in stripped.lower():
+            in_failures = False
+            in_summary = True
+            if current_failure:
+                failures.append("\n".join(current_failure))
+                current_failure = []
+            continue
+        if stripped.startswith("===") and (
+            " passed" in stripped or " failed" in stripped or " error" in stripped
+        ):
+            summary_line = stripped
+            if current_failure:
+                failures.append("\n".join(current_failure))
+                current_failure = []
+            continue
+        if in_failures:
+            if stripped.startswith("___"):
+                if current_failure:
+                    failures.append("\n".join(current_failure))
+                current_failure = [stripped]
+                continue
+            if stripped:
+                current_failure.append(stripped)
+            continue
+        if in_summary and stripped.startswith(("FAILED ", "ERROR ")):
+            failures.append(stripped)
+
+    if current_failure:
+        failures.append("\n".join(current_failure))
+
+    if not failures and summary_line:
+        passed_match = re.search(r"(\d+)\s+passed", summary_line)
+        if passed_match:
+            return f"Pytest: {passed_match.group(1)} passed"
+        return f"Pytest: {summary_line}"
+    if not failures:
         return None
-    return "\n".join(summary_lines)
+
+    result = [f"Pytest: {summary_line}" if summary_line else "Pytest failures"]
+    for index, failure in enumerate(failures[:5], start=1):
+        lines = failure.splitlines()
+        first = lines[0]
+        if first.startswith("FAILED "):
+            result.append(f"{index}. [FAIL] {first.removeprefix('FAILED ')}")
+            if len(lines) > 1:
+                result.append(f"   {lines[1]}")
+            continue
+        result.append(f"{index}. [FAIL] {first.strip('_ ').strip()}")
+        for line in lines[1:4]:
+            if (
+                line.startswith((">", "E"))
+                or "assert" in line.lower()
+                or "error" in line.lower()
+                or ".py:" in line
+            ):
+                result.append(f"   {line}")
+    if len(failures) > 5:
+        result.append(f"... +{len(failures) - 5} more failures")
+    return "\n".join(result)
+
+
+_MYPY_DIAG_RE = re.compile(
+    r"^(.+?):(\d+)(?::\d+)?:\s+(error|warning|note):\s+(.+?)(?:\s+\[([^\]]+)\])?$"
+)
+
+
+def _mypy_summary(text: str) -> str | None:
+    grouped: dict[str, list[dict[str, object]]] = defaultdict(list)
+    fileless: list[str] = []
+    current: dict[str, object] | None = None
+
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        if line.startswith("Success:"):
+            return "mypy: No issues found"
+        if line.startswith("Found ") and " error" in line:
+            continue
+        match = _MYPY_DIAG_RE.match(line)
+        if match:
+            severity = match.group(3)
+            path = match.group(1)
+            if severity == "note":
+                if current is not None and current["path"] == path:
+                    current["notes"].append(match.group(4))
+                else:
+                    fileless.append(line)
+                continue
+            current = {
+                "path": path,
+                "line": match.group(2),
+                "code": match.group(5) or "",
+                "message": match.group(4),
+                "notes": [],
+            }
+            grouped[path].append(current)
+            continue
+        if "error:" in line and line.strip():
+            fileless.append(line.strip())
+
+    if not grouped and not fileless:
+        return "mypy: No issues found"
+
+    code_counter = Counter(
+        str(entry["code"])
+        for entries in grouped.values()
+        for entry in entries
+        if entry["code"]
+    )
+    lines: list[str] = []
+    if fileless:
+        lines.extend(fileless[:5])
+    total = sum(len(entries) for entries in grouped.values())
+    if grouped:
+        lines.append(f"mypy: {total} errors in {len(grouped)} files")
+    if len(code_counter) > 1:
+        lines.append(
+            "Top codes: "
+            + ", ".join(
+                f"{code} ({count}x)" for code, count in code_counter.most_common(5)
+            )
+        )
+    for path, entries in sorted(
+        grouped.items(), key=lambda item: (-len(item[1]), item[0])
+    )[:8]:
+        lines.append(f"{path} ({len(entries)})")
+        for entry in entries[:4]:
+            code = f"[{entry['code']}] " if entry["code"] else ""
+            lines.append(f"  L{entry['line']}: {code}{entry['message']}")
+            for note in list(entry["notes"])[:2]:
+                lines.append(f"    {note}")
+    if len(grouped) > 8:
+        lines.append(f"... +{len(grouped) - 8} more files")
+    return "\n".join(lines)
 
 
 _RUFF_TEXT_RE = re.compile(
@@ -138,6 +270,7 @@ def filter_python_output(
         text = _ruff_summary(combined, exit_code) or text
         filter_name = "python.ruff"
     elif "mypy" in command:
+        text = _mypy_summary(combined) or text
         filter_name = "python.mypy"
     return make_filter_result(
         text,

@@ -119,21 +119,21 @@ Filter module structure rules:
 
 ## Phase 2: Build and lint filters
 
-- [ ] `cargo build`
-- [ ] `cargo clippy`
-- [ ] `cargo fmt --check`
-- [ ] `mypy`
+- [x] `cargo build`
+- [x] `cargo clippy`
+- [x] `cargo fmt --check`
+- [x] `mypy`
   - Improve from current minimal handling to grouped diagnostics.
-- [ ] `pytest`
+- [x] `pytest`
   - Improve from current summary extraction to richer failure grouping.
-- [ ] `eslint`
-- [ ] `biome`
-- [ ] `tsc`
-- [ ] `next build`
-- [ ] `go test`
-- [ ] `golangci-lint run`
-- [ ] `rubocop`
-- [ ] `rspec`
+- [x] `eslint`
+- [x] `biome`
+- [x] `tsc`
+- [x] `next build`
+- [x] `go test`
+- [x] `golangci-lint run`
+- [x] `rubocop`
+- [x] `rspec`
 
 ## Phase 3: File and search filters
 

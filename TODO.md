@@ -36,3 +36,4 @@
 - 2026-04-05: Updated `ADD-FILTER-PLAN.md` to require future filters to stay modular inside `src/ptk/filters/`, with shared logic isolated and dispatch kept in `filters/__init__.py`.
 - 2026-04-05: Completed `ADD-FILTER-PLAN.md` Phase 1 by adding modular high-value git, test-wrapper, cargo-test, ruff-check, and read-command filters; expanded planner coverage for generic `* test` wrappers; and added focused regression tests for the new success/failure paths.
 - 2026-04-05: Fixed Phase 1 regressions by limiting the test filter to `cargo test`, preserving full `git branch -vv` local branch lines, and keeping exit-0 `git add` warnings visible.
+- 2026-04-05: Completed `ADD-FILTER-PLAN.md` Phase 2 by adding modular build/lint/test filters for cargo build/clippy/fmt, richer mypy and pytest summaries, ESLint/Biome/TypeScript/Next.js grouping, Go and golangci-lint summaries, and Ruby RuboCop/RSpec failure-oriented output with focused regression coverage.
