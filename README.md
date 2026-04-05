@@ -102,9 +102,9 @@ Plan/Normalize --> Execute subprocess --> Apply filter --> Structured result
 | packages | 8 | 57 | 26 | 46.9% |
 | python | 3 | 147 | 108 | 24.2% |
 | ruby | 2 | 158 | 130 | 30.4% |
-| system | 3 | 646 | 646 | 0.0% |
+| system | 4 | 528 | 494 | 19.4% |
 | tests | 2 | 40 | 26 | 35.8% |
-| **Total** | **55** | | | **24.5%** |
+| **Total** | **56** | | | **25.6%** |
 
 #### Top Filters by Token Reduction
 
@@ -112,6 +112,7 @@ Plan/Normalize --> Execute subprocess --> Apply filter --> Structured result
 |--------|---------|-----|----------|-------|-----------|
 | git.pull | `git pull` | 28 | 4 | 24 | 85.7% |
 | kubectl.pods | `kubectl get pods -A -o json` | 96 | 21 | 75 | 78.1% |
+| system.ls | `ls -la` | 173 | 39 | 134 | 77.5% |
 | git.log | `git log -2` | 65 | 18 | 47 | 72.3% |
 | aws.read | `aws ec2 describe-instances --output json` | 74 | 21 | 53 | 71.6% |
 | python.pytest | `pytest -q` | 165 | 55 | 110 | 66.7% |
@@ -124,7 +125,6 @@ Plan/Normalize --> Execute subprocess --> Apply filter --> Structured result
 | uv.sync | `uv sync` | 15 | 6 | 9 | 60.0% |
 | docker.compose.ps | `docker compose ps` | 67 | 27 | 40 | 59.7% |
 | npm.list | `npm list` | 215 | 87 | 128 | 59.5% |
-| pnpm.list | `pnpm list --json` | 35 | 15 | 20 | 57.1% |
 
 <!-- BENCHMARK-END -->
 

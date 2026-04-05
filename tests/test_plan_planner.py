@@ -9,8 +9,18 @@ class PlanPlannerTests(unittest.TestCase):
         self.assertTrue(plan.managed)
         self.assertTrue(plan.changed)
         self.assertEqual(plan.planned_command, "pytk-ai git status")
-        self.assertEqual(plan.execution_command, "git status")
+        self.assertEqual(plan.execution_command, "git status --porcelain=v1 --branch")
         self.assertEqual(plan.filter_hint, "git")
+
+    def test_plan_command_rewrites_env_prefixed_git_status_execution(self):
+        plan = plan_command("FOO=1 git status > out.txt 2>&1")
+        self.assertEqual(
+            plan.planned_command, "FOO=1 pytk-ai git status > out.txt 2>&1"
+        )
+        self.assertEqual(
+            plan.execution_command,
+            "FOO=1 git status --porcelain=v1 --branch > out.txt 2>&1",
+        )
 
     def test_plan_command_preserves_compound_commands(self):
         plan = plan_command("git add . && cargo test")

@@ -5,6 +5,88 @@ from pytk_ai.plan import plan_command
 
 
 class FiltersGitTests(unittest.TestCase):
+    def test_git_status_porcelain_uses_dense_symbolic_output(self):
+        stdout = """## No commits yet on master
+?? .gitignore
+?? .python-version
+?? README.md
+?? main.py
+?? pyproject.toml
+?? uv.lock
+"""
+        result = filter_output(
+            "git status",
+            stdout,
+            "",
+            0,
+            plan=plan_command("git status"),
+        )
+        self.assertEqual(result.filter_name, "git.status")
+        self.assertEqual(
+            result.output,
+            "master (no commits)\n? .gitignore .python-version README.md main.py pyproject.toml uv.lock",
+        )
+
+    def test_git_status_groups_paths_by_directory_symbolically(self):
+        stdout = """## main
+ M README.md
+ M TODO.md
+ M src/pytk_ai/filters/git.py
+ M src/pytk_ai/filters/system.py
+ M src/pytk_ai/plan/planner.py
+ M tests/test_filters_git.py
+ M tests/test_live_git.py
+ M tests/test_plan_execution_rewrites.py
+ M tests/test_plan_planner.py
+?? src/pytk_ai/plan/execution_rewrites.py
+?? tests/test_plan_execution_rewrites.py
+"""
+        result = filter_output(
+            "git status",
+            stdout,
+            "",
+            0,
+            plan=plan_command("git status"),
+            max_output_lines=20,
+        )
+        self.assertEqual(
+            result.output,
+            "main\nM README.md TODO.md src/pytk_ai/filters/{git.py,system.py} src/pytk_ai/plan/planner.py tests/{test_filters_git.py,test_live_git.py,test_plan_execution_rewrites.py,test_plan_planner.py}\n? src/pytk_ai/plan/execution_rewrites.py tests/test_plan_execution_rewrites.py",
+        )
+
+    def test_git_status_never_returns_longer_text_than_raw_porcelain(self):
+        stdout = """## main
+ M a/very/deeply/nested/path/with/a/long_filename_that_repeats.py
+"""
+        result = filter_output(
+            "git status",
+            stdout,
+            "",
+            0,
+            plan=plan_command("git status"),
+        )
+        self.assertLessEqual(len(result.output), len(stdout.strip()))
+
+    def test_git_status_human_output_falls_back_without_porcelain_parse(self):
+        stdout = """On branch master
+
+No commits yet
+
+Untracked files:
+	README.md
+
+nothing added to commit but untracked files present
+"""
+        result = filter_output(
+            "git status",
+            stdout,
+            "",
+            0,
+            plan=plan_command("git status"),
+        )
+        self.assertIn("On branch master", result.output)
+        self.assertIn("Untracked files:", result.output)
+
     def test_git_log_reduces_full_commit_blocks_to_one_line(self):
         stdout = """commit abc1234567890 (HEAD -> main)
 Author: Test User <test@example.com>

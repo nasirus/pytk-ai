@@ -8,23 +8,45 @@ from .base import collapse_repeated_lines, make_filter_result, strip_ansi
 from .generic import _combine_streams
 from .generic import filter_generic_output
 
-_NOISE_DIRS = frozenset({
-    "node_modules", "target", "dist", "build", ".next",
-    ".git", "__pycache__", ".venv", "venv", "env",
-    ".mypy_cache", ".pytest_cache", ".idea", ".vscode", ".vs",
-    ".DS_Store", "Thumbs.db", ".cache", ".turbo", ".vercel",
-    ".tox", ".nyc_output", ".eggs", "coverage", ".ruff_cache",
-})
+_NOISE_DIRS = frozenset(
+    {
+        "node_modules",
+        "target",
+        "dist",
+        "build",
+        ".next",
+        ".git",
+        "__pycache__",
+        ".venv",
+        "venv",
+        "env",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".idea",
+        ".vscode",
+        ".vs",
+        ".DS_Store",
+        "Thumbs.db",
+        ".cache",
+        ".turbo",
+        ".vercel",
+        ".tox",
+        ".nyc_output",
+        ".eggs",
+        "coverage",
+        ".ruff_cache",
+    }
+)
 
 _LS_LINE_RE = re.compile(
-    r"^([dlcbps-])"           # file type
+    r"^([dlcbps-])"  # file type
     r"[rwxXsStT-]{9}[.+@]?"  # permissions
-    r"\s+\d+"                 # link count
-    r"\s+\S+"                 # owner
-    r"\s+\S+"                 # group
-    r"\s+(\d+)"              # size in bytes
+    r"\s+\d+"  # link count
+    r"\s+\S+"  # owner
+    r"\s+\S+"  # group
+    r"\s+(\d+)"  # size in bytes
     r"\s+\S+\s+\d+\s+[\d:]+\s+"  # date
-    r"(.+)$"                  # filename (rest of line)
+    r"(.+)$"  # filename (rest of line)
 )
 
 

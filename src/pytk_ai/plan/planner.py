@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Sequence
 
+from .execution_rewrites import ExecutionRewriteContext, rewrite_execution_command
 from .models import CommandPlan, PlanSegment
 from .normalize import (
     has_disabled_prefix,
@@ -40,6 +41,7 @@ def _managed_segment(
     segment: str,
     *,
     planned_command: str,
+    execution_command: str,
     normalized_command: str,
     filter_hint: str | None,
     matched_rule: str | None,
@@ -48,7 +50,7 @@ def _managed_segment(
     return PlanSegment(
         original=segment,
         planned_command=planned_command,
-        execution_command=segment,
+        execution_command=execution_command,
         normalized_command=normalized_command,
         operator=operator,
         managed=True,
@@ -69,6 +71,7 @@ def _plan_segment(segment: str, excluded: Sequence[str] = ()) -> PlanSegment | N
         return _managed_segment(
             trimmed,
             planned_command=trimmed,
+            execution_command=trimmed,
             normalized_command=command_part,
             filter_hint=infer_filter_hint(command_part),
             matched_rule="already-pytk-ai",
@@ -80,6 +83,7 @@ def _plan_segment(segment: str, excluded: Sequence[str] = ()) -> PlanSegment | N
             return _managed_segment(
                 trimmed,
                 planned_command=rewritten,
+                execution_command=trimmed,
                 normalized_command=command_part,
                 filter_hint="read",
                 matched_rule="line-range",
@@ -113,15 +117,28 @@ def _plan_segment(segment: str, excluded: Sequence[str] = ()) -> PlanSegment | N
         rest = strip_word_prefix(normalized_command, rewrite_prefix)
         if rest is None:
             continue
+        filter_hint = rule_filter_hint(rule)
         rewritten = f"{prefix}{rule.pytk_ai_cmd}"
+        execution_command = rewrite_execution_command(
+            ExecutionRewriteContext(
+                trimmed=trimmed,
+                prefix=prefix,
+                normalized_command=normalized_command,
+                rest=rest,
+                redirect_suffix=redirect_suffix,
+                filter_hint=filter_hint,
+                matched_rule=rule.pytk_ai_cmd,
+            )
+        )
         if rest:
             rewritten += f" {rest}"
         rewritten += redirect_suffix
         return _managed_segment(
             trimmed,
             planned_command=rewritten,
+            execution_command=execution_command,
             normalized_command=normalized_command,
-            filter_hint=rule_filter_hint(rule),
+            filter_hint=filter_hint,
             matched_rule=rule.pytk_ai_cmd,
         )
 
@@ -137,10 +154,20 @@ def _join_segments(segments: Sequence[PlanSegment]) -> str:
     return "".join(parts).strip()
 
 
+def _join_execution_segments(segments: Sequence[PlanSegment]) -> str:
+    parts: list[str] = []
+    for segment in segments:
+        parts.append(segment.execution_command)
+        if segment.operator is not None:
+            parts.append(f" {segment.operator} ")
+    return "".join(parts).strip()
+
+
 def _command_plan(
     command: str,
     *,
     planned_command: str,
+    execution_command: str,
     segments: tuple[PlanSegment, ...],
     managed: bool,
     changed: bool,
@@ -158,7 +185,7 @@ def _command_plan(
     return CommandPlan(
         original_command=command,
         planned_command=planned_command,
-        execution_command=command,
+        execution_command=execution_command,
         normalized_command=normalized_command,
         segments=segments,
         managed=managed,
@@ -184,6 +211,7 @@ def plan_command(command: str, excluded: Sequence[str] | None = None) -> Command
         return _command_plan(
             trimmed,
             planned_command=trimmed,
+            execution_command=trimmed,
             segments=(
                 _raw_segment(trimmed, skip_reason="unsupported-shell-construct"),
             ),
@@ -200,6 +228,7 @@ def plan_command(command: str, excluded: Sequence[str] | None = None) -> Command
             return _command_plan(
                 trimmed,
                 planned_command=trimmed,
+                execution_command=trimmed,
                 segments=(
                     _raw_segment(
                         left, operator=operator, skip_reason="unsupported-pipe-source"
@@ -216,6 +245,7 @@ def plan_command(command: str, excluded: Sequence[str] | None = None) -> Command
             return _command_plan(
                 trimmed,
                 planned_command=trimmed,
+                execution_command=trimmed,
                 segments=(_raw_segment(trimmed, skip_reason="unsupported-pipe"),),
                 managed=False,
                 changed=False,
@@ -225,9 +255,11 @@ def plan_command(command: str, excluded: Sequence[str] | None = None) -> Command
         left_plan = replace(left_plan, operator="|")
         right_plan = _raw_segment(pipe_remainder, skip_reason="pipe-remainder")
         planned_command = f"{left_plan.planned_command} | {pipe_remainder}"
+        execution_command = f"{left_plan.execution_command} | {pipe_remainder}"
         return _command_plan(
             trimmed,
             planned_command=planned_command,
+            execution_command=execution_command,
             segments=(left_plan, right_plan),
             managed=left_plan.managed,
             changed=planned_command != trimmed,
@@ -252,6 +284,7 @@ def plan_command(command: str, excluded: Sequence[str] | None = None) -> Command
         )
 
     planned_command = _join_segments(planned_segments)
+    execution_command = _join_execution_segments(planned_segments)
     managed = any(segment.managed for segment in planned_segments)
     changed = planned_command != trimmed
     filter_hint = next(
@@ -273,6 +306,7 @@ def plan_command(command: str, excluded: Sequence[str] | None = None) -> Command
     return _command_plan(
         trimmed,
         planned_command=planned_command,
+        execution_command=execution_command,
         segments=tuple(planned_segments),
         managed=managed,
         changed=changed,

@@ -49,8 +49,9 @@ class LiveGitTests(unittest.TestCase):
         result = run_command("git status", cwd=str(self.repo))
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.filter_name, "git.status")
-        self.assertIn("modified", result.filtered_output)
-        self.assertIn("untracked.txt", result.filtered_output)
+        self.assertEqual(result.executed_command, "git status --porcelain=v1 --branch")
+        self.assertIn("M tracked.txt", result.filtered_output)
+        self.assertIn("? untracked.txt", result.filtered_output)
 
     def test_git_log(self):
         result = run_command("git log --oneline", cwd=str(self.repo))

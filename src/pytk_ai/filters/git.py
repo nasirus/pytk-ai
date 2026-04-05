@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+from collections import defaultdict
+from pathlib import PurePath
 
 from ..models import FilterResult
 from .base import make_filter_result
@@ -230,6 +232,125 @@ def _summarize_worktree(text: str) -> str:
     return "\n".join(result) if result else text
 
 
+def _summarize_status(text: str) -> str:
+    lines = [line.rstrip() for line in text.splitlines() if line.strip()]
+    if not lines:
+        return "clean"
+    if not lines[0].startswith("## "):
+        return text
+
+    branch = ""
+    ahead = behind = 0
+    branch_line = lines[0][3:]
+    lines = lines[1:]
+    if branch_line.startswith("No commits yet on "):
+        branch = f"{branch_line.removeprefix('No commits yet on ')} (no commits)"
+    else:
+        state, _, tracking = branch_line.partition("...")
+        branch = state.strip()
+        match = re.search(r"ahead (\d+)", tracking)
+        if match:
+            ahead = int(match.group(1))
+        match = re.search(r"behind (\d+)", tracking)
+        if match:
+            behind = int(match.group(1))
+
+    staged: list[str] = []
+    modified: list[str] = []
+    deleted: list[str] = []
+    renamed: list[str] = []
+    untracked: list[str] = []
+    conflicts: list[str] = []
+
+    for line in lines:
+        if line == "??":
+            continue
+        if line.startswith("?? "):
+            untracked.append(line[3:])
+            continue
+        if len(line) < 4:
+            continue
+        status = line[:2]
+        path = line[3:]
+        if " -> " in path and status[0] == "R":
+            renamed.append(path)
+        if "U" in status or status in {"AA", "DD"}:
+            conflicts.append(path)
+            continue
+        if status[0] in {"M", "A", "C"}:
+            staged.append(path)
+        elif status[0] == "D":
+            deleted.append(path)
+        elif status[0] == "R":
+            staged.append(path)
+
+        if status[1] == "M":
+            modified.append(path)
+        elif status[1] == "D":
+            deleted.append(path)
+
+    raw_porcelain = "\n".join([f"## {branch_line}", *lines])
+
+    def compress_paths(items: list[str]) -> str:
+        by_dir: dict[str, list[str]] = defaultdict(list)
+        root_files: list[str] = []
+        for item in items:
+            if " -> " in item:
+                root_files.append(item)
+                continue
+            path = PurePath(item)
+            parent = str(path.parent)
+            if parent in {"", "."}:
+                root_files.append(path.name or item)
+            else:
+                by_dir[parent].append(path.name or item)
+
+        parts: list[str] = []
+        if root_files:
+            parts.extend(sorted(root_files))
+        for directory in sorted(by_dir):
+            names = sorted(by_dir[directory])
+            if len(names) == 1:
+                parts.append(f"{directory}/{names[0]}")
+            else:
+                parts.append(f"{directory}/{{{','.join(names)}}}")
+        return " ".join(parts)
+
+    result: list[str] = []
+    if branch:
+        suffix: list[str] = []
+        if ahead:
+            suffix.append(f"ahead {ahead}")
+        if behind:
+            suffix.append(f"behind {behind}")
+        if suffix and "(no commits)" not in branch:
+            branch = f"{branch} ({', '.join(suffix)})"
+        result.append(branch)
+
+    buckets = (
+        ("+", staged),
+        ("M", modified),
+        ("D", deleted),
+        ("R", renamed),
+        ("?", untracked),
+        ("U", conflicts),
+    )
+
+    for symbol, items in buckets:
+        if not items:
+            continue
+        result.append(f"{symbol} {compress_paths(items)}")
+
+    if not result:
+        return "clean"
+    if len(result) == 1 and branch:
+        return f"{branch}\nclean"
+    summarized = "\n".join(result)
+    if len(summarized) >= len(raw_porcelain):
+        return raw_porcelain
+    return summarized
+
+
 def filter_git_output(
     command: str,
     stdout: str,
@@ -257,7 +378,7 @@ def filter_git_output(
             error=generic.error,
         )
     if subcommand == "status":
-        text = text
+        text = _summarize_status(combined)
     elif subcommand == "log":
         text = _summarize_log(combined)
     elif subcommand == "diff":
