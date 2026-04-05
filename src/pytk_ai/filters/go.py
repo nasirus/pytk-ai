@@ -119,6 +119,13 @@ def filter_go_output(
     max_output_lines: int = 200,
 ) -> FilterResult:
     combined = _combine_streams(stdout, stderr, exit_code)
+    generic = filter_generic_output(
+        command,
+        stdout,
+        stderr,
+        exit_code,
+        max_output_lines=max_output_lines,
+    )
     lowered = command.lower()
     if "go test" in lowered:
         text = _filter_go_test(combined, exit_code)
@@ -132,7 +139,7 @@ def filter_go_output(
             + "\n".join(f"  {_truncate(line)}" for line in issues[:20])
         )
         filter_name = "go.build"
-    else:
+    elif "go vet" in lowered:
         issues = [
             line.strip()
             for line in combined.splitlines()
@@ -144,10 +151,14 @@ def filter_go_output(
             else "Go vet:\n" + "\n".join(f"  {_truncate(line)}" for line in issues[:20])
         )
         filter_name = "go.vet"
+    else:
+        text = generic.output
+        filter_name = generic.filter_name or "generic"
     return make_filter_result(
         text,
         filter_name=filter_name,
         max_output_lines=max_output_lines,
+        error=generic.error,
     )
 
 

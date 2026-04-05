@@ -138,8 +138,10 @@ def infer_filter_hint(command: str) -> str | None:
         return "mypy"
     if normalized.startswith("ruff "):
         return "ruff"
-    if normalized.startswith("go "):
+    if re.match(r"^go\s+(test|build|vet)(\s|$)", normalized):
         return "go"
+    if normalized.startswith("go "):
+        return None
     if normalized.startswith("golangci-lint"):
         return "golangci-lint"
     if re.match(r"^(?:bundle\s+exec\s+)?rspec(\s|$)", normalized):

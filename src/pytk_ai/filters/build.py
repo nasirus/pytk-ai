@@ -385,8 +385,15 @@ def filter_next_output(
     *,
     max_output_lines: int = 200,
 ) -> FilterResult:
-    del command, exit_code
-    combined = _combine_streams(stdout, stderr, 0)
+    del command
+    combined = _combine_streams(stdout, stderr, exit_code)
+    generic = filter_generic_output(
+        "next build",
+        stdout,
+        stderr,
+        exit_code,
+        max_output_lines=max_output_lines,
+    )
     routes: list[tuple[str, float, float]] = []
     warnings = 0
     errors = 0
@@ -419,6 +426,14 @@ def filter_next_output(
             if time_match:
                 build_time = time_match.group("time").replace(" ", "")
 
+    if exit_code != 0 and not routes and not build_time:
+        return make_filter_result(
+            generic.output,
+            filter_name="next.build",
+            max_output_lines=max_output_lines,
+            error=generic.error,
+        )
+
     if not routes and not build_time and not combined.strip():
         return make_filter_result(
             "",
@@ -450,6 +465,7 @@ def filter_next_output(
         "\n".join(lines),
         filter_name="next.build",
         max_output_lines=max_output_lines,
+        error=generic.error,
     )
 
 

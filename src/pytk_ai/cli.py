@@ -104,7 +104,9 @@ def _run_hook(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="pytk-ai", description="PYTK-AI command runner")
+    parser = argparse.ArgumentParser(
+        prog="pytk-ai", description="PYTK-AI command runner"
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     run = sub.add_parser("run", help="execute a raw shell command and filter output")

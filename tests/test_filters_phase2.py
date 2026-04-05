@@ -187,6 +187,24 @@ Route (app)                    Size     First Load JS
         self.assertIn("/dashboard", result.output)
         self.assertIn("Time: 12.4s", result.output)
 
+    def test_next_build_failure_keeps_raw_diagnostics(self):
+        stderr = """Failed to compile.
+
+./src/app/page.tsx:7:12
+Type error: Type 'string' is not assignable to type 'number'.
+"""
+        result = filter_output(
+            "next build",
+            "",
+            stderr,
+            1,
+            plan=plan_command("next build"),
+        )
+        self.assertEqual(result.filter_name, "next.build")
+        self.assertIn("Failed to compile.", result.output)
+        self.assertIn("./src/app/page.tsx:7:12", result.output)
+        self.assertIn("Type error:", result.output)
+
     def test_go_test_summarizes_failed_package_and_test(self):
         stdout = """ok  example.com/project/pkg/a 0.015s
 --- FAIL: TestThing (0.00s)
@@ -205,6 +223,17 @@ FAIL    example.com/project/pkg/b  0.023s
         self.assertIn("Go test: 1 packages passed, 1 packages failed", result.output)
         self.assertIn("[FAIL] TestThing", result.output)
         self.assertIn("expected 2, got 1", result.output)
+
+    def test_non_test_build_vet_go_commands_keep_generic_output(self):
+        result = filter_output(
+            "go version",
+            "go version go1.24.1 linux/amd64\n",
+            "",
+            0,
+            plan=plan_command("go version"),
+        )
+        self.assertEqual(result.filter_name, "generic")
+        self.assertIn("go version go1.24.1 linux/amd64", result.output)
 
     def test_golangci_lint_groups_by_linter(self):
         stderr = """pkg/server/server.go:12:2: Error return value of `w.Write` is not checked (errcheck)
@@ -270,3 +299,4 @@ rspec ./spec/models/user_spec.rb:10 # User saves to database
         self.assertEqual(infer_filter_hint("next build"), "next")
         self.assertEqual(infer_filter_hint("go test ./..."), "go")
         self.assertEqual(infer_filter_hint("bundle exec rspec"), "rspec")
+        self.assertIsNone(infer_filter_hint("go version"))

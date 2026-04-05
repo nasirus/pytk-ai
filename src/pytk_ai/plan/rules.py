@@ -11,7 +11,9 @@ from .models import Rule
 @lru_cache(maxsize=1)
 def load_rules() -> tuple[Rule, ...]:
     data = json.loads(
-        resources.files("pytk_ai.data").joinpath("rules.json").read_text(encoding="utf-8")
+        resources.files("pytk_ai.data")
+        .joinpath("rules.json")
+        .read_text(encoding="utf-8")
     )
     return tuple(
         Rule(

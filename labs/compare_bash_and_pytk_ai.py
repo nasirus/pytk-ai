@@ -53,7 +53,9 @@ class BenchmarkResult(NamedTuple):
 SCENARIOS: tuple[Scenario, ...] = (
     Scenario(title="List repository root", command="ls"),
     Scenario(title="List PYTK-AI package files", command="ls src/pytk_ai"),
-    Scenario(title="Grep PYTK-AI mentions in README", command="grep -n 'pytk-ai' README.md"),
+    Scenario(
+        title="Grep PYTK-AI mentions in README", command="grep -n 'pytk-ai' README.md"
+    ),
     Scenario(title="Show tracked git status", command="git status --short"),
     Scenario(title="Show latest git commit", command="git log -1 --oneline"),
     Scenario(
