@@ -1,13 +1,13 @@
 # Add Filter Plan
 
-This file tracks missing PTK filter work that should be handled in later sessions.
+This file tracks missing PYTK-AI filter work that should be handled in later sessions.
 
 Scope:
 - Focus on filters that produce meaningful token savings in agent harnesses.
 - Prefer commands that are noisy, common, and safe to summarize.
 - Keep implementation incremental and reviewable.
 - Use the legacy Rust RTK repository at `/rtk` as the reference implementation source when reimplementing filters in Python.
-- Keep filter modules separated inside `src/ptk/filters/`; do not accumulate unrelated filter logic in a single file.
+- Keep filter modules separated inside `src/pytk_ai/filters/`; do not accumulate unrelated filter logic in a single file.
 
 Current Python filter coverage:
 - `ls`
@@ -36,13 +36,13 @@ Reference implementation workflow:
    - truncation
    - deduplication
    - failure-only summarization
-6. Do not copy legacy behavior blindly when it depends on Rust-only infrastructure or broader RTK features that do not exist in PTK yet.
+6. Do not copy legacy behavior blindly when it depends on Rust-only infrastructure or broader RTK features that do not exist in PYTK-AI yet.
 7. When a Python filter intentionally diverges from `/rtk`, document the reason in the code or tests.
 
 Filter module structure rules:
-1. Keep each filter family in its own module under `src/ptk/filters/`.
-2. Extend `src/ptk/filters/__init__.py` only to register and dispatch filters.
-3. Put shared cleanup helpers in `src/ptk/filters/base.py` only when they are genuinely reusable.
+1. Keep each filter family in its own module under `src/pytk_ai/filters/`.
+2. Extend `src/pytk_ai/filters/__init__.py` only to register and dispatch filters.
+3. Put shared cleanup helpers in `src/pytk_ai/filters/base.py` only when they are genuinely reusable.
 4. Do not mix unrelated command families into `generic.py`.
 5. If a filter grows sub-modes with substantial logic, split it further instead of creating one oversized module.
 6. Mirror the task structure in tests so each filter module has focused regression coverage.
@@ -203,4 +203,4 @@ Filter module structure rules:
 - [ ] Output is materially smaller on realistic noisy examples.
 - [ ] Success and failure behavior are both tested.
 - [ ] Filter preserves actionable information for agent decision-making.
-- [ ] Benchmark evidence is captured in `labs/compare_bash_and_ptk.py` or a dedicated benchmark.
+- [ ] Benchmark evidence is captured in `labs/compare_bash_and_pytk_ai.py` or a dedicated benchmark.

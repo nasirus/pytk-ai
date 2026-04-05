@@ -6,7 +6,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Rule:
     pattern: str
-    ptk_cmd: str
+    pytk_ai_cmd: str
     rewrite_prefixes: tuple[str, ...]
     category: str
     savings_pct: float

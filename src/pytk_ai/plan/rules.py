@@ -11,12 +11,12 @@ from .models import Rule
 @lru_cache(maxsize=1)
 def load_rules() -> tuple[Rule, ...]:
     data = json.loads(
-        resources.files("ptk.data").joinpath("rules.json").read_text(encoding="utf-8")
+        resources.files("pytk_ai.data").joinpath("rules.json").read_text(encoding="utf-8")
     )
     return tuple(
         Rule(
             pattern=item["pattern"],
-            ptk_cmd=item["ptk_cmd"],
+            pytk_ai_cmd=item["pytk_ai_cmd"],
             rewrite_prefixes=tuple(
                 sorted(item["rewrite_prefixes"], key=len, reverse=True)
             ),
@@ -35,9 +35,9 @@ def match_rule(command: str, rules: tuple[Rule, ...] | None = None) -> Rule | No
 
 
 def rule_filter_hint(rule: Rule) -> str | None:
-    if not rule.ptk_cmd:
+    if not rule.pytk_ai_cmd:
         return None
-    parts = rule.ptk_cmd.split()
-    if len(parts) >= 2 and parts[0] == "ptk":
+    parts = rule.pytk_ai_cmd.split()
+    if len(parts) >= 2 and parts[0] == "pytk-ai":
         return parts[1]
     return parts[-1]

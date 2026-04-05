@@ -65,13 +65,13 @@ def _plan_segment(segment: str, excluded: Sequence[str] = ()) -> PlanSegment | N
 
     command_part, redirect_suffix = strip_trailing_redirect_suffix(trimmed)
 
-    if command_part.startswith("ptk ") or command_part == "ptk":
+    if command_part.startswith("pytk-ai ") or command_part == "pytk-ai":
         return _managed_segment(
             trimmed,
             planned_command=trimmed,
             normalized_command=command_part,
             filter_hint=infer_filter_hint(command_part),
-            matched_rule="already-ptk",
+            matched_rule="already-pytk-ai",
         )
 
     if command_part.startswith("head -") or command_part.startswith("tail "):
@@ -104,7 +104,7 @@ def _plan_segment(segment: str, excluded: Sequence[str] = ()) -> PlanSegment | N
     if base and base in excluded:
         return _raw_segment(trimmed, skip_reason="excluded-command")
 
-    if rule.ptk_cmd == "ptk gh":
+    if rule.pytk_ai_cmd == "pytk-ai gh":
         lowered = normalized_command.lower()
         if any(flag in lowered for flag in ("--json", "--jq", "--template")):
             return _raw_segment(trimmed, skip_reason="gh-structured-output")
@@ -113,7 +113,7 @@ def _plan_segment(segment: str, excluded: Sequence[str] = ()) -> PlanSegment | N
         rest = strip_word_prefix(normalized_command, rewrite_prefix)
         if rest is None:
             continue
-        rewritten = f"{prefix}{rule.ptk_cmd}"
+        rewritten = f"{prefix}{rule.pytk_ai_cmd}"
         if rest:
             rewritten += f" {rest}"
         rewritten += redirect_suffix
@@ -122,7 +122,7 @@ def _plan_segment(segment: str, excluded: Sequence[str] = ()) -> PlanSegment | N
             planned_command=rewritten,
             normalized_command=normalized_command,
             filter_hint=rule_filter_hint(rule),
-            matched_rule=rule.ptk_cmd,
+            matched_rule=rule.pytk_ai_cmd,
         )
 
     return _raw_segment(trimmed, skip_reason="no-prefix-match")

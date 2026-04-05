@@ -1,52 +1,51 @@
 [
   {
     "pattern": "^git\\s+(?:-[Cc]\\s+\\S+\\s+)*(status|log|diff|show|add|commit|push|pull|branch|fetch|stash|worktree)",
-    "ptk_cmd": "ptk git",
     "rewrite_prefixes": [
       "git"
     ],
     "category": "Git",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai git"
   },
   {
     "pattern": "^gh\\s+(pr|issue|run|repo|api|release)",
-    "ptk_cmd": "ptk gh",
     "rewrite_prefixes": [
       "gh"
     ],
     "category": "GitHub",
-    "savings_pct": 82.0
+    "savings_pct": 82.0,
+    "pytk_ai_cmd": "pytk-ai gh"
   },
   {
     "pattern": "^cargo\\s+test(\\s|$)",
-    "ptk_cmd": "ptk test",
     "rewrite_prefixes": [
       "cargo test"
     ],
     "category": "Tests",
-    "savings_pct": 90.0
+    "savings_pct": 90.0,
+    "pytk_ai_cmd": "pytk-ai test"
   },
   {
     "pattern": "^cargo\\s+(build|clippy|check|fmt|install)",
-    "ptk_cmd": "ptk cargo",
     "rewrite_prefixes": [
       "cargo"
     ],
     "category": "Cargo",
-    "savings_pct": 80.0
+    "savings_pct": 80.0,
+    "pytk_ai_cmd": "pytk-ai cargo"
   },
   {
     "pattern": "^pnpm\\s+(list|ls|outdated|install)",
-    "ptk_cmd": "ptk pnpm",
     "rewrite_prefixes": [
       "pnpm"
     ],
     "category": "PackageManager",
-    "savings_pct": 80.0
+    "savings_pct": 80.0,
+    "pytk_ai_cmd": "pytk-ai pnpm"
   },
   {
     "pattern": "^(npm|pnpm|yarn|make)\\s+test(\\s|$)",
-    "ptk_cmd": "ptk test",
     "rewrite_prefixes": [
       "pnpm test",
       "npm test",
@@ -54,79 +53,79 @@
       "make test"
     ],
     "category": "Tests",
-    "savings_pct": 90.0
+    "savings_pct": 90.0,
+    "pytk_ai_cmd": "pytk-ai test"
   },
   {
     "pattern": "^npm\\s+(run|exec)",
-    "ptk_cmd": "ptk npm",
     "rewrite_prefixes": [
       "npm"
     ],
     "category": "PackageManager",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai npm"
   },
   {
     "pattern": "^npx\\s+",
-    "ptk_cmd": "ptk npx",
     "rewrite_prefixes": [
       "npx"
     ],
     "category": "PackageManager",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai npx"
   },
   {
     "pattern": "^(cat|head|tail)\\s+",
-    "ptk_cmd": "ptk read",
     "rewrite_prefixes": [
       "cat",
       "head",
       "tail"
     ],
     "category": "Files",
-    "savings_pct": 60.0
+    "savings_pct": 60.0,
+    "pytk_ai_cmd": "pytk-ai read"
   },
   {
     "pattern": "^(rg|grep)\\s+",
-    "ptk_cmd": "ptk grep",
     "rewrite_prefixes": [
       "rg",
       "grep"
     ],
     "category": "Files",
-    "savings_pct": 75.0
+    "savings_pct": 75.0,
+    "pytk_ai_cmd": "pytk-ai grep"
   },
   {
     "pattern": "^ls(\\s|$)",
-    "ptk_cmd": "ptk ls",
     "rewrite_prefixes": [
       "ls"
     ],
     "category": "Files",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai ls"
   },
   {
     "pattern": "^find\\s+",
-    "ptk_cmd": "ptk find",
     "rewrite_prefixes": [
       "find"
     ],
     "category": "Files",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai find"
   },
   {
     "pattern": "^(npx\\s+|pnpm\\s+)?tsc(\\s|$)",
-    "ptk_cmd": "ptk tsc",
     "rewrite_prefixes": [
       "pnpm tsc",
       "npx tsc",
       "tsc"
     ],
     "category": "Build",
-    "savings_pct": 83.0
+    "savings_pct": 83.0,
+    "pytk_ai_cmd": "pytk-ai tsc"
   },
   {
     "pattern": "^(npx\\s+|pnpm\\s+)?(eslint|biome|lint)(\\s|$)",
-    "ptk_cmd": "ptk lint",
     "rewrite_prefixes": [
       "npx eslint",
       "pnpm lint",
@@ -136,33 +135,33 @@
       "lint"
     ],
     "category": "Build",
-    "savings_pct": 84.0
+    "savings_pct": 84.0,
+    "pytk_ai_cmd": "pytk-ai lint"
   },
   {
     "pattern": "^(npx\\s+|pnpm\\s+)?prettier",
-    "ptk_cmd": "ptk prettier",
     "rewrite_prefixes": [
       "npx prettier",
       "pnpm prettier",
       "prettier"
     ],
     "category": "Build",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai prettier"
   },
   {
     "pattern": "^(npx\\s+|pnpm\\s+)?next\\s+build",
-    "ptk_cmd": "ptk next",
     "rewrite_prefixes": [
       "npx next build",
       "pnpm next build",
       "next build"
     ],
     "category": "Build",
-    "savings_pct": 87.0
+    "savings_pct": 87.0,
+    "pytk_ai_cmd": "pytk-ai next"
   },
   {
     "pattern": "^(pnpm\\s+|npx\\s+)?(vitest|jest|test)(\\s|$)",
-    "ptk_cmd": "ptk vitest",
     "rewrite_prefixes": [
       "pnpm vitest",
       "npx vitest",
@@ -170,156 +169,156 @@
       "jest"
     ],
     "category": "Tests",
-    "savings_pct": 99.0
+    "savings_pct": 99.0,
+    "pytk_ai_cmd": "pytk-ai vitest"
   },
   {
     "pattern": "^(npx\\s+|pnpm\\s+)?playwright",
-    "ptk_cmd": "ptk playwright",
     "rewrite_prefixes": [
       "npx playwright",
       "pnpm playwright",
       "playwright"
     ],
     "category": "Tests",
-    "savings_pct": 94.0
+    "savings_pct": 94.0,
+    "pytk_ai_cmd": "pytk-ai playwright"
   },
   {
     "pattern": "^(npx\\s+|pnpm\\s+)?prisma",
-    "ptk_cmd": "ptk prisma",
     "rewrite_prefixes": [
       "npx prisma",
       "pnpm prisma",
       "prisma"
     ],
     "category": "Build",
-    "savings_pct": 88.0
+    "savings_pct": 88.0,
+    "pytk_ai_cmd": "pytk-ai prisma"
   },
   {
     "pattern": "^docker\\s+(ps|images|logs|run|exec|build|compose\\s+(ps|logs|build))",
-    "ptk_cmd": "ptk docker",
     "rewrite_prefixes": [
       "docker"
     ],
     "category": "Infra",
-    "savings_pct": 85.0
+    "savings_pct": 85.0,
+    "pytk_ai_cmd": "pytk-ai docker"
   },
   {
     "pattern": "^kubectl\\s+(get|logs|describe|apply)",
-    "ptk_cmd": "ptk kubectl",
     "rewrite_prefixes": [
       "kubectl"
     ],
     "category": "Infra",
-    "savings_pct": 85.0
+    "savings_pct": 85.0,
+    "pytk_ai_cmd": "pytk-ai kubectl"
   },
   {
     "pattern": "^tree(\\s|$)",
-    "ptk_cmd": "ptk tree",
     "rewrite_prefixes": [
       "tree"
     ],
     "category": "Files",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai tree"
   },
   {
     "pattern": "^diff\\s+",
-    "ptk_cmd": "ptk diff",
     "rewrite_prefixes": [
       "diff"
     ],
     "category": "Files",
-    "savings_pct": 60.0
+    "savings_pct": 60.0,
+    "pytk_ai_cmd": "pytk-ai diff"
   },
   {
     "pattern": "^curl\\s+",
-    "ptk_cmd": "ptk curl",
     "rewrite_prefixes": [
       "curl"
     ],
     "category": "Network",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai curl"
   },
   {
     "pattern": "^wget\\s+",
-    "ptk_cmd": "ptk wget",
     "rewrite_prefixes": [
       "wget"
     ],
     "category": "Network",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai wget"
   },
   {
     "pattern": "^(python3?\\s+-m\\s+)?mypy(\\s|$)",
-    "ptk_cmd": "ptk mypy",
     "rewrite_prefixes": [
       "python3 -m mypy",
       "python -m mypy",
       "mypy"
     ],
     "category": "Build",
-    "savings_pct": 80.0
+    "savings_pct": 80.0,
+    "pytk_ai_cmd": "pytk-ai mypy"
   },
   {
     "pattern": "^ruff\\s+(check|format)",
-    "ptk_cmd": "ptk ruff",
     "rewrite_prefixes": [
       "ruff"
     ],
     "category": "Python",
-    "savings_pct": 80.0
+    "savings_pct": 80.0,
+    "pytk_ai_cmd": "pytk-ai ruff"
   },
   {
     "pattern": "^(python\\s+-m\\s+)?pytest(\\s|$)",
-    "ptk_cmd": "ptk pytest",
     "rewrite_prefixes": [
       "python -m pytest",
       "pytest"
     ],
     "category": "Python",
-    "savings_pct": 90.0
+    "savings_pct": 90.0,
+    "pytk_ai_cmd": "pytk-ai pytest"
   },
   {
     "pattern": "^(pip3?|uv\\s+pip)\\s+(list|outdated|install)",
-    "ptk_cmd": "ptk pip",
     "rewrite_prefixes": [
       "pip3",
       "pip",
       "uv pip"
     ],
     "category": "Python",
-    "savings_pct": 75.0
+    "savings_pct": 75.0,
+    "pytk_ai_cmd": "pytk-ai pip"
   },
   {
     "pattern": "^go\\s+(test|build|vet)",
-    "ptk_cmd": "ptk go",
     "rewrite_prefixes": [
       "go"
     ],
     "category": "Go",
-    "savings_pct": 85.0
+    "savings_pct": 85.0,
+    "pytk_ai_cmd": "pytk-ai go"
   },
   {
     "pattern": "^golangci-lint(\\s|$)",
-    "ptk_cmd": "ptk golangci-lint",
     "rewrite_prefixes": [
       "golangci-lint",
       "golangci"
     ],
     "category": "Go",
-    "savings_pct": 85.0
+    "savings_pct": 85.0,
+    "pytk_ai_cmd": "pytk-ai golangci-lint"
   },
   {
     "pattern": "^bundle\\s+(install|update)\\b",
-    "ptk_cmd": "ptk bundle",
     "rewrite_prefixes": [
       "bundle"
     ],
     "category": "Ruby",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai bundle"
   },
   {
     "pattern": "^(?:bundle\\s+exec\\s+)?(?:bin/)?(?:rake|rails)\\s+test",
-    "ptk_cmd": "ptk rake",
     "rewrite_prefixes": [
       "bundle exec rails",
       "bundle exec rake",
@@ -328,342 +327,343 @@
       "rake"
     ],
     "category": "Ruby",
-    "savings_pct": 85.0
+    "savings_pct": 85.0,
+    "pytk_ai_cmd": "pytk-ai rake"
   },
   {
     "pattern": "^(?:bundle\\s+exec\\s+)?rspec(?:\\s|$)",
-    "ptk_cmd": "ptk rspec",
     "rewrite_prefixes": [
       "bundle exec rspec",
       "bin/rspec",
       "rspec"
     ],
     "category": "Tests",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai rspec"
   },
   {
     "pattern": "^(?:bundle\\s+exec\\s+)?rubocop(?:\\s|$)",
-    "ptk_cmd": "ptk rubocop",
     "rewrite_prefixes": [
       "bundle exec rubocop",
       "rubocop"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai rubocop"
   },
   {
     "pattern": "^aws\\s+",
-    "ptk_cmd": "ptk aws",
     "rewrite_prefixes": [
       "aws"
     ],
     "category": "Infra",
-    "savings_pct": 80.0
+    "savings_pct": 80.0,
+    "pytk_ai_cmd": "pytk-ai aws"
   },
   {
     "pattern": "^psql(\\s|$)",
-    "ptk_cmd": "ptk psql",
     "rewrite_prefixes": [
       "psql"
     ],
     "category": "Infra",
-    "savings_pct": 75.0
+    "savings_pct": 75.0,
+    "pytk_ai_cmd": "pytk-ai psql"
   },
   {
     "pattern": "^ansible-playbook\\b",
-    "ptk_cmd": "ptk ansible-playbook",
     "rewrite_prefixes": [
       "ansible-playbook"
     ],
     "category": "Infra",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai ansible-playbook"
   },
   {
     "pattern": "^brew\\s+(install|upgrade)\\b",
-    "ptk_cmd": "ptk brew",
     "rewrite_prefixes": [
       "brew"
     ],
     "category": "PackageManager",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai brew"
   },
   {
     "pattern": "^composer\\s+(install|update|require)\\b",
-    "ptk_cmd": "ptk composer",
     "rewrite_prefixes": [
       "composer"
     ],
     "category": "PackageManager",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai composer"
   },
   {
     "pattern": "^df(\\s|$)",
-    "ptk_cmd": "ptk df",
     "rewrite_prefixes": [
       "df"
     ],
     "category": "System",
-    "savings_pct": 60.0
+    "savings_pct": 60.0,
+    "pytk_ai_cmd": "pytk-ai df"
   },
   {
     "pattern": "^dotnet\\s+build\\b",
-    "ptk_cmd": "ptk dotnet",
     "rewrite_prefixes": [
       "dotnet"
     ],
     "category": "Build",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai dotnet"
   },
   {
     "pattern": "^du\\b",
-    "ptk_cmd": "ptk du",
     "rewrite_prefixes": [
       "du"
     ],
     "category": "System",
-    "savings_pct": 60.0
+    "savings_pct": 60.0,
+    "pytk_ai_cmd": "pytk-ai du"
   },
   {
     "pattern": "^fail2ban-client\\b",
-    "ptk_cmd": "ptk fail2ban-client",
     "rewrite_prefixes": [
       "fail2ban-client"
     ],
     "category": "Infra",
-    "savings_pct": 60.0
+    "savings_pct": 60.0,
+    "pytk_ai_cmd": "pytk-ai fail2ban-client"
   },
   {
     "pattern": "^gcloud\\b",
-    "ptk_cmd": "ptk gcloud",
     "rewrite_prefixes": [
       "gcloud"
     ],
     "category": "Infra",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai gcloud"
   },
   {
     "pattern": "^hadolint\\b",
-    "ptk_cmd": "ptk hadolint",
     "rewrite_prefixes": [
       "hadolint"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai hadolint"
   },
   {
     "pattern": "^helm\\b",
-    "ptk_cmd": "ptk helm",
     "rewrite_prefixes": [
       "helm"
     ],
     "category": "Infra",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai helm"
   },
   {
     "pattern": "^iptables\\b",
-    "ptk_cmd": "ptk iptables",
     "rewrite_prefixes": [
       "iptables"
     ],
     "category": "Infra",
-    "savings_pct": 60.0
+    "savings_pct": 60.0,
+    "pytk_ai_cmd": "pytk-ai iptables"
   },
   {
     "pattern": "^make\\b",
-    "ptk_cmd": "ptk make",
     "rewrite_prefixes": [
       "make"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai make"
   },
   {
     "pattern": "^markdownlint\\b",
-    "ptk_cmd": "ptk markdownlint",
     "rewrite_prefixes": [
       "markdownlint"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai markdownlint"
   },
   {
     "pattern": "^mix\\s+(compile|format)(\\s|$)",
-    "ptk_cmd": "ptk mix",
     "rewrite_prefixes": [
       "mix"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai mix"
   },
   {
     "pattern": "^mvn\\s+(compile|package|clean|install)\\b",
-    "ptk_cmd": "ptk mvn",
     "rewrite_prefixes": [
       "mvn"
     ],
     "category": "Build",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai mvn"
   },
   {
     "pattern": "^ping\\b",
-    "ptk_cmd": "ptk ping",
     "rewrite_prefixes": [
       "ping"
     ],
     "category": "Network",
-    "savings_pct": 60.0
+    "savings_pct": 60.0,
+    "pytk_ai_cmd": "pytk-ai ping"
   },
   {
     "pattern": "^pio\\s+run",
-    "ptk_cmd": "ptk pio",
     "rewrite_prefixes": [
       "pio"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai pio"
   },
   {
     "pattern": "^poetry\\s+(install|lock|update)\\b",
-    "ptk_cmd": "ptk poetry",
     "rewrite_prefixes": [
       "poetry"
     ],
     "category": "Python",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai poetry"
   },
   {
     "pattern": "^pre-commit\\b",
-    "ptk_cmd": "ptk pre-commit",
     "rewrite_prefixes": [
       "pre-commit"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai pre-commit"
   },
   {
     "pattern": "^ps(\\s|$)",
-    "ptk_cmd": "ptk ps",
     "rewrite_prefixes": [
       "ps"
     ],
     "category": "System",
-    "savings_pct": 60.0
+    "savings_pct": 60.0,
+    "pytk_ai_cmd": "pytk-ai ps"
   },
   {
     "pattern": "^quarto\\s+render",
-    "ptk_cmd": "ptk quarto",
     "rewrite_prefixes": [
       "quarto"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai quarto"
   },
   {
     "pattern": "^rsync\\b",
-    "ptk_cmd": "ptk rsync",
     "rewrite_prefixes": [
       "rsync"
     ],
     "category": "Network",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai rsync"
   },
   {
     "pattern": "^shellcheck\\b",
-    "ptk_cmd": "ptk shellcheck",
     "rewrite_prefixes": [
       "shellcheck"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai shellcheck"
   },
   {
     "pattern": "^shopify\\s+theme\\s+(push|pull)",
-    "ptk_cmd": "ptk shopify",
     "rewrite_prefixes": [
       "shopify"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai shopify"
   },
   {
     "pattern": "^sops\\b",
-    "ptk_cmd": "ptk sops",
     "rewrite_prefixes": [
       "sops"
     ],
     "category": "Infra",
-    "savings_pct": 60.0
+    "savings_pct": 60.0,
+    "pytk_ai_cmd": "pytk-ai sops"
   },
   {
     "pattern": "^swift\\s+(build|test)\\b",
-    "ptk_cmd": "ptk swift",
     "rewrite_prefixes": [
       "swift"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai swift"
   },
   {
     "pattern": "^systemctl\\s+status\\b",
-    "ptk_cmd": "ptk systemctl",
     "rewrite_prefixes": [
       "systemctl"
     ],
     "category": "System",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai systemctl"
   },
   {
     "pattern": "^terraform\\s+plan",
-    "ptk_cmd": "ptk terraform",
     "rewrite_prefixes": [
       "terraform"
     ],
     "category": "Infra",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai terraform"
   },
   {
     "pattern": "^tofu\\s+(fmt|init|plan|validate)(\\s|$)",
-    "ptk_cmd": "ptk tofu",
     "rewrite_prefixes": [
       "tofu"
     ],
     "category": "Infra",
-    "savings_pct": 70.0
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai tofu"
   },
   {
     "pattern": "^trunk\\s+build",
-    "ptk_cmd": "ptk trunk",
     "rewrite_prefixes": [
       "trunk"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai trunk"
   },
   {
     "pattern": "^uv\\s+(sync|pip\\s+install)\\b",
-    "ptk_cmd": "ptk uv",
     "rewrite_prefixes": [
       "uv"
     ],
     "category": "Python",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai uv"
   },
   {
     "pattern": "^yamllint\\b",
-    "ptk_cmd": "ptk yamllint",
     "rewrite_prefixes": [
       "yamllint"
     ],
     "category": "Build",
-    "savings_pct": 65.0
+    "savings_pct": 65.0,
+    "pytk_ai_cmd": "pytk-ai yamllint"
   },
   {
     "pattern": "^wc(\\s|$)",
-    "ptk_cmd": "ptk wc",
     "rewrite_prefixes": [
       "wc"
     ],
     "category": "Files",
-    "savings_pct": 60.0
+    "savings_pct": 60.0,
+    "pytk_ai_cmd": "pytk-ai wc"
   }
 ]

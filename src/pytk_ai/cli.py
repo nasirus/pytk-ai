@@ -51,7 +51,7 @@ def _emit_claude_hook(rewritten: str) -> None:
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "allow",
-            "permissionDecisionReason": "PTK auto-rewrite",
+            "permissionDecisionReason": "PYTK-AI auto-rewrite",
             "updatedInput": {"command": rewritten},
         }
     }
@@ -104,7 +104,7 @@ def _run_hook(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="ptk", description="PTK command runner")
+    parser = argparse.ArgumentParser(prog="pytk-ai", description="PYTK-AI command runner")
     sub = parser.add_subparsers(dest="command", required=True)
 
     run = sub.add_parser("run", help="execute a raw shell command and filter output")
@@ -113,7 +113,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--exclude",
         action="append",
         default=[],
-        help="base commands to never plan as PTK-managed",
+        help="base commands to never plan as PYTK-AI-managed",
     )
     run.add_argument(
         "--max-output-lines",

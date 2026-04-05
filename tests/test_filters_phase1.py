@@ -1,7 +1,7 @@
 import unittest
 
-from ptk.filters import filter_output
-from ptk.plan import plan_command
+from pytk_ai.filters import filter_output
+from pytk_ai.plan import plan_command
 
 
 class FiltersPhase1Tests(unittest.TestCase):

@@ -1,6 +1,6 @@
 import unittest
 
-from ptk.plan.normalize import (
+from pytk_ai.plan.normalize import (
     has_disabled_prefix,
     infer_filter_hint,
     normalize_absolute_first_token,
@@ -30,17 +30,17 @@ class PlanNormalizeTests(unittest.TestCase):
     def test_rewrite_line_range_handles_head_and_tail(self):
         self.assertEqual(
             rewrite_line_range("head -5 README.md"),
-            "ptk read README.md --max-lines 5",
+            "pytk-ai read README.md --max-lines 5",
         )
         self.assertEqual(
             rewrite_line_range("tail --lines 7 README.md"),
-            "ptk read README.md --tail-lines 7",
+            "pytk-ai read README.md --tail-lines 7",
         )
 
-    def test_has_disabled_prefix_detects_ptk_and_rtk_flags(self):
-        self.assertTrue(has_disabled_prefix("PTK_DISABLED=1 git status"))
+    def test_has_disabled_prefix_detects_pytk_ai_and_rtk_flags(self):
+        self.assertTrue(has_disabled_prefix("PYTK_AI_DISABLED=1 git status"))
         self.assertTrue(has_disabled_prefix("RTK_DISABLED=1 git status"))
 
-    def test_infer_filter_hint_handles_ptk_and_python_forms(self):
-        self.assertEqual(infer_filter_hint("ptk git status"), "git")
+    def test_infer_filter_hint_handles_pytk_ai_and_python_forms(self):
+        self.assertEqual(infer_filter_hint("pytk-ai git status"), "git")
         self.assertEqual(infer_filter_hint("python -m pytest -q"), "pytest")

@@ -1,6 +1,6 @@
 import unittest
 
-from ptk.plan.scanner import scan_compound
+from pytk_ai.plan.scanner import scan_compound
 
 
 class PlanScannerTests(unittest.TestCase):

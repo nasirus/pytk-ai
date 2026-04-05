@@ -1,8 +1,8 @@
 import unittest
 
-from ptk.filters import filter_output
-from ptk.filters.generic import filter_generic_output
-from ptk.plan import plan_command
+from pytk_ai.filters import filter_output
+from pytk_ai.filters.generic import filter_generic_output
+from pytk_ai.plan import plan_command
 
 
 class FiltersGenericTests(unittest.TestCase):
@@ -32,7 +32,7 @@ class FiltersGenericTests(unittest.TestCase):
 
     def test_filter_output_falls_back_when_specific_filter_raises(self):
         plan = plan_command("git status")
-        import ptk.filters as filters_module
+        import pytk_ai.filters as filters_module
 
         original = filters_module._FILTERS["git"]
         try:

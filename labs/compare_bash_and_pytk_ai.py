@@ -17,7 +17,7 @@ SRC_DIR = PROJECT_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from ptk.runner import run_command  # noqa: E402
+from pytk_ai.runner import run_command  # noqa: E402
 
 
 class Scenario(NamedTuple):
@@ -45,20 +45,20 @@ class BenchmarkResult(NamedTuple):
     command: str
     cwd: Path
     bash_timing: TimingStats
-    ptk_timing: TimingStats
+    pytk_ai_timing: TimingStats
     bash_output: OutputStats
-    ptk_output: OutputStats
+    pytk_ai_output: OutputStats
 
 
 SCENARIOS: tuple[Scenario, ...] = (
     Scenario(title="List repository root", command="ls"),
-    Scenario(title="List PTK package files", command="ls src/ptk"),
-    Scenario(title="Grep PTK mentions in README", command="grep -n 'ptk' README.md"),
+    Scenario(title="List PYTK-AI package files", command="ls src/pytk_ai"),
+    Scenario(title="Grep PYTK-AI mentions in README", command="grep -n 'pytk-ai' README.md"),
     Scenario(title="Show tracked git status", command="git status --short"),
     Scenario(title="Show latest git commit", command="git log -1 --oneline"),
     Scenario(
         title="Print a simple file-manipulation pipeline",
-        command="ls src/ptk | grep '\\.py$'",
+        command="ls src/pytk_ai | grep '\\.py$'",
     ),
     Scenario(
         title="Collapse highly repetitive output",
@@ -69,7 +69,7 @@ SCENARIOS: tuple[Scenario, ...] = (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Compare bash subprocess output against PTK output."
+        description="Compare bash subprocess output against PYTK-AI output."
     )
     parser.add_argument(
         "--benchmark",
@@ -161,15 +161,15 @@ def output_stats(text: str) -> OutputStats:
 def compare_outputs() -> None:
     for index, scenario in enumerate(SCENARIOS, start=1):
         bash_result = run_bash(scenario.command, cwd=scenario.cwd)
-        ptk_result = run_command(scenario.command, cwd=str(scenario.cwd))
+        pytk_ai_result = run_command(scenario.command, cwd=str(scenario.cwd))
         bash_combined = combine_streams(
             bash_result.stdout,
             bash_result.stderr,
             bash_result.returncode,
         )
         bash_stats = output_stats(bash_combined)
-        ptk_stats = output_stats(ptk_result.filtered_output)
-        saved_tokens = bash_stats.tokens - ptk_stats.tokens
+        pytk_ai_stats = output_stats(pytk_ai_result.filtered_output)
+        saved_tokens = bash_stats.tokens - pytk_ai_stats.tokens
         saved_pct = (
             (saved_tokens / bash_stats.tokens) * 100 if bash_stats.tokens else 0.0
         )
@@ -178,7 +178,7 @@ def compare_outputs() -> None:
         print(f"Command: {scenario.command}")
         print(
             "Estimated token savings:"
-            f" {bash_stats.tokens} -> {ptk_stats.tokens}"
+            f" {bash_stats.tokens} -> {pytk_ai_stats.tokens}"
             f" ({saved_tokens} saved, {format_percent(saved_pct)})"
         )
         print()
@@ -192,18 +192,18 @@ def compare_outputs() -> None:
             f" {bash_stats.tokens} token(s)"
         )
         print()
-        print("=== ptk ===")
-        print(f"exit_code: {ptk_result.exit_code}")
-        print(f"executed_command: {ptk_result.executed_command}")
-        print(f"planned_command: {ptk_result.planned_command}")
-        print(f"managed: {ptk_result.managed}")
-        show_section("filtered_output:", ptk_result.filtered_output)
-        show_section("stdout:", ptk_result.stdout)
-        show_section("stderr:", ptk_result.stderr)
+        print("=== pytk-ai ===")
+        print(f"exit_code: {pytk_ai_result.exit_code}")
+        print(f"executed_command: {pytk_ai_result.executed_command}")
+        print(f"planned_command: {pytk_ai_result.planned_command}")
+        print(f"managed: {pytk_ai_result.managed}")
+        show_section("filtered_output:", pytk_ai_result.filtered_output)
+        show_section("stdout:", pytk_ai_result.stdout)
+        show_section("stderr:", pytk_ai_result.stderr)
         print(
             "filtered_output_stats:"
-            f" {ptk_stats.lines} line(s), {ptk_stats.chars} char(s),"
-            f" {ptk_stats.tokens} token(s)"
+            f" {pytk_ai_stats.lines} line(s), {pytk_ai_stats.chars} char(s),"
+            f" {pytk_ai_stats.tokens} token(s)"
         )
         if index != len(SCENARIOS):
             print("\n" + "=" * 72 + "\n")
@@ -212,7 +212,7 @@ def compare_outputs() -> None:
 def create_benchmark_workspace() -> tuple[
     tempfile.TemporaryDirectory[str], tuple[Scenario, ...]
 ]:
-    temp_dir = tempfile.TemporaryDirectory(prefix="ptk-bench-")
+    temp_dir = tempfile.TemporaryDirectory(prefix="pytk-ai-bench-")
     root = Path(temp_dir.name)
 
     ls_dir = root / "ls_bench"
@@ -233,8 +233,8 @@ def create_benchmark_workspace() -> tuple[
     repo_dir = root / "git_bench"
     repo_dir.mkdir()
     run_bash("git init -q", cwd=repo_dir)
-    run_bash('git config user.email "ptk-bench@example.com"', cwd=repo_dir)
-    run_bash('git config user.name "PTK Bench"', cwd=repo_dir)
+    run_bash('git config user.email "pytk-ai-bench@example.com"', cwd=repo_dir)
+    run_bash('git config user.name "PYTK-AI Bench"', cwd=repo_dir)
     tracked_file = repo_dir / "tracked.txt"
     tracked_file.write_text("original\n")
     run_bash("git add tracked.txt", cwd=repo_dir)
@@ -277,7 +277,7 @@ def time_bash(
     return measure_timing(durations_ms), output_stats(latest_output)
 
 
-def time_ptk(
+def time_pytk_ai(
     command: str, *, cwd: Path, iterations: int
 ) -> tuple[TimingStats, OutputStats]:
     durations_ms: list[float] = []
@@ -301,7 +301,7 @@ def benchmark_scenarios(iterations: int) -> list[BenchmarkResult]:
                 cwd=scenario.cwd,
                 iterations=iterations,
             )
-            ptk_timing, ptk_output = time_ptk(
+            pytk_ai_timing, pytk_ai_output = time_pytk_ai(
                 scenario.command,
                 cwd=scenario.cwd,
                 iterations=iterations,
@@ -312,9 +312,9 @@ def benchmark_scenarios(iterations: int) -> list[BenchmarkResult]:
                     command=scenario.command,
                     cwd=scenario.cwd,
                     bash_timing=bash_timing,
-                    ptk_timing=ptk_timing,
+                    pytk_ai_timing=pytk_ai_timing,
                     bash_output=bash_output,
-                    ptk_output=ptk_output,
+                    pytk_ai_output=pytk_ai_output,
                 )
             )
         return results
@@ -342,18 +342,18 @@ def format_table(headers: tuple[str, ...], rows: list[tuple[str, ...]]) -> str:
 def print_benchmark_report(results: list[BenchmarkResult], *, iterations: int) -> None:
     rows: list[tuple[str, ...]] = []
     total_bash_tokens = 0
-    total_ptk_tokens = 0
+    total_pytk_ai_tokens = 0
     total_bash_mean = 0.0
-    total_ptk_mean = 0.0
+    total_pytk_ai_mean = 0.0
 
     for result in results:
-        saved_tokens = result.bash_output.tokens - result.ptk_output.tokens
+        saved_tokens = result.bash_output.tokens - result.pytk_ai_output.tokens
         saved_pct = (
             (saved_tokens / result.bash_output.tokens) * 100
             if result.bash_output.tokens
             else 0.0
         )
-        perf_delta_ms = result.ptk_timing.mean_ms - result.bash_timing.mean_ms
+        perf_delta_ms = result.pytk_ai_timing.mean_ms - result.bash_timing.mean_ms
         perf_delta_pct = (
             (perf_delta_ms / result.bash_timing.mean_ms) * 100
             if result.bash_timing.mean_ms
@@ -363,25 +363,25 @@ def print_benchmark_report(results: list[BenchmarkResult], *, iterations: int) -
             (
                 result.title,
                 f"{result.bash_timing.mean_ms:.2f}",
-                f"{result.ptk_timing.mean_ms:.2f}",
+                f"{result.pytk_ai_timing.mean_ms:.2f}",
                 f"{perf_delta_ms:+.2f}",
                 format_percent(perf_delta_pct),
                 str(result.bash_output.tokens),
-                str(result.ptk_output.tokens),
+                str(result.pytk_ai_output.tokens),
                 str(saved_tokens),
                 format_percent(saved_pct),
             )
         )
         total_bash_tokens += result.bash_output.tokens
-        total_ptk_tokens += result.ptk_output.tokens
+        total_pytk_ai_tokens += result.pytk_ai_output.tokens
         total_bash_mean += result.bash_timing.mean_ms
-        total_ptk_mean += result.ptk_timing.mean_ms
+        total_pytk_ai_mean += result.pytk_ai_timing.mean_ms
 
-    total_saved_tokens = total_bash_tokens - total_ptk_tokens
+    total_saved_tokens = total_bash_tokens - total_pytk_ai_tokens
     total_saved_pct = (
         (total_saved_tokens / total_bash_tokens) * 100 if total_bash_tokens else 0.0
     )
-    total_perf_delta_ms = total_ptk_mean - total_bash_mean
+    total_perf_delta_ms = total_pytk_ai_mean - total_bash_mean
     total_perf_delta_pct = (
         (total_perf_delta_ms / total_bash_mean) * 100 if total_bash_mean else 0.0
     )
@@ -389,11 +389,11 @@ def print_benchmark_report(results: list[BenchmarkResult], *, iterations: int) -
         (
             "TOTAL",
             f"{total_bash_mean:.2f}",
-            f"{total_ptk_mean:.2f}",
+            f"{total_pytk_ai_mean:.2f}",
             f"{total_perf_delta_ms:+.2f}",
             format_percent(total_perf_delta_pct),
             str(total_bash_tokens),
-            str(total_ptk_tokens),
+            str(total_pytk_ai_tokens),
             str(total_saved_tokens),
             format_percent(total_saved_pct),
         )
@@ -402,7 +402,7 @@ def print_benchmark_report(results: list[BenchmarkResult], *, iterations: int) -
     print(f"Benchmark iterations per scenario: {iterations}")
     print(f"Token estimator: {token_estimator_label()}")
     print(
-        "Runtime note: bash timings use `bash -lc`; PTK timings use `run_command`,"
+        "Runtime note: bash timings use `bash -lc`; PYTK-AI timings use `run_command`,"
         " so this measures end-to-end wrapper cost rather than isolated filter overhead."
     )
     print()
@@ -411,11 +411,11 @@ def print_benchmark_report(results: list[BenchmarkResult], *, iterations: int) -
             (
                 "scenario",
                 "bash ms",
-                "ptk ms",
+                "pytk-ai ms",
                 "delta ms",
                 "delta %",
                 "bash tok",
-                "ptk tok",
+                "pytk-ai tok",
                 "saved",
                 "saved %",
             ),
@@ -433,10 +433,10 @@ def print_benchmark_report(results: list[BenchmarkResult], *, iterations: int) -
             f" {result.bash_output.tokens} token(s)"
         )
         print(
-            "  ptk output:"
-            f" {result.ptk_output.lines} line(s),"
-            f" {result.ptk_output.chars} char(s),"
-            f" {result.ptk_output.tokens} token(s)"
+            "  pytk-ai output:"
+            f" {result.pytk_ai_output.lines} line(s),"
+            f" {result.pytk_ai_output.chars} char(s),"
+            f" {result.pytk_ai_output.tokens} token(s)"
         )
         print(
             "  timing spread:"
@@ -446,9 +446,9 @@ def print_benchmark_report(results: list[BenchmarkResult], *, iterations: int) -
         )
         print(
             "                 "
-            f"ptk median {result.ptk_timing.median_ms:.2f} ms"
-            f" (min {result.ptk_timing.min_ms:.2f}, max {result.ptk_timing.max_ms:.2f},"
-            f" stdev {result.ptk_timing.stdev_ms:.2f})"
+            f"pytk-ai median {result.pytk_ai_timing.median_ms:.2f} ms"
+            f" (min {result.pytk_ai_timing.min_ms:.2f}, max {result.pytk_ai_timing.max_ms:.2f},"
+            f" stdev {result.pytk_ai_timing.stdev_ms:.2f})"
         )
 
 

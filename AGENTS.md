@@ -2,11 +2,11 @@
 
 ## Project context
 
-PTK is the Python implementation of the RTK-style command rewrite layer used by agent CLI hooks.
+PYTK-AI is the Python implementation of the RTK-style command rewrite layer used by agent CLI hooks.
 It works by compressing the output of bash commands to reduce tool output token usage.
 
 Core goals:
-- rewrite common shell commands into PTK equivalents
+- rewrite common shell commands into PYTK-AI equivalents
 - keep hook behavior non-blocking
 - remain easy to package and install from PyPI
 
@@ -14,8 +14,8 @@ The legacy Rust implementation lives in `rtk/` and is useful as reference materi
 
 ## Tooling
 
-- Python package layout: `src/ptk/`
-- CLI entrypoint: `ptk`
+- Python package layout: `src/pytk_ai/`
+- CLI entrypoint: `pytk-ai`
 - Preferred local runner: `uv`
 - Tests: standard library `unittest`
 - No mandatory runtime dependencies at the moment
@@ -35,8 +35,8 @@ Run focused tests after any behavioral change:
 
 - Prefer adding a small regression test whenever a bug is fixed.
 - Create tests systematically at function and module level.
-- Target 100% coverage for PTK-owned logic.
-- Do not write tests for Python/runtime/library behavior that is already guaranteed by the system or a function signature; test PTK behavior, branching, contracts, and failure modes instead.
+- Target 100% coverage for PYTK-AI-owned logic.
+- Do not write tests for Python/runtime/library behavior that is already guaranteed by the system or a function signature; test PYTK-AI behavior, branching, contracts, and failure modes instead.
 
 ## Working style
 

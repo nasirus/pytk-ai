@@ -15,7 +15,7 @@ _TAIL_LINES_SPACE_RE = re.compile(r"^tail\s+--lines\s+(\d+)\s+(.+)$")
 
 
 def has_disabled_prefix(command: str) -> bool:
-    return bool(re.search(r"(?:^|\s)(?:PTK|RTK)_DISABLED=1(?:\s|$)", command))
+    return bool(re.search(r"(?:^|\s)(?:PYTK_AI|RTK)_DISABLED=1(?:\s|$)", command))
 
 
 def strip_env_prefix(command: str) -> tuple[str, str]:
@@ -80,7 +80,7 @@ def rewrite_line_range(command: str, redirect_suffix: str = "") -> str | None:
         match = regex.match(command)
         if match:
             count, path = match.group(1), match.group(2)
-            return f"ptk read {path} --max-lines {count}{redirect_suffix}"
+            return f"pytk-ai read {path} --max-lines {count}{redirect_suffix}"
     if command.startswith("head -"):
         return None
     for regex in (
@@ -92,7 +92,7 @@ def rewrite_line_range(command: str, redirect_suffix: str = "") -> str | None:
         match = regex.match(command)
         if match:
             count, path = match.group(1), match.group(2)
-            return f"ptk read {path} --tail-lines {count}{redirect_suffix}"
+            return f"pytk-ai read {path} --tail-lines {count}{redirect_suffix}"
     return None
 
 
@@ -101,11 +101,11 @@ def infer_filter_hint(command: str) -> str | None:
     normalized = normalize_absolute_first_token(command)
     if not normalized:
         return None
-    if normalized.startswith("ptk read"):
+    if normalized.startswith("pytk-ai read"):
         return "read"
-    if normalized.startswith("ptk "):
+    if normalized.startswith("pytk-ai "):
         parts = normalized.split(maxsplit=2)
-        return parts[1] if len(parts) > 1 else "ptk"
+        return parts[1] if len(parts) > 1 else "pytk-ai"
     if normalized.startswith(("cat ", "head ", "tail ")):
         return "read"
     if normalized.startswith(("rg ", "grep ")):

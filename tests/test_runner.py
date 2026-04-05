@@ -1,7 +1,7 @@
 import sys
 import unittest
 
-from ptk.runner import run_command
+from pytk_ai.runner import run_command
 
 
 class RunnerTests(unittest.TestCase):
@@ -28,8 +28,8 @@ class RunnerTests(unittest.TestCase):
 
     def test_run_command_accepts_env_overrides(self):
         result = run_command(
-            f"{sys.executable} -c \"import os; print(os.environ['PTK_TEST_VALUE'])\"",
-            env={"PTK_TEST_VALUE": "set"},
+            f"{sys.executable} -c \"import os; print(os.environ['PYTK_AI_TEST_VALUE'])\"",
+            env={"PYTK_AI_TEST_VALUE": "set"},
         )
         self.assertEqual(result.filtered_output, "set")
 

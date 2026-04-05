@@ -4,7 +4,7 @@ import sys
 import unittest
 from contextlib import redirect_stdout
 
-from ptk.cli import main
+from pytk_ai.cli import main
 
 
 class CliRunTests(unittest.TestCase):
@@ -42,5 +42,5 @@ class CliRunTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         self.assertEqual(
             json.loads(stdout.getvalue()),
-            {"permission": "allow", "updated_input": {"command": "ptk git status"}},
+            {"permission": "allow", "updated_input": {"command": "pytk-ai git status"}},
         )

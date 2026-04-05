@@ -1,18 +1,18 @@
-# PTK Project Instructions
+# PYTK-AI Project Instructions
 
-You are working in the PTK codebase: a Python port of the RTK command-rewrite engine.
+You are working in the PYTK-AI codebase: a Python port of the RTK command-rewrite engine.
 
 ## Mission
 
-- Keep the public name **PTK**.
+- Keep the public name **PYTK-AI**.
 - Treat the legacy Rust tree in `rtk/` as read-only reference material.
 - Focus on command rewriting, hook integration, packaging, and testability.
 
 ## Operating rules
 
 - Prefer small, incremental changes.
-- Preserve backward compatibility when it does not conflict with the PTK rename.
-- Keep public-facing strings and CLI behavior aligned with `ptk`.
+- Preserve backward compatibility when it does not conflict with the PYTK-AI rename.
+- Keep public-facing strings and CLI behavior aligned with `pytk-ai`.
 - Use the existing tests as the first safety net; add tests when behavior changes.
 - Avoid duplicating logic across files if a single source of truth can be used.
 

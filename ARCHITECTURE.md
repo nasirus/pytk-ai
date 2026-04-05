@@ -1,33 +1,33 @@
-# PTK Architecture
+# PYTK-AI Architecture
 
 ## Goal
 
-PTK is a Python package and CLI that accepts a bash command as text, executes it, and returns a stripped, token-efficient result.
+PYTK-AI is a Python package and CLI that accepts a bash command as text, executes it, and returns a stripped, token-efficient result.
 
 ## Migration status
 
 Current repository status:
 
-- the current Python scaffold still contains a small rewrite-compatibility module at `src/ptk/rewrite.py`
+- the current Python scaffold still contains a small rewrite-compatibility module at `src/pytk_ai/rewrite.py`
 - that compatibility layer is transition scaffolding, not the target public contract
-- the target public CLI is `ptk run <command>`
-- the target public library entrypoint is `from ptk.runner import run_command`
+- the target public CLI is `pytk-ai run <command>`
+- the target public library entrypoint is `from pytk_ai.runner import run_command`
 - command rewrite/planning remains internal implementation detail behind execution
-- the Rust tree in `rtk/` is reference material for useful logic only, not a compatibility contract for PTK behavior, module layout, or CLI shape
-- `src/ptk/rewrite.py` is the current implementation host for planning logic, but it is not required to survive as a permanent compatibility facade; Phase 1 may split or remove it as the new `ptk.plan` package lands
+- the Rust tree in `rtk/` is reference material for useful logic only, not a compatibility contract for PYTK-AI behavior, module layout, or CLI shape
+- `src/pytk_ai/rewrite.py` is the current implementation host for planning logic, but it is not required to survive as a permanent compatibility facade; Phase 1 may split or remove it as the new `pytk_ai.plan` package lands
 
 This migration target is: build the Python architecture cleanly from scratch while reusing only useful logic.
 
 It must work in two modes:
 
 1. **CLI**
-   - `ptk run "git status"`
+   - `pytk-ai run "git status"`
 
 2. **Library**
    - importable from Python scripts
    - callable as full execute-and-strip logic
 
-PTK keeps the public name `ptk` and is designed to be installable from PyPI with minimal runtime dependencies.
+PYTK-AI keeps the public name `pytk-ai` and is designed to be installable from PyPI with minimal runtime dependencies.
 
 ---
 
@@ -58,7 +58,7 @@ PTK keeps the public name `ptk` and is designed to be installable from PyPI with
 Primary use:
 
 ```python
-from ptk.runner import run_command
+from pytk_ai.runner import run_command
 ```
 
 Target usage:
@@ -75,7 +75,7 @@ The library should expose stable functions and structured result objects.
 
 Primary commands:
 
-- `ptk run <command>`
+- `pytk-ai run <command>`
 
 The CLI should stay thin and delegate to the library.
 
@@ -116,7 +116,7 @@ return structured result
 
 Purpose:
 - accept raw shell command text
-- detect whether PTK has a specialized execution/filter path
+- detect whether PYTK-AI has a specialized execution/filter path
 - normalize supported commands into an internal execution plan
 - preserve shell semantics where possible
 
@@ -125,20 +125,20 @@ Responsibilities:
 - compound command handling (`&&`, `||`, `;`, `|`, `&`)
 - env-prefix preservation (`FOO=1 git status`)
 - redirect preservation (`2>&1`, `>/tmp/x`)
-- special-case normalization like `head`/`tail` to PTK read-style handling
+- special-case normalization like `head`/`tail` to PYTK-AI read-style handling
 - skip rules for unsafe or incompatible cases
 
 Design rule:
 - planning logic should be **pure** and testable without executing subprocesses
 
 Suggested module area:
-- `ptk.plan`
-- `ptk.lexer`
-- `ptk.rules`
+- `pytk_ai.plan`
+- `pytk_ai.lexer`
+- `pytk_ai.rules`
 
 Note:
-- PTK does not need a public `ptk rewrite` command.
-- The planning/rewrite step is an internal implementation detail behind `ptk run`.
+- PYTK-AI does not need a public `pytk-ai rewrite` command.
+- The planning/rewrite step is an internal implementation detail behind `pytk-ai run`.
 
 ---
 
@@ -146,7 +146,7 @@ Note:
 
 Purpose:
 - accept a command string
-- decide whether to execute raw command or PTK-managed command path
+- decide whether to execute raw command or PYTK-AI-managed command path
 - run the subprocess
 - capture outputs and exit code
 
@@ -155,15 +155,15 @@ Responsibilities:
 - stdout/stderr capture
 - exit-code preservation
 - optional timeout and cwd/env support
-- safe fallback when PTK-specific filtering fails
+- safe fallback when PYTK-AI-specific filtering fails
 
 Design rule:
 - execution and filtering must be separate layers
 - if filtering fails, callers should still be able to recover raw output
 
 Suggested module area:
-- `ptk.runner`
-- `ptk.subprocess_utils`
+- `pytk_ai.runner`
+- `pytk_ai.subprocess_utils`
 
 ---
 
@@ -204,10 +204,10 @@ Design rule:
 - add command-specific filters incrementally for the biggest wins
 
 Suggested module area:
-- `ptk.filters.base`
-- `ptk.filters.system`
-- `ptk.filters.git`
-- `ptk.filters.python`
+- `pytk_ai.filters.base`
+- `pytk_ai.filters.system`
+- `pytk_ai.filters.git`
+- `pytk_ai.filters.python`
 
 ---
 
@@ -236,7 +236,7 @@ Design rule:
 - the CLI should simply print fields from the same result object
 
 Suggested module area:
-- `ptk.models`
+- `pytk_ai.models`
 
 ---
 
@@ -256,8 +256,8 @@ Design rule:
 - avoid scattering command-prefix knowledge across many files
 
 Suggested module area:
-- `ptk.data/`
-- `ptk.rules`
+- `pytk_ai.data/`
+- `pytk_ai.rules`
 
 ---
 
@@ -280,7 +280,7 @@ Design rule:
 - config files are secondary, not required for normal use
 
 Suggested module area:
-- `ptk.config`
+- `pytk_ai.config`
 
 ---
 
@@ -299,7 +299,7 @@ run_command(
 ) -> CommandResult
 ```
 
-Use when the caller wants PTK to execute the command and return stripped output.
+Use when the caller wants PYTK-AI to execute the command and return stripped output.
 
 ## Internal planning API
 
@@ -322,7 +322,7 @@ Use when callers want only part of the pipeline.
 
 ## CLI direction
 
-### `ptk run`
+### `pytk-ai run`
 
 - input: raw command string
 - behavior: plan internal execution path, execute, filter, print stripped output
@@ -334,12 +334,12 @@ This keeps CLI behavior aligned with library behavior.
 
 ## Packaging direction
 
-PTK should remain:
+PYTK-AI should remain:
 
 - pure Python
 - small install footprint
 - standard-library-first where possible
-- installable with `pip install ptk`
+- installable with `pip install pytk-ai`
 
 Implications:
 
@@ -354,7 +354,7 @@ Implications:
 
 ### Phase 0 — public-direction reset
 
-- keep `ptk run` and `run_command` as the migration target public surfaces
+- keep `pytk-ai run` and `run_command` as the migration target public surfaces
 - treat rewrite/planning as internal-only architecture
 - treat `rtk/` as reference input, not a compatibility requirement
 - allow current rewrite-first modules to be transitional and removable
@@ -398,7 +398,7 @@ Implications:
    - if filtering breaks, raw command output must still be recoverable.
 
 4. **Exit-code fidelity**
-   - PTK must preserve the underlying command exit code.
+   - PYTK-AI must preserve the underlying command exit code.
 
 5. **Small surface area**
    - start with a compact, maintainable core before broad command coverage.
@@ -413,7 +413,7 @@ Implications:
 
 ## Summary
 
-PTK should become a small Python command-processing engine with two faces:
+PYTK-AI should become a small Python command-processing engine with two faces:
 
 - a **library** that can rewrite, execute, and strip bash command output
 - a **CLI** that exposes the same behavior for shell workflows

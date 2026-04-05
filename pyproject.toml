@@ -3,9 +3,9 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ptk"
+name = "pytk-ai"
 version = "0.1.0"
-description = "Python command planning, execution, and output filtering for PTK"
+description = "Python command planning, execution, and output filtering for PYTK-AI"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -24,7 +24,7 @@ classifiers = [
 ]
 
 [project.scripts]
-ptk = "ptk.cli:main"
+pytk-ai = "pytk_ai.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -33,7 +33,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-ptk = ["data/*.json"]
+pytk_ai = ["data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

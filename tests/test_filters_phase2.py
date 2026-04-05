@@ -1,8 +1,8 @@
 import unittest
 
-from ptk.filters import filter_output
-from ptk.plan import plan_command
-from ptk.plan.normalize import infer_filter_hint
+from pytk_ai.filters import filter_output
+from pytk_ai.plan import plan_command
+from pytk_ai.plan.normalize import infer_filter_hint
 
 
 class FiltersPhase2Tests(unittest.TestCase):
