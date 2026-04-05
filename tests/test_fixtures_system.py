@@ -35,3 +35,18 @@ class FixturesSystemTests(unittest.TestCase):
         f, result = self._run("cat_tailwind")
         self.assertEqual(result.filter_name, "system.read.cat")
         self.assertEqual(result.output, "same\nsame\nsame\nsame")
+
+    def test_ls_la(self):
+        f, result = self._run("ls_la")
+        self.assertEqual(result.filter_name, "system.ls")
+        self.assertIn("src/", result.output)
+        self.assertIn("tests/", result.output)
+        self.assertIn("Cargo.toml  1.2K", result.output)
+        self.assertIn("README.md  5.5K", result.output)
+        self.assertNotIn(".git/", result.output)
+        self.assertNotIn("node_modules", result.output)
+        self.assertNotIn("__pycache__", result.output)
+        self.assertNotIn(".vscode", result.output)
+        self.assertNotIn("drwx", result.output)
+        self.assertIn(".gitignore", result.output)
+        self.assertIn("link -> target", result.output)
