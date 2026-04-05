@@ -27,3 +27,5 @@
 - 2026-04-05: Completed Phase 0 direction reset in `ARCHITECTURE.md`, `PLAN.md`, `TODO.md`, and `README.md`; clarified that `ptk run` / `run_command` are the migration targets, `rtk/` is reference-only, and `src/ptk/rewrite.py` is transitional rather than a required compatibility facade.
 - 2026-04-05: Implemented the new PTK architecture across `ptk.plan`, `ptk.filters`, `ptk.runner`, and the `ptk run` CLI; replaced rewrite-first tests with planner/runner/filter/CLI coverage, refreshed docs/package metadata, and checked off the completed plan stages while leaving only explicit coverage-target validation open.
 - 2026-04-05: Validated PTK-owned coverage with `python -m trace --count --summary`, confirmed 100% execution coverage for the implemented PTK modules under the new test suite, and closed the remaining `PLAN.md` coverage checklist items.
+- 2026-04-05: Added a `labs/` sandbox with a small script that compares classic bash subprocess output against PTK output for the same command.
+- 2026-04-05: Expanded the `labs/` comparison script into a multi-scenario runner covering file listing, grep, and git-oriented command cases.
