@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import sys
 from typing import Any
 
-from .rewrite import rewrite_command, rewrite_exit_code
+from .rewrite import rewrite_command
+from .runner import run_command
 
 
 def _join_command(parts: list[str]) -> str:
-    return " ".join(parts).strip()
+    return shlex.join(parts).strip()
 
 
 def _read_stdin_json() -> dict[str, Any] | None:
@@ -61,13 +63,18 @@ def _emit_cursor_hook(rewritten: str) -> None:
     sys.stdout.write(json.dumps(payload))
 
 
-def _run_rewrite(args: argparse.Namespace) -> int:
+def _run_command(args: argparse.Namespace) -> int:
     command = _join_command(args.args)
-    code, rewritten = rewrite_exit_code(command, excluded=args.exclude or [])
-    if code != 0 or not rewritten:
-        return 1
-    sys.stdout.write(rewritten)
-    return 0
+    result = run_command(
+        command,
+        excluded=tuple(args.exclude or ()),
+        max_output_lines=args.max_output_lines,
+    )
+    if result.filtered_output:
+        sys.stdout.write(result.filtered_output)
+        if not result.filtered_output.endswith("\n"):
+            sys.stdout.write("\n")
+    return result.exit_code
 
 
 def _run_hook(args: argparse.Namespace) -> int:
@@ -84,12 +91,7 @@ def _run_hook(args: argparse.Namespace) -> int:
         return 0
 
     result = rewrite_command(command)
-    if result is None:
-        if args.agent == "cursor":
-            sys.stdout.write("{}")
-        return 0
-
-    if not result.changed:
+    if result is None or not result.changed:
         if args.agent == "cursor":
             sys.stdout.write("{}")
         return 0
@@ -102,18 +104,24 @@ def _run_hook(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="ptk", description="PTK AI command rewriter")
+    parser = argparse.ArgumentParser(prog="ptk", description="PTK command runner")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    rewrite = sub.add_parser("rewrite", help="rewrite a raw shell command")
-    rewrite.add_argument("args", nargs=argparse.REMAINDER, help="raw command tokens")
-    rewrite.add_argument(
+    run = sub.add_parser("run", help="execute a raw shell command and filter output")
+    run.add_argument("args", nargs=argparse.REMAINDER, help="raw command tokens")
+    run.add_argument(
         "--exclude",
         action="append",
         default=[],
-        help="base commands to never rewrite",
+        help="base commands to never plan as PTK-managed",
     )
-    rewrite.set_defaults(func=_run_rewrite)
+    run.add_argument(
+        "--max-output-lines",
+        type=int,
+        default=200,
+        help="maximum number of filtered output lines",
+    )
+    run.set_defaults(func=_run_command)
 
     hook = sub.add_parser("hook", help="process hook JSON from stdin")
     hook_sub = hook.add_subparsers(dest="agent", required=True)

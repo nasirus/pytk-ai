@@ -8,8 +8,8 @@ PTK is a Python package and CLI that accepts a bash command as text, executes it
 
 Current repository status:
 
-- the current Python scaffold still contains rewrite-first pieces such as `src/ptk/rewrite.py` and the temporary `ptk rewrite` CLI path
-- those pieces are transition scaffolding, not the target public contract
+- the current Python scaffold still contains a small rewrite-compatibility module at `src/ptk/rewrite.py`
+- that compatibility layer is transition scaffolding, not the target public contract
 - the target public CLI is `ptk run <command>`
 - the target public library entrypoint is `from ptk.runner import run_command`
 - command rewrite/planning remains internal implementation detail behind execution

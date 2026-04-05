@@ -2,14 +2,14 @@
 
 ## Active work
 
-- Start Phase 1 by inventorying `src/ptk/rewrite.py` responsibilities and splitting planning logic into architecture-ready modules.
-- Preserve current rewrite behavior while moving toward internal planning plus public `ptk run` / `run_command` surfaces.
+- Plan implementation complete.
+- Keep future follow-up work outside the completed `PLAN.md` baseline unless new requirements land.
 
 
 ## Next priorities
 
-1. Create the Phase 1 responsibility inventory for `src/ptk/rewrite.py`.
-2. Introduce the `src/ptk/plan/` package and move pure planning pieces into it incrementally.
+1. Add more command-specific filters only when they deliver clear token savings.
+2. Expand hook integration only after concrete product requirements appear.
 
 ## History
 
@@ -25,3 +25,5 @@
 - 2026-04-05: Added edit-workflow guidance to `AGENTS.md` and `PLAN.md` to run `uv ruff check` and `uv ruff format` as the last steps before finishing.
 - 2026-04-05: Scoped the `uv ruff check` / `uv ruff format` workflow instruction to `AGENTS.md` only and removed it from `PLAN.md`.
 - 2026-04-05: Completed Phase 0 direction reset in `ARCHITECTURE.md`, `PLAN.md`, `TODO.md`, and `README.md`; clarified that `ptk run` / `run_command` are the migration targets, `rtk/` is reference-only, and `src/ptk/rewrite.py` is transitional rather than a required compatibility facade.
+- 2026-04-05: Implemented the new PTK architecture across `ptk.plan`, `ptk.filters`, `ptk.runner`, and the `ptk run` CLI; replaced rewrite-first tests with planner/runner/filter/CLI coverage, refreshed docs/package metadata, and checked off the completed plan stages while leaving only explicit coverage-target validation open.
+- 2026-04-05: Validated PTK-owned coverage with `python -m trace --count --summary`, confirmed 100% execution coverage for the implemented PTK modules under the new test suite, and closed the remaining `PLAN.md` coverage checklist items.
