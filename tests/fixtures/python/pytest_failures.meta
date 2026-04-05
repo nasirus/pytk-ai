@@ -1,0 +1,1 @@
+{"command": "pytest -q", "exit_code": 1, "filter_name": "python.pytest"}

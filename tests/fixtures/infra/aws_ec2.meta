@@ -1,0 +1,1 @@
+{"command": "aws ec2 describe-instances --output json", "exit_code": 0, "filter_name": "aws.read"}

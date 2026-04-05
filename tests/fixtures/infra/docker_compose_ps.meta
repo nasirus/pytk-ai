@@ -1,0 +1,1 @@
+{"command": "docker compose ps", "exit_code": 0, "filter_name": "docker.compose.ps"}

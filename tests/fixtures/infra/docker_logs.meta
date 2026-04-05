@@ -1,0 +1,1 @@
+{"command": "docker logs web", "exit_code": 0, "filter_name": "docker.logs"}

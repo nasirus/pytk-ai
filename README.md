@@ -43,3 +43,6 @@ print(result.exit_code)
 
 The package is intentionally small and dependency-free so it can be embedded in
 agent toolchains and hook scripts.
+
+<!-- BENCHMARK-START -->
+<!-- BENCHMARK-END -->

@@ -1,0 +1,8 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": {"version": "18.2.0"},
+    "vitest": {"version": "2.1.0"}
+  }
+}

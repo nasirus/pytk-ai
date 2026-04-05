@@ -1,0 +1,1 @@
+{"command": "wc src/app.py tests/test_app.py", "exit_code": 0, "filter_name": "files.wc"}

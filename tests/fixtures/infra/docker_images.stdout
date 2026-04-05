@@ -1,0 +1,3 @@
+REPOSITORY     TAG       IMAGE ID       CREATED       SIZE
+nginx          latest    abc123         2 days ago    187MB
+redis          7         def456         3 days ago    117MB

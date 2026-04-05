@@ -1,0 +1,1 @@
+{"command": "mypy src", "exit_code": 1, "filter_name": "python.mypy"}

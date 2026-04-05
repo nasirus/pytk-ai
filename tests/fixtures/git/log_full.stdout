@@ -1,0 +1,11 @@
+commit abc1234567890 (HEAD -> main)
+Author: Test User <test@example.com>
+Date:   Sun Apr 5 12:00:00 2026 +0000
+
+    Add planner coverage
+
+commit def4567890abcd
+Author: Test User <test@example.com>
+Date:   Sat Apr 4 12:00:00 2026 +0000
+
+    Fix filter fallback

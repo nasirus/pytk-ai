@@ -1,0 +1,2 @@
+pkg/server/server.go:12:2: Error return value of `w.Write` is not checked (errcheck)
+pkg/server/server.go:20:6: exported type Foo should have comment or be unexported [revive]

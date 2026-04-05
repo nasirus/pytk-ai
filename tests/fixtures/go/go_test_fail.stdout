@@ -1,0 +1,5 @@
+ok  example.com/project/pkg/a 0.015s
+--- FAIL: TestThing (0.00s)
+    thing_test.go:12: expected 2, got 1
+FAIL
+FAIL    example.com/project/pkg/b  0.023s

@@ -1,0 +1,9 @@
+running 2 tests
+test ok_case ... ok
+test failing_case ... FAILED
+
+failures:
+
+    failing_case
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out

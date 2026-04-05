@@ -1,0 +1,6 @@
+Fetching gem metadata from https://rubygems.org/.........
+Resolving dependencies...
+Using rake 13.1.0
+Installing rspec 3.13.0
+Installing simplecov 0.22.0
+Bundle complete! 85 Gemfile dependencies, 202 gems now installed.

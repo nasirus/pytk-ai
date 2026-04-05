@@ -1,0 +1,2 @@
+app/models/user.rb:10:5: C: Layout/TrailingWhitespace: Trailing whitespace detected.
+app/models/user.rb:12:3: W: Lint/UselessAssignment: Useless assignment to variable - x.

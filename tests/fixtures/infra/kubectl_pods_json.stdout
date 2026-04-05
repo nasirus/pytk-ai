@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "metadata": {"namespace": "default", "name": "api-123"},
+      "status": {
+        "phase": "Running",
+        "containerStatuses": [{"restartCount": 1}]
+      }
+    },
+    {
+      "metadata": {"namespace": "jobs", "name": "worker-456"},
+      "status": {
+        "phase": "Pending",
+        "containerStatuses": [{"restartCount": 0}]
+      }
+    }
+  ]
+}

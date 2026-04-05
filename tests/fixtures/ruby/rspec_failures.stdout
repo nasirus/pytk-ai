@@ -1,0 +1,13 @@
+Failures:
+
+  1) User saves to database
+     Failure/Error: expect(user.save).to eq(true)
+       expected: true
+            got: false
+     # ./spec/models/user_spec.rb:11:in `block (2 levels) in <top (required)>'
+
+Failed examples:
+
+rspec ./spec/models/user_spec.rb:10 # User saves to database
+
+2 examples, 1 failure

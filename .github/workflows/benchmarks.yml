@@ -1,0 +1,50 @@
+name: Benchmarks
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmarks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Run benchmarks
+        run: python -m benchmarks.runner --fixture-only
+
+      - name: Print summary
+        run: |
+          python -c "
+          import json
+          results = json.load(open('benchmarks/results/latest.json'))
+          total_raw = sum(r['raw_tokens'] for r in results)
+          total_filtered = sum(r['filtered_tokens'] for r in results)
+          saved = total_raw - total_filtered
+          pct = (saved / total_raw * 100) if total_raw else 0
+          print(f'Scenarios: {len(results)}')
+          print(f'Raw tokens: {total_raw:,}')
+          print(f'Filtered tokens: {total_filtered:,}')
+          print(f'Saved: {saved:,} ({pct:.1f}%)')
+          "

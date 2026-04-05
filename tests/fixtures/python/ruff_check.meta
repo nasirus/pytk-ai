@@ -1,0 +1,1 @@
+{"command": "ruff check .", "exit_code": 1, "filter_name": "python.ruff"}

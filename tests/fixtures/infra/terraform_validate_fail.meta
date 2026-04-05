@@ -1,0 +1,1 @@
+{"command": "terraform validate", "exit_code": 1, "filter_name": "terraform.validate"}

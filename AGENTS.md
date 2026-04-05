@@ -70,6 +70,29 @@ When adding a filter, start by reading the corresponding Rust source in `rtk/` �
 - Prefer adding a small regression test whenever a bug is fixed.
 - Target 100% coverage for PYTK-AI-owned logic. Do not test Python/runtime/library behavior already guaranteed by the system — test PYTK-AI behavior, branching, contracts, and failure modes.
 
+## Test layers
+
+There are three test layers beyond unit tests:
+
+### Fixture tests (`tests/test_fixtures_*.py`)
+Example-based regression tests that load `.stdout`/`.stderr`/`.meta` from `tests/fixtures/<category>/` and verify key properties of filter output via substring assertions. To add a fixture:
+1. Create `tests/fixtures/<category>/<name>.stdout` (and `.stderr` if needed)
+2. Create `tests/fixtures/<category>/<name>.meta` with JSON: `{"command": "...", "exit_code": 0, "filter_name": "..."}`
+3. Add a test method in the matching `test_fixtures_<category>.py` using `load_fixture("<category>", "<name>")`
+4. Or use `./scripts/capture_fixtures.sh <category> "<command>" <name>` to capture real output
+
+### Live tests (`tests/test_live_*.py`)
+End-to-end tests that run real commands in temp directories via `run_command()`. Use `@requires_tool("cmd")` from `tests/helpers.py` to skip when a tool is missing.
+
+### Benchmarks (`benchmarks/`)
+Measures token reduction and filter timing per fixture. Run with:
+```bash
+python -m benchmarks.runner --fixture-only          # produces benchmarks/results/latest.json
+python -m benchmarks.update_readme --dry-run        # preview README table
+python -m benchmarks.update_readme                  # patch README between sentinel markers
+```
+The runner reuses `FilterMetrics`/`estimate_tokens` from `pytk_ai.filters.base`. When adding a new filter, add fixtures first — benchmarks auto-discover them from `.meta` files.
+
 ## Conventions
 
 - Planning logic must be pure and testable without subprocesses.

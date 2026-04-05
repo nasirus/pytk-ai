@@ -1,0 +1,4 @@
+NAMESPACE   NAME         READY   STATUS             RESTARTS   AGE
+default     api-123      1/1     Running            1          2d
+jobs        worker-456   0/1     Pending            0          10m
+ops         cron-789     0/1     CrashLoopBackOff   7          5m
