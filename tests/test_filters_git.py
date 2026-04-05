@@ -4,7 +4,7 @@ from pytk_ai.filters import filter_output
 from pytk_ai.plan import plan_command
 
 
-class FiltersPhase1Tests(unittest.TestCase):
+class FiltersGitTests(unittest.TestCase):
     def test_git_log_reduces_full_commit_blocks_to_one_line(self):
         stdout = """commit abc1234567890 (HEAD -> main)
 Author: Test User <test@example.com>
@@ -106,87 +106,3 @@ Fast-forward
         )
         self.assertEqual(result.filter_name, "git.show")
         self.assertIn("fatal:", result.output)
-
-    def test_generic_test_wrapper_is_failure_focused(self):
-        stdout = """PASS src/a.test.ts
-FAIL src/b.test.ts
-  should fail loudly
-
-Test Suites: 1 failed, 1 passed, 2 total
-Tests:       1 failed, 3 passed, 4 total
-"""
-        result = filter_output(
-            "npm test",
-            stdout,
-            "",
-            1,
-            plan=plan_command("npm test"),
-        )
-        self.assertEqual(result.filter_name, "test.generic")
-        self.assertIn("FAIL src/b.test.ts", result.output)
-        self.assertIn("Test Suites:", result.output)
-
-    def test_cargo_test_keeps_failures_and_summary(self):
-        stdout = """running 2 tests
-test ok_case ... ok
-test failing_case ... FAILED
-
-failures:
-
-    failing_case
-
-test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out
-"""
-        result = filter_output(
-            "cargo test",
-            stdout,
-            "",
-            101,
-            plan=plan_command("cargo test"),
-        )
-        self.assertEqual(result.filter_name, "test.cargo")
-        self.assertIn("failures:", result.output)
-        self.assertIn("failing_case", result.output)
-        self.assertIn("test result:", result.output)
-
-    def test_non_test_cargo_commands_do_not_use_test_filter(self):
-        stderr = """error[E0425]: cannot find value `missing` in this scope
- --> src/main.rs:2:5
-  |
-2 |     missing();
-  |     ^^^^^^^ not found in this scope
-"""
-        result = filter_output(
-            "cargo build",
-            "",
-            stderr,
-            101,
-            plan=plan_command("cargo build"),
-        )
-        self.assertEqual(result.filter_name, "cargo.build")
-        self.assertIn("cannot find value", result.output)
-
-    def test_ruff_check_text_output_is_grouped(self):
-        stdout = """src/app.py:1:1: F401 `os` imported but unused
-src/app.py:5:1: E402 module level import not at top of file
-src/lib/util.py:3:7: F401 `sys` imported but unused
-"""
-        result = filter_output(
-            "ruff check .",
-            stdout,
-            "",
-            1,
-            plan=plan_command("ruff check ."),
-        )
-        self.assertEqual(result.filter_name, "python.ruff")
-        self.assertIn("Ruff: 3 issues in 2 files", result.output)
-        self.assertIn("F401 (2x)", result.output)
-        self.assertIn("src/app.py", result.output)
-
-    def test_tail_deduplicates_repeated_lines_more_aggressively(self):
-        stdout = "tick\nsame\nsame\nsame\nsame\nend\n"
-        result = filter_output(
-            "tail server.log", stdout, "", 0, plan=plan_command("tail server.log")
-        )
-        self.assertEqual(result.filter_name, "system.read.tail")
-        self.assertIn("repeated line omitted 3 time(s)", result.output)

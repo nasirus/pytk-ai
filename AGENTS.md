@@ -37,6 +37,8 @@ Run focused tests after any behavioral change:
 - Create tests systematically at function and module level.
 - Target 100% coverage for PYTK-AI-owned logic.
 - Do not write tests for Python/runtime/library behavior that is already guaranteed by the system or a function signature; test PYTK-AI behavior, branching, contracts, and failure modes instead.
+- Test files must mirror the module they test: one test file per module, named `test_<package>_<module>.py`. For example, `src/pytk_ai/filters/git.py` → `tests/test_filters_git.py`. Never use phase numbers or arbitrary groupings in test file names.
+- When adding a new filter module, create a corresponding test file in `tests/` following this convention.
 
 ## Working style
 

@@ -44,3 +44,16 @@ class PlanNormalizeTests(unittest.TestCase):
     def test_infer_filter_hint_handles_pytk_ai_and_python_forms(self):
         self.assertEqual(infer_filter_hint("pytk-ai git status"), "git")
         self.assertEqual(infer_filter_hint("python -m pytest -q"), "pytest")
+
+    def test_infer_filter_hint_handles_build_and_lint_commands(self):
+        self.assertEqual(infer_filter_hint("cargo build"), "cargo")
+        self.assertEqual(infer_filter_hint("eslint src"), "lint")
+        self.assertEqual(infer_filter_hint("next build"), "next")
+        self.assertEqual(infer_filter_hint("go test ./..."), "go")
+        self.assertEqual(infer_filter_hint("bundle exec rspec"), "rspec")
+        self.assertIsNone(infer_filter_hint("go version"))
+
+    def test_infer_filter_hint_handles_file_commands(self):
+        self.assertEqual(infer_filter_hint("tree -L 2"), "tree")
+        self.assertEqual(infer_filter_hint("wc -l src/app.py"), "wc")
+        self.assertEqual(infer_filter_hint("diff -u a b"), "diff")

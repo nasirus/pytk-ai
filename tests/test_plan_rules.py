@@ -28,3 +28,8 @@ class PlanRulesTests(unittest.TestCase):
         rule = match_rule("cargo test --lib")
         self.assertIsNotNone(rule)
         self.assertEqual(rule.pytk_ai_cmd, "pytk-ai test")
+
+    def test_match_rule_covers_file_commands(self):
+        rule = match_rule("wc -l src/app.py")
+        self.assertIsNotNone(rule)
+        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai wc")

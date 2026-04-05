@@ -2,11 +2,9 @@ import unittest
 
 from pytk_ai.filters import filter_output
 from pytk_ai.plan import plan_command
-from pytk_ai.plan.normalize import infer_filter_hint
-from pytk_ai.plan.rules import match_rule
 
 
-class FiltersPhase3Tests(unittest.TestCase):
+class FiltersFilesTests(unittest.TestCase):
     def test_rg_groups_matches_by_file(self):
         stdout = """src/app.py:10:def main():
 src/app.py:14:    return main()
@@ -116,35 +114,7 @@ README.md
         self.assertIn("+ new", result.output)
         self.assertIn("+ extra", result.output)
 
-    def test_cat_failure_preserves_raw_error(self):
-        stderr = "cat: missing.txt: No such file or directory\n"
-        result = filter_output(
-            "cat missing.txt", "", stderr, 1, plan=plan_command("cat missing.txt")
-        )
-        self.assertEqual(result.filter_name, "system.read.cat")
-        self.assertIn("No such file or directory", result.output)
-
-    def test_cat_filename_containing_tail_does_not_collapse_lines(self):
-        stdout = "same\nsame\nsame\nsame\n"
-        result = filter_output(
-            "cat tailwind.config.js",
-            stdout,
-            "",
-            0,
-            plan=plan_command("cat tailwind.config.js"),
-        )
-        self.assertEqual(result.filter_name, "system.read.cat")
-        self.assertEqual(result.output, "same\nsame\nsame\nsame")
-
-    def test_tail_collapses_repeated_lines(self):
-        stdout = "tick\nsame\nsame\nsame\nsame\nend\n"
-        result = filter_output(
-            "tail app.log", stdout, "", 0, plan=plan_command("tail app.log")
-        )
-        self.assertEqual(result.filter_name, "system.read.tail")
-        self.assertIn("repeated line omitted 3 time(s)", result.output)
-
-    def test_env_prefixed_and_absolute_commands_still_use_phase3_filters(self):
+    def test_env_prefixed_and_absolute_commands_use_file_filters(self):
         grep_result = filter_output(
             "env BAR=1 rg main src",
             "src/app.py:10:def main()\n",
@@ -164,15 +134,3 @@ README.md
         )
         self.assertEqual(diff_result.filter_name, "files.diff")
         self.assertIn("b.txt (+1/-1)", diff_result.output)
-
-    def test_phase3_planner_and_rules_cover_new_commands(self):
-        self.assertEqual(infer_filter_hint("tree -L 2"), "tree")
-        self.assertEqual(infer_filter_hint("wc -l src/app.py"), "wc")
-        self.assertEqual(infer_filter_hint("diff -u a b"), "diff")
-        rule = match_rule("wc -l src/app.py")
-        self.assertIsNotNone(rule)
-        self.assertEqual(rule.pytk_ai_cmd, "pytk-ai wc")
-        plan = plan_command("wc -l src/app.py")
-        self.assertTrue(plan.managed)
-        self.assertEqual(plan.planned_command, "pytk-ai wc -l src/app.py")
-        self.assertEqual(plan.filter_hint, "wc")

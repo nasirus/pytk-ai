@@ -61,3 +61,9 @@ class PlanPlannerTests(unittest.TestCase):
         self.assertTrue(plan.managed)
         self.assertEqual(plan.planned_command, "pytk-ai test")
         self.assertEqual(plan.filter_hint, "test")
+
+    def test_plan_command_handles_file_commands(self):
+        plan = plan_command("wc -l src/app.py")
+        self.assertTrue(plan.managed)
+        self.assertEqual(plan.planned_command, "pytk-ai wc -l src/app.py")
+        self.assertEqual(plan.filter_hint, "wc")
