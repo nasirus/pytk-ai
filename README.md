@@ -89,42 +89,44 @@ Plan/Normalize --> Execute subprocess --> Apply filter --> Structured result
 
 ### Filter Benchmark Results
 
+Token estimator: `cl100k_base`
+
 #### By Category
 
 | Category | Scenarios | Avg Raw Tokens | Avg Filtered | Avg Reduction |
 |----------|-----------|---------------|-------------|---------------|
-| build | 8 | 155 | 138 | 18.6% |
-| files | 6 | 272 | 187 | 20.8% |
-| generic | 2 | 8 | 4 | 51.8% |
-| git | 8 | 44 | 25 | 40.5% |
-| go | 2 | 438 | 244 | 25.6% |
-| infra | 11 | 68 | 35 | 46.4% |
-| packages | 8 | 57 | 26 | 46.9% |
-| python | 3 | 147 | 108 | 24.2% |
-| ruby | 2 | 158 | 139 | 18.4% |
-| system | 4 | 528 | 494 | 19.4% |
-| tests | 2 | 40 | 35 | 14.2% |
-| **Total** | **56** | | | **25.5%** |
+| build | 8 | 163 | 163 | 7.2% |
+| files | 6 | 293 | 234 | 18.6% |
+| generic | 2 | 14 | 6 | 59.3% |
+| git | 8 | 52 | 26 | 41.9% |
+| go | 2 | 496 | 303 | 30.2% |
+| infra | 11 | 92 | 48 | 42.4% |
+| packages | 8 | 102 | 43 | 38.4% |
+| python | 3 | 143 | 135 | 5.6% |
+| ruby | 2 | 174 | 152 | 15.0% |
+| system | 4 | 821 | 757 | 19.5% |
+| tests | 2 | 48 | 46 | 2.8% |
+| **Total** | **56** | | | **21.4%** |
 
 #### Top Filters by Token Reduction
 
 | Filter | Command | Raw | Filtered | Saved | Reduction |
 |--------|---------|-----|----------|-------|-----------|
-| git.pull | `git pull` | 28 | 4 | 24 | 85.7% |
-| kubectl.pods | `kubectl get pods -A -o json` | 96 | 21 | 75 | 78.1% |
-| system.ls | `ls -la` | 173 | 39 | 134 | 77.5% |
-| git.log | `git log -2` | 65 | 18 | 47 | 72.3% |
-| aws.read | `aws ec2 describe-instances --output json` | 74 | 21 | 53 | 71.6% |
-| python.pytest | `pytest -q` | 165 | 55 | 110 | 66.7% |
-| git.diff | `git diff` | 41 | 14 | 27 | 65.9% |
-| bundle.install | `bundle install` | 55 | 19 | 36 | 65.5% |
-| git.status | `git status` | 11 | 4 | 7 | 63.6% |
-| kubectl.services | `kubectl get services` | 56 | 22 | 34 | 60.7% |
-| docker.ps | `docker ps` | 76 | 30 | 46 | 60.5% |
-| docker.images | `docker images` | 45 | 18 | 27 | 60.0% |
-| uv.sync | `uv sync` | 15 | 6 | 9 | 60.0% |
-| docker.compose.ps | `docker compose ps` | 67 | 27 | 40 | 59.7% |
-| npm.list | `npm list` | 215 | 87 | 128 | 59.5% |
+| git.log | `git log -2` | 85 | 16 | 69 | 81.2% |
+| git.pull | `git pull` | 39 | 8 | 31 | 79.5% |
+| git.status | `git status` | 14 | 3 | 11 | 78.6% |
+| system.ls | `ls -la` | 327 | 72 | 255 | 78.0% |
+| kubectl.pods | `kubectl get pods -A -o json` | 107 | 26 | 81 | 75.7% |
+| npm.list | `npm list` | 505 | 145 | 360 | 71.3% |
+| git.commit | `git commit -m "Add compact filter"` | 21 | 7 | 14 | 66.7% |
+| aws.read | `aws ec2 describe-instances --output json` | 86 | 31 | 55 | 64.0% |
+| kubectl.services | `kubectl get services` | 75 | 27 | 48 | 64.0% |
+| git.diff | `git diff` | 67 | 28 | 39 | 58.2% |
+| docker.compose.ps | `docker compose ps` | 94 | 41 | 53 | 56.4% |
+| uv.sync | `uv sync` | 20 | 9 | 11 | 55.0% |
+| pnpm.list | `pnpm list --json` | 56 | 27 | 29 | 51.8% |
+| bundle.install | `bundle install` | 60 | 30 | 30 | 50.0% |
+| docker.ps | `docker ps` | 80 | 41 | 39 | 48.8% |
 
 <!-- BENCHMARK-END -->
 
