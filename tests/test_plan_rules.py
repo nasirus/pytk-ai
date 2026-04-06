@@ -4,7 +4,7 @@ from pytk_ai.plan.rules import load_rules, match_rule, rule_filter_hint
 
 
 class PlanRulesTests(unittest.TestCase):
-    def test_load_rules_returns_data_from_json(self):
+    def test_load_rules_returns_typed_python_rules(self):
         rules = load_rules()
         self.assertGreater(len(rules), 0)
         self.assertTrue(any(rule.pytk_ai_cmd == "pytk-ai git" for rule in rules))

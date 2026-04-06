@@ -33,7 +33,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-pytk_ai = ["data/*.json", "data/filters/*.toml"]
+pytk_ai = ["data/filters/*.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

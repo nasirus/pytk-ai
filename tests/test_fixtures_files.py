@@ -35,7 +35,9 @@ class FixturesFilesTests(unittest.TestCase):
     def test_find_results(self):
         f, result = self._run("find_results")
         self.assertEqual(result.filter_name, "search.find")
-        self.assertIn("40 paths in 13 directories", result.output)
+        self.assertIn("40F 13D:", result.output)
+        self.assertIn("./ README.md", result.output)
+        self.assertIn("ext: .py(39) .md(1)", result.output)
 
     def test_tree_output(self):
         f, result = self._run("tree_output")
