@@ -94,17 +94,17 @@ Plan/Normalize --> Execute subprocess --> Apply filter --> Structured result
 | Category | Scenarios | Avg Raw Tokens | Avg Filtered | Avg Reduction |
 |----------|-----------|---------------|-------------|---------------|
 | build | 8 | 155 | 138 | 18.6% |
-| files | 6 | 272 | 192 | 18.4% |
+| files | 6 | 272 | 187 | 20.8% |
 | generic | 2 | 8 | 4 | 51.8% |
 | git | 8 | 44 | 25 | 40.5% |
 | go | 2 | 438 | 244 | 25.6% |
 | infra | 11 | 68 | 35 | 46.4% |
 | packages | 8 | 57 | 26 | 46.9% |
 | python | 3 | 147 | 108 | 24.2% |
-| ruby | 2 | 158 | 130 | 30.4% |
+| ruby | 2 | 158 | 139 | 18.4% |
 | system | 4 | 528 | 494 | 19.4% |
-| tests | 2 | 40 | 26 | 35.8% |
-| **Total** | **56** | | | **25.6%** |
+| tests | 2 | 40 | 35 | 14.2% |
+| **Total** | **56** | | | **25.5%** |
 
 #### Top Filters by Token Reduction
 

@@ -26,6 +26,9 @@ classifiers = [
 [project.scripts]
 pytk-ai = "pytk_ai.cli:main"
 
+[project.optional-dependencies]
+dev = ["tiktoken>=0.12,<1"]
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 

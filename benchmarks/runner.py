@@ -64,6 +64,7 @@ def benchmark_scenario(scenario: Scenario, *, iterations: int = 10) -> dict:
         "name": scenario.name,
         "command": scenario.command,
         "filter_name": result.filter_name,
+        "token_estimator": result.metrics.estimator if result.metrics else None,
         "raw_bytes": raw.chars,
         "filtered_bytes": filtered.chars,
         "raw_tokens": raw.tokens,

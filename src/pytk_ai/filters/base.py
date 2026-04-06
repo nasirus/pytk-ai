@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import lru_cache
 import math
 import re
 
@@ -82,9 +83,25 @@ def combine_command_streams(stdout: str, stderr: str, exit_code: int) -> str:
     return "\n".join(parts)
 
 
+@lru_cache(maxsize=1)
+def _load_token_encoder():
+    try:
+        import tiktoken  # type: ignore
+    except ImportError:
+        return None
+    return tiktoken.get_encoding("cl100k_base")
+
+
+def token_estimator_label() -> str:
+    return "cl100k_base" if _load_token_encoder() is not None else "chars/4-estimate"
+
+
 def estimate_tokens(text: str) -> int:
     if not text:
         return 0
+    encoder = _load_token_encoder()
+    if encoder is not None:
+        return len(encoder.encode(text))
     return max(1, math.ceil(len(text) / 4))
 
 
@@ -108,7 +125,7 @@ def build_filter_metrics(
     saved_pct = ((saved_tokens / raw.tokens) * 100.0) if raw.tokens else 0.0
     return FilterMetrics(
         usage_mode=usage_mode,
-        estimator="chars/4-estimate",
+        estimator=token_estimator_label(),
         raw=raw,
         filtered=filtered,
         saved_chars=raw.chars - filtered.chars,

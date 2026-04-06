@@ -21,6 +21,15 @@ def format_benchmark_tables(results: list[dict]) -> str:
     """Format benchmark results as markdown tables."""
     lines: list[str] = []
     lines.append("### Filter Benchmark Results\n")
+    estimators = sorted(
+        {
+            estimator
+            for estimator in (r.get("token_estimator") for r in results)
+            if estimator
+        }
+    )
+    if estimators:
+        lines.append(f"Token estimator: `{', '.join(estimators)}`\n")
 
     # Category summary table
     by_category: dict[str, list[dict]] = defaultdict(list)

@@ -1,7 +1,10 @@
+import importlib.util
 import sys
 import unittest
+from unittest import mock
 
 from pytk_ai.filters import filter_output
+from pytk_ai.filters import base as filters_base
 from pytk_ai.plan import plan_command
 from pytk_ai.runner import run_command
 
@@ -61,3 +64,23 @@ class FilterMetadataTests(unittest.TestCase):
         self.assertEqual(result.filter_name, "cargo.build")
         self.assertIsNotNone(result.policy)
         self.assertEqual(result.policy.summary_scope, "both")
+
+    def test_token_estimator_label_matches_available_backend(self):
+        filters_base._load_token_encoder.cache_clear()
+        self.addCleanup(filters_base._load_token_encoder.cache_clear)
+        expected = (
+            "cl100k_base"
+            if importlib.util.find_spec("tiktoken") is not None
+            else "chars/4-estimate"
+        )
+        self.assertEqual(filters_base.token_estimator_label(), expected)
+
+    def test_estimate_tokens_falls_back_without_tiktoken(self):
+        filters_base._load_token_encoder.cache_clear()
+        self.addCleanup(filters_base._load_token_encoder.cache_clear)
+        with mock.patch(
+            "builtins.__import__", side_effect=ImportError("tiktoken unavailable")
+        ):
+            self.assertEqual(filters_base.token_estimator_label(), "chars/4-estimate")
+            self.assertEqual(filters_base.estimate_tokens("abcd"), 1)
+            self.assertEqual(filters_base.estimate_tokens("abcdefgh"), 2)
