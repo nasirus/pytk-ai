@@ -1,10 +1,87 @@
 import unittest
 
 from pytk_ai.filters import filter_output
+from pytk_ai.filters.files import render_read_output, smart_truncate_read
 from pytk_ai.plan import plan_command
 
 
 class FiltersFilesTests(unittest.TestCase):
+    def test_render_read_output_minimal_strips_comments(self):
+        content = '// comment\nfn main() {\n    println!("hi");\n}\n'
+        result = render_read_output(content, source_path="main.rs", level="minimal")
+        self.assertNotIn("// comment", result)
+        self.assertIn("fn main()", result)
+
+    def test_render_read_output_minimal_keeps_doc_comments(self):
+        content = (
+            '/// public docs\n// private note\nfn main() {\n    println!("hi");\n}\n'
+        )
+        result = render_read_output(content, source_path="main.rs", level="minimal")
+        self.assertIn("/// public docs", result)
+        self.assertNotIn("// private note", result)
+
+    def test_render_read_output_aggressive_keeps_structure(self):
+        content = "\n".join(
+            [
+                "use std::fmt;",
+                "",
+                "fn main() {",
+                '    println!("hi");',
+                "}",
+                "",
+                "const LIMIT: usize = 5;",
+            ]
+        )
+        result = render_read_output(content, source_path="main.rs", level="aggressive")
+        self.assertIn("use std::fmt;", result)
+        self.assertIn("fn main() {", result)
+        self.assertIn("const LIMIT: usize = 5;", result)
+        self.assertNotIn('println!("hi")', result)
+
+    def test_render_read_output_with_line_numbers(self):
+        content = "alpha\nbeta\n"
+        result = render_read_output(
+            content,
+            source_path="notes.txt",
+            level="none",
+            line_numbers=True,
+        )
+        self.assertEqual(result, "1 | alpha\n2 | beta")
+
+    def test_render_read_output_tail_lines(self):
+        content = "a\nb\nc\nd\n"
+        result = render_read_output(
+            content,
+            source_path="notes.txt",
+            level="none",
+            tail_lines=2,
+        )
+        self.assertEqual(result, "c\nd\n")
+
+    def test_smart_truncate_read_prefers_structural_lines(self):
+        content = "\n".join(
+            [
+                "import os",
+                "import sys",
+                "",
+                "def alpha():",
+                "    first = 1",
+                "    second = 2",
+                "    third = 3",
+                "",
+                "def beta():",
+                "    fourth = 4",
+                "    fifth = 5",
+                "",
+                "export const value = 1",
+            ]
+        )
+        result = smart_truncate_read(content, 6, "python")
+        self.assertIn("import os", result)
+        self.assertIn("def alpha():", result)
+        self.assertIn("def beta():", result)
+        self.assertIn("# ...", result)
+
     def test_rg_groups_matches_by_file(self):
         stdout = """src/app.py:10:def main():
 src/app.py:14:    return main()
@@ -37,10 +114,11 @@ README.md
             plan=plan_command("find . -name '*.py'"),
         )
         self.assertEqual(result.filter_name, "search.find")
-        self.assertIn("4 paths in 4 directories", result.output)
-        self.assertIn("src (1)", result.output)
-        self.assertIn("src/lib (1)", result.output)
-        self.assertIn("README.md", result.output)
+        self.assertIn("4F 4D:", result.output)
+        self.assertIn("src/ app.py", result.output)
+        self.assertIn("src/lib/ util.py", result.output)
+        self.assertIn("./ README.md", result.output)
+        self.assertIn("ext: .py(3) .md(1)", result.output)
 
     def test_tree_extracts_summary_and_keeps_shape(self):
         stdout = """.\n├── src\n│   ├── app.py\n│   └── lib.py\n└── tests\n    └── test_app.py\n\n2 directories, 3 files\n"""
@@ -114,6 +192,37 @@ README.md
         self.assertIn("+ new", result.output)
         self.assertIn("+ extra", result.output)
 
+    def test_diff_direct_file_compare_uses_rtk_style_header(self):
+        stdout = """--- a.txt	2026-04-05 00:00:00.000000000 +0000
++++ b.txt	2026-04-05 00:00:00.000000000 +0000
+@@ -1,2 +1,2 @@
+-old value
++new value
+ keep
+"""
+        result = filter_output(
+            "diff a.txt b.txt",
+            stdout,
+            "",
+            1,
+            plan=plan_command("diff a.txt b.txt"),
+        )
+        self.assertEqual(result.filter_name, "files.diff")
+        self.assertIn("b.txt", result.output)
+        self.assertIn("+1 added, -1 removed, ~0 modified", result.output)
+        self.assertIn("+ new value", result.output)
+
+    def test_diff_direct_file_compare_identical_files(self):
+        result = filter_output(
+            "diff a.txt b.txt",
+            "",
+            "",
+            0,
+            plan=plan_command("diff a.txt b.txt"),
+        )
+        self.assertEqual(result.filter_name, "files.diff")
+        self.assertEqual(result.output, "[ok] Files are identical")
+
     def test_env_prefixed_and_absolute_commands_use_file_filters(self):
         grep_result = filter_output(
             "env BAR=1 rg main src",
@@ -134,3 +243,42 @@ README.md
         )
         self.assertEqual(diff_result.filter_name, "files.diff")
         self.assertIn("b.txt (+1/-1)", diff_result.output)
+
+    def test_pytk_read_filter_uses_requested_level_and_line_numbers(self):
+        stdout = "# comment\ndef main():\n    return 1\n"
+        result = filter_output(
+            "pytk-ai read demo.py --level minimal --line-numbers",
+            stdout,
+            "",
+            0,
+            plan=plan_command("pytk-ai read demo.py --level minimal --line-numbers"),
+        )
+        self.assertEqual(result.filter_name, "read")
+        self.assertEqual(result.output, "1 | def main():\n2 |     return 1")
+
+    def test_pytk_read_filter_uses_structural_max_lines(self):
+        stdout = "\n".join(
+            [
+                "import os",
+                "import sys",
+                "",
+                "def alpha():",
+                "    a = 1",
+                "    b = 2",
+                "    c = 3",
+                "",
+                "def beta():",
+                "    d = 4",
+                "    e = 5",
+            ]
+        )
+        result = filter_output(
+            "pytk-ai read demo.py --max-lines 5",
+            stdout,
+            "",
+            0,
+            plan=plan_command("pytk-ai read demo.py --max-lines 5"),
+        )
+        self.assertEqual(result.filter_name, "read")
+        self.assertIn("def beta():", result.output)
+        self.assertIn("# ...", result.output)

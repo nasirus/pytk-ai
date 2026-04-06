@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from collections import Counter, defaultdict
 
@@ -28,6 +29,73 @@ def _truncate(text: str, limit: int = 120) -> str:
     if len(text) <= limit:
         return text
     return text[: limit - 3].rstrip() + "..."
+
+
+def _extract_golangci_json_payload(text: str) -> dict[str, object] | None:
+    stripped = text.strip()
+    if not stripped:
+        return None
+    candidates = [stripped]
+    first_line = stripped.splitlines()[0].strip()
+    if first_line != stripped:
+        candidates.append(first_line)
+    for candidate in candidates:
+        if not candidate.startswith("{"):
+            continue
+        try:
+            parsed = json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(parsed, dict) and isinstance(parsed.get("Issues"), list):
+            return parsed
+    return None
+
+
+def _format_golangci_json(text: str) -> str | None:
+    payload = _extract_golangci_json_payload(text)
+    if payload is None:
+        return None
+    raw_issues = payload.get("Issues") or []
+    issues = [issue for issue in raw_issues if isinstance(issue, dict)]
+    if not issues:
+        return "golangci-lint: No issues found"
+
+    by_linter = Counter()
+    by_file: dict[str, Counter[str]] = defaultdict(Counter)
+    previews: dict[tuple[str, str], str] = {}
+
+    for issue in issues:
+        linter = str(issue.get("FromLinter") or "<unknown>")
+        pos = issue.get("Pos") if isinstance(issue.get("Pos"), dict) else {}
+        path = str(pos.get("Filename") or "<unknown>")
+        by_linter[linter] += 1
+        by_file[path][linter] += 1
+        source_lines = issue.get("SourceLines")
+        if isinstance(source_lines, list):
+            for source_line in source_lines:
+                if isinstance(source_line, str) and source_line.strip():
+                    previews.setdefault((path, linter), source_line.strip())
+                    break
+
+    lines = [f"golangci-lint: {len(issues)} issues in {len(by_file)} files"]
+    lines.append(
+        "Top linters: "
+        + ", ".join(
+            f"{linter} ({count}x)" for linter, count in by_linter.most_common(10)
+        )
+    )
+    for path, linter_counts in sorted(
+        by_file.items(), key=lambda item: (-sum(item[1].values()), item[0])
+    )[:10]:
+        lines.append(f"{_compact_path(path)} ({sum(linter_counts.values())} issues)")
+        for linter, count in linter_counts.most_common(3):
+            lines.append(f"  {linter} ({count})")
+            preview = previews.get((path, linter))
+            if preview:
+                lines.append(f"    -> {_truncate(preview, 80)}")
+    if len(by_file) > 10:
+        lines.append(f"... +{len(by_file) - 10} more files")
+    return "\n".join(lines)
 
 
 def _filter_go_test(text: str, exit_code: int) -> str:
@@ -170,15 +238,22 @@ def filter_golangci_output(
     *,
     max_output_lines: int = 200,
 ) -> FilterResult:
-    del command
     combined = _combine_streams(stdout, stderr, exit_code)
     generic = filter_generic_output(
-        "",
+        command,
         stdout,
         stderr,
         exit_code,
         max_output_lines=max_output_lines,
     )
+    json_summary = _format_golangci_json(combined)
+    if json_summary is not None:
+        return make_filter_result(
+            json_summary,
+            filter_name="golangci-lint",
+            max_output_lines=max_output_lines,
+            error=generic.error,
+        )
     by_file: dict[str, list[dict[str, str]]] = defaultdict(list)
     linter_counter = Counter()
     for raw_line in combined.splitlines():

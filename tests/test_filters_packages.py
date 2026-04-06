@@ -68,6 +68,29 @@ Audited 42 packages in 0.05ms
         self.assertEqual(result.filter_name, "uv.sync")
         self.assertEqual(result.output, "uv sync: ok (up to date)")
 
+    def test_uv_pip_install_strips_download_chatter(self):
+        stdout = """  Downloading requests-2.31.0-py3-none-any.whl (62.6 kB)
+  Using cached certifi-2023.11.17-py3-none-any.whl (162 kB)
+  Preparing packages...
+Installed 5 packages in 23ms
+ + certifi==2023.11.17
+ + charset-normalizer==3.3.2
+ + idna==3.6
+ + requests==2.31.0
+ + urllib3==2.1.0
+"""
+        result = filter_output(
+            "uv pip install requests",
+            stdout,
+            "",
+            0,
+            plan=plan_command("uv pip install requests"),
+        )
+        self.assertEqual(result.filter_name, "uv.pip-install")
+        self.assertNotIn("Downloading", result.output)
+        self.assertIn("Installed 5 packages in 23ms", result.output)
+        self.assertIn("+ requests==2.31.0", result.output)
+
     def test_npm_list_summarizes_dependency_tree(self):
         stdout = """demo@1.0.0 /repo
 ├── react@18.2.0
@@ -105,6 +128,43 @@ Audited 42 packages in 0.05ms
         self.assertIn("pnpm list: 2 dependencies", result.output)
         self.assertIn("vitest (2.1.0)", result.output)
 
+    def test_pnpm_outdated_summarizes_json_output(self):
+        stdout = """{
+  "react": {"current": "18.2.0", "wanted": "18.3.0", "latest": "19.0.0"},
+  "zod": {"current": "3.23.8", "wanted": "3.23.8", "latest": "3.24.0"}
+}"""
+        result = filter_output(
+            "pnpm outdated --format json",
+            stdout,
+            "",
+            0,
+            plan=plan_command("pnpm outdated --format json"),
+        )
+        self.assertEqual(result.filter_name, "pnpm.outdated")
+        self.assertIn("pnpm outdated: 2 packages", result.output)
+        self.assertIn("react: 18.2.0 -> 18.3.0 (latest 19.0.0)", result.output)
+
+    def test_pnpm_install_keeps_summary_and_changes(self):
+        stdout = """Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +2
+dependencies:
++ react 18.2.0
++ zod 3.23.8
+
+Done in 1.2s using pnpm v10.0.0
+"""
+        result = filter_output(
+            "pnpm install",
+            stdout,
+            "",
+            0,
+            plan=plan_command("pnpm install"),
+        )
+        self.assertEqual(result.filter_name, "pnpm.install")
+        self.assertNotIn("Progress:", result.output)
+        self.assertIn("Packages: +2", result.output)
+        self.assertIn("+ react 18.2.0", result.output)
+
     def test_bundle_install_keeps_installed_gems_and_summary(self):
         stdout = """Fetching gem metadata from https://rubygems.org/.........
 Resolving dependencies...
@@ -125,6 +185,24 @@ Bundle complete! 85 Gemfile dependencies, 202 gems now installed.
         self.assertIn("Installed gems: 2", result.output)
         self.assertIn("rspec 3.13.0", result.output)
 
+    def test_bundle_update_routes_to_update_summary(self):
+        stdout = """Fetching gem metadata from https://rubygems.org/.........
+Resolving dependencies...
+Using rake 13.1.0
+Fetching rspec 3.14.0 (was 3.13.0)
+Installing rspec 3.14.0 (was 3.13.0)
+Bundle updated!
+"""
+        result = filter_output(
+            "bundle update rspec",
+            stdout,
+            "",
+            0,
+            plan=plan_command("bundle update rspec"),
+        )
+        self.assertEqual(result.filter_name, "bundle.update")
+        self.assertIn("bundle update: updated", result.output)
+
     def test_prisma_generate_extracts_counts(self):
         stdout = """Prisma schema loaded from prisma/schema.prisma
 
@@ -143,6 +221,109 @@ Generated 14 models, 2 enums, 1 types for Prisma Client
         self.assertIn("prisma generate: client generated", result.output)
         self.assertIn("models: 14, enums: 2, types: 1", result.output)
         self.assertIn("output: @prisma/client", result.output)
+
+    def test_prisma_migrate_dev_summarizes_schema_changes(self):
+        stdout = """Applying migration 20260128_add_sessions
+
+CREATE TABLE \"Session\" (
+  \"id\" TEXT NOT NULL,
+  \"userId\" TEXT NOT NULL,
+  FOREIGN KEY (\"userId\") REFERENCES \"User\"(\"id\")
+);
+
+CREATE INDEX \"session_status_idx\" ON \"Session\"(\"status\");
+
+Your database is now in sync with your schema.
+"""
+        result = filter_output(
+            "npx prisma migrate dev --name add_sessions",
+            stdout,
+            "",
+            0,
+            plan=plan_command("npx prisma migrate dev --name add_sessions"),
+        )
+        self.assertEqual(result.filter_name, "prisma.migrate-dev")
+        self.assertIn("prisma migrate dev", result.output)
+        self.assertIn("migration: 20260128_add_sessions", result.output)
+        self.assertIn("changes: +1 tables", result.output)
+
+    def test_prisma_migrate_status_summarizes_counts(self):
+        stdout = """Database schema is up to date!
+2 applied migrations found
+1 pending migration found
+Last common migration: 20260128_add_sessions
+"""
+        result = filter_output(
+            "prisma migrate status",
+            stdout,
+            "",
+            0,
+            plan=plan_command("prisma migrate status"),
+        )
+        self.assertEqual(result.filter_name, "prisma.migrate-status")
+        self.assertIn("prisma migrate status: 2 applied, 1 pending", result.output)
+        self.assertIn("latest: 20260128_add_sessions", result.output)
+
+    def test_prisma_migrate_deploy_summarizes_migration_count(self):
+        stdout = """2 migrations found in prisma/migrations
+
+Applying migration `20260128_add_sessions`
+Applying migration `20260201_add_audit_log`
+
+The following migration(s) have been applied:
+"""
+        result = filter_output(
+            "pnpm prisma migrate deploy",
+            stdout,
+            "",
+            0,
+            plan=plan_command("pnpm prisma migrate deploy"),
+        )
+        self.assertEqual(result.filter_name, "prisma.migrate-deploy")
+        self.assertEqual(result.output, "prisma migrate deploy: 2 migrations")
+
+    def test_prisma_db_push_summarizes_counts(self):
+        stdout = """Prisma schema loaded from prisma/schema.prisma
+Your database is now in sync with your Prisma schema.
+
+CREATE TABLE \"Post\" (
+  \"id\" TEXT NOT NULL
+);
+ALTER TABLE \"User\" ADD COLUMN \"nickname\" TEXT;
+CREATE INDEX \"post_author_idx\" ON \"Post\"(\"authorId\");
+"""
+        result = filter_output(
+            "prisma db push",
+            stdout,
+            "",
+            0,
+            plan=plan_command("prisma db push"),
+        )
+        self.assertEqual(result.filter_name, "prisma.db-push")
+        self.assertIn("prisma db push: schema pushed", result.output)
+        self.assertIn("tables: 1, columns: 1, indexes: 1", result.output)
+
+    def test_npm_run_strips_boilerplate(self):
+        stdout = """> demo@1.0.0 build
+> next build
+
+npm WARN deprecated inflight@1.0.6: This module is not supported
+npm notice New major version of npm available!
+
+Creating an optimized production build...
+Build completed
+"""
+        result = filter_output(
+            "npm run build",
+            stdout,
+            "",
+            0,
+            plan=plan_command("npm run build"),
+        )
+        self.assertEqual(result.filter_name, "npm.run")
+        self.assertNotIn("npm WARN", result.output)
+        self.assertNotIn("demo@1.0.0", result.output)
+        self.assertIn("Build completed", result.output)
 
     def test_package_manager_failures_keep_raw_output(self):
         stderr = """npm ERR! code ELSPROBLEMS

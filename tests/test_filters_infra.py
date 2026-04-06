@@ -67,6 +67,43 @@ db-1      postgres:16   \"postgres\"  db        2 hours ago  Up 2 hours   0.0.0.
         self.assertIn("docker compose ps: 2 services", result.output)
         self.assertIn("web-1 (nginx:latest) Up 2 hours [80]", result.output)
 
+    def test_docker_compose_logs_deduplicates_repeated_lines(self):
+        stdout = "web-1  | boot\nweb-1  | same\nweb-1  | same\nweb-1  | ready\n"
+        result = filter_output(
+            "docker compose logs web",
+            stdout,
+            "",
+            0,
+            plan=plan_command("docker compose logs web"),
+        )
+        self.assertEqual(result.filter_name, "docker.compose.logs")
+        self.assertIn("docker compose logs web:", result.output)
+        self.assertIn("repeated line omitted 1 time(s)", result.output)
+
+    def test_docker_compose_build_summarizes_build_progress(self):
+        stdout = """[+] Building 12.3s (8/8) FINISHED
+ => [web internal] load build definition from Dockerfile           0.0s
+ => [web internal] load metadata for docker.io/library/node:20     1.2s
+ => [web 1/4] FROM docker.io/library/node:20@sha256:abc123         0.0s
+ => [web 2/4] WORKDIR /app                                         0.1s
+ => [web 3/4] COPY package*.json ./                                0.1s
+ => [web 4/4] RUN npm install                                      8.5s
+ => [web] exporting to image                                       2.3s
+"""
+        result = filter_output(
+            "docker compose build web",
+            stdout,
+            "",
+            0,
+            plan=plan_command("docker compose build web"),
+        )
+        self.assertEqual(result.filter_name, "docker.compose.build")
+        self.assertIn(
+            "docker compose build: [+] Building 12.3s (8/8) FINISHED", result.output
+        )
+        self.assertIn("Services: web", result.output)
+        self.assertIn("Steps: 7", result.output)
+
     def test_kubectl_pods_summarizes_json_issues(self):
         stdout = """{
   "items": [

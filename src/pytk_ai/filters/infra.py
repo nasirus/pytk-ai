@@ -51,6 +51,10 @@ def _command_kind(command: str) -> tuple[str, str] | None:
         return "docker", "logs"
     if parts[:3] == ["docker", "compose", "ps"]:
         return "docker.compose", "ps"
+    if parts[:3] == ["docker", "compose", "logs"]:
+        return "docker.compose", "logs"
+    if parts[:3] == ["docker", "compose", "build"]:
+        return "docker.compose", "build"
     if parts[:3] == ["kubectl", "get", "pods"] or parts[:2] == ["kubectl", "pods"]:
         return "kubectl", "pods"
     if parts[:3] == ["kubectl", "get", "services"] or parts[:2] == [
@@ -225,6 +229,59 @@ def _summarize_compose_ps(stdout: str) -> str | None:
         lines.append(line)
     if len(services) > 20:
         lines.append(f"... +{len(services) - 20} more services")
+    return "\n".join(lines)
+
+
+def _summarize_compose_logs(command: str, stdout: str) -> str:
+    target = _first_positional(_command_parts(command), 3)
+    return _summarize_log_stream("docker compose logs", target, stdout)
+
+
+def _summarize_compose_build(stdout: str) -> str | None:
+    cleaned = strip_ansi(stdout).replace("\r", "\n")
+    if not cleaned.strip():
+        return "docker compose build: no output"
+
+    summary_line = None
+    for raw_line in cleaned.splitlines():
+        line = raw_line.strip()
+        if "Building" in line and "FINISHED" in line:
+            summary_line = line
+            break
+    if summary_line is None:
+        for raw_line in cleaned.splitlines():
+            line = raw_line.strip()
+            if "Building" in line:
+                summary_line = line
+                break
+
+    services: list[str] = []
+    for raw_line in cleaned.splitlines():
+        line = raw_line.strip()
+        if "[" not in line or "]" not in line:
+            continue
+        start = line.find("[")
+        end = line.find("]", start + 1)
+        if start == -1 or end == -1:
+            continue
+        bracket = line[start + 1 : end]
+        service = bracket.split()[0] if bracket else ""
+        if service and service != "+" and service not in services:
+            services.append(service)
+
+    step_count = sum(
+        1 for line in cleaned.splitlines() if line.lstrip().startswith("=> ")
+    )
+
+    lines = [
+        f"docker compose build: {summary_line}"
+        if summary_line
+        else "docker compose build"
+    ]
+    if services:
+        lines.append(f"Services: {', '.join(services)}")
+    if step_count:
+        lines.append(f"Steps: {step_count}")
     return "\n".join(lines)
 
 
@@ -721,6 +778,10 @@ def filter_infra_output(
         summary = _summarize_log_stream("docker logs", target, stdout)
     elif kind == ("docker.compose", "ps"):
         summary = _summarize_compose_ps(stdout)
+    elif kind == ("docker.compose", "logs"):
+        summary = _summarize_compose_logs(command, stdout)
+    elif kind == ("docker.compose", "build"):
+        summary = _summarize_compose_build(stdout)
     elif kind == ("kubectl", "pods"):
         summary = _summarize_kubectl_pods(stdout)
     elif kind == ("kubectl", "services"):

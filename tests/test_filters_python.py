@@ -69,3 +69,34 @@ FAILED tests/test_app.py::test_failure - assert 1 == 2
         self.assertIn("Pytest:", result.output)
         self.assertIn("[FAIL] test_failure", result.output)
         self.assertIn("assert 1 == 2", result.output)
+
+    def test_ruff_format_check_lists_files_needing_formatting(self):
+        stdout = """Would reformat: src/app.py
+Would reformat: tests/test_app.py
+2 files would be reformatted, 3 files left unchanged
+"""
+        result = filter_output(
+            "ruff format --check .",
+            stdout,
+            "",
+            1,
+            plan=plan_command("ruff format --check ."),
+        )
+        self.assertEqual(result.filter_name, "python.ruff")
+        self.assertIn("Ruff format: 2 files need formatting", result.output)
+        self.assertIn("src/app.py", result.output)
+        self.assertIn("3 files already formatted", result.output)
+
+    def test_ruff_format_write_summarizes_reformatted_files(self):
+        stdout = "2 files reformatted, 3 files left unchanged\n"
+        result = filter_output(
+            "ruff format .",
+            stdout,
+            "",
+            0,
+            plan=plan_command("ruff format ."),
+        )
+        self.assertEqual(result.filter_name, "python.ruff")
+        self.assertEqual(
+            result.output, "Ruff format: 2 files reformatted (3 unchanged)"
+        )

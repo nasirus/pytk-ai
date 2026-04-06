@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from pathlib import PurePath
+import shlex
 
 from ..models import FilterResult
 from .base import make_filter_result
@@ -21,6 +22,40 @@ def _git_subcommand(command: str) -> str | None:
     return match.group(1) if match else None
 
 
+def _git_args(command: str) -> list[str]:
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return []
+    if not tokens or tokens[0] != "git":
+        return []
+    index = 1
+    flags_with_value = {
+        "-C",
+        "-c",
+        "--git-dir",
+        "--work-tree",
+        "--namespace",
+        "--super-prefix",
+        "--config-env",
+    }
+    while index < len(tokens):
+        token = tokens[index]
+        if token in flags_with_value:
+            index += 2
+            continue
+        if token.startswith("-"):
+            index += 1
+            continue
+        break
+    return tokens[index:]
+
+
+def _git_subcommand_args(command: str) -> list[str]:
+    args = _git_args(command)
+    return args[1:] if len(args) >= 2 else []
+
+
 def _compact_subject(lines: list[str]) -> str | None:
     for line in lines:
         if line.startswith("    "):
@@ -31,6 +66,18 @@ def _compact_subject(lines: list[str]) -> str | None:
 
 
 def _summarize_log(text: str) -> str:
+    if "---END---" in text:
+        commits: list[str] = []
+        for block in text.split("---END---"):
+            lines = [line.rstrip() for line in block.splitlines() if line.strip()]
+            if not lines:
+                continue
+            header = lines[0].strip()
+            body = [line.strip() for line in lines[1:] if line.strip()][:3]
+            commits.append("\n".join([header, *[f"  {line}" for line in body]]))
+        if commits:
+            return "\n".join(commits)
+
     lines = text.splitlines()
     commits: list[str] = []
     current_hash: str | None = None
@@ -134,6 +181,26 @@ def _parse_diff_summary(text: str, *, include_commit_header: bool = False) -> st
     return "\n".join(result) if result else text
 
 
+def _summarize_show(text: str) -> str:
+    lines = text.splitlines()
+    summary_prefix: list[str] = []
+    diff_start = next(
+        (index for index, line in enumerate(lines) if line.startswith("diff --git ")),
+        None,
+    )
+    if diff_start is not None:
+        prefix_lines = [line.rstrip() for line in lines[:diff_start] if line.strip()]
+        if prefix_lines:
+            summary_prefix.extend(prefix_lines)
+        diff_summary = _parse_diff_summary("\n".join(lines[diff_start:]))
+        return (
+            "\n".join(summary_prefix + [diff_summary])
+            if summary_prefix
+            else diff_summary
+        )
+    return _parse_diff_summary(text, include_commit_header=True)
+
+
 def _summarize_branch(text: str) -> str:
     locals_: list[str] = []
     remotes: list[str] = []
@@ -155,6 +222,42 @@ def _summarize_branch(text: str) -> str:
         result.extend(f"  {branch}" for branch in remotes[:8])
         if len(remotes) > 8:
             result.append(f"  ... +{len(remotes) - 8} more")
+    return "\n".join(result)
+
+
+def _summarize_branch_list(text: str) -> str:
+    current = ""
+    local: list[str] = []
+    remote: list[str] = []
+
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if raw.startswith("* "):
+            current = line[2:].strip()
+        elif line.startswith("remotes/origin/"):
+            branch = line.removeprefix("remotes/origin/")
+            if branch.startswith("HEAD "):
+                continue
+            remote.append(branch)
+        else:
+            local.append(line)
+
+    if not current and not local and not remote:
+        return text
+
+    result: list[str] = [f"* {current}" if current else "*"]
+    result.extend(f"  {branch}" for branch in local)
+
+    remote_only = [
+        branch for branch in remote if branch != current and branch not in local
+    ]
+    if remote_only:
+        result.append(f"  remote-only ({len(remote_only)}):")
+        result.extend(f"    {branch}" for branch in remote_only[:10])
+        if len(remote_only) > 10:
+            result.append(f"    ... +{len(remote_only) - 10} more")
     return "\n".join(result)
 
 
@@ -217,6 +320,24 @@ def _summarize_stash(text: str) -> str:
     return lines[0]
 
 
+def _summarize_stash_list(text: str) -> str:
+    result: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if ": " not in stripped:
+            result.append(stripped)
+            continue
+        index, rest = stripped.split(": ", 1)
+        if ": " in rest:
+            _, message = rest.split(": ", 1)
+            result.append(f"{index}: {message.strip()}")
+        else:
+            result.append(stripped)
+    return "\n".join(result) if result else "No stashes"
+
+
 def _summarize_worktree(text: str) -> str:
     result: list[str] = []
     for line in text.splitlines():
@@ -230,6 +351,14 @@ def _summarize_worktree(text: str) -> str:
             f"{match.group('branch')} {match.group('path')} {match.group('hash')[:7]}"
         )
     return "\n".join(result) if result else text
+
+
+def _summarize_add(text: str) -> str:
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if not lines:
+        return "ok (nothing to add)"
+    short = lines[-1]
+    return f"ok {short}" if short else "ok"
 
 
 def _summarize_status(text: str) -> str:
@@ -368,6 +497,7 @@ def filter_git_output(
         max_output_lines=max_output_lines,
     )
     subcommand = _git_subcommand(command)
+    subcommand_args = _git_subcommand_args(command)
     text = _drop_advice_lines(generic.output)
     filter_name = f"git.{subcommand}" if subcommand else "git"
     if exit_code != 0:
@@ -384,9 +514,9 @@ def filter_git_output(
     elif subcommand == "diff":
         text = _parse_diff_summary(combined)
     elif subcommand == "show":
-        text = _parse_diff_summary(combined, include_commit_header=True)
+        text = _summarize_show(combined)
     elif subcommand == "add":
-        text = combined or "ok"
+        text = combined if stderr.strip() else _summarize_add(combined)
     elif subcommand == "commit":
         text = _summarize_commit(combined)
     elif subcommand == "push":
@@ -394,13 +524,70 @@ def filter_git_output(
     elif subcommand == "pull":
         text = _summarize_pull(combined)
     elif subcommand == "branch":
-        text = _summarize_branch(combined)
+        if any(arg == "--show-current" for arg in subcommand_args):
+            text = combined.strip() or "ok"
+        elif any(not arg.startswith("-") for arg in subcommand_args) and not any(
+            arg in {"-a", "--all", "-r", "--remotes", "--list"}
+            or arg.startswith("--format")
+            or arg.startswith("--sort")
+            or arg.startswith("--points-at")
+            for arg in subcommand_args
+        ):
+            text = "ok"
+        elif any(
+            arg
+            in {
+                "-d",
+                "-D",
+                "-m",
+                "-M",
+                "-c",
+                "-C",
+                "-u",
+                "--unset-upstream",
+                "--edit-description",
+            }
+            or arg == "--set-upstream-to"
+            or arg.startswith("--set-upstream-to=")
+            for arg in subcommand_args
+        ):
+            text = "ok"
+        elif (
+            any(arg in {"-a", "--all"} for arg in subcommand_args)
+            or not subcommand_args
+        ):
+            text = _summarize_branch_list(combined)
+        else:
+            text = _summarize_branch(combined)
     elif subcommand == "fetch":
         text = _summarize_fetch(combined)
     elif subcommand == "stash":
-        text = _summarize_stash(combined)
+        if subcommand_args[:1] == ["list"]:
+            text = _summarize_stash_list(combined)
+        elif subcommand_args[:1] == ["show"]:
+            text = _parse_diff_summary(combined)
+        elif subcommand_args[:1] in (["pop"], ["apply"], ["drop"], ["push"]):
+            text = f"ok stash {subcommand_args[0]}"
+        elif not subcommand_args:
+            text = (
+                "ok (nothing to stash)"
+                if "No local changes" in combined
+                else "ok stashed"
+            )
+        else:
+            text = _summarize_stash(combined)
     elif subcommand == "worktree":
-        text = _summarize_worktree(combined)
+        if subcommand_args[:1] and subcommand_args[0] in {
+            "add",
+            "remove",
+            "prune",
+            "lock",
+            "unlock",
+            "move",
+        }:
+            text = "ok"
+        else:
+            text = _summarize_worktree(combined)
     return make_filter_result(
         text,
         filter_name=filter_name,

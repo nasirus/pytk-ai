@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import re
 from collections import defaultdict
 from pathlib import PurePath
+import shlex
 
 from ..models import FilterResult
 from ..plan.normalize import normalize_absolute_first_token, strip_env_prefix
@@ -19,6 +21,294 @@ _WC_LINE_RE = re.compile(r"^\s*(?P<counts>(?:\d+\s+){0,3}\d+)(?:\s+(?P<label>.+)
 _TREE_SUMMARY_RE = re.compile(
     r"(?P<dirs>\d+)\s+directories?,\s+(?P<files>\d+)\s+files?$"
 )
+_MULTIPLE_BLANK_LINES_RE = re.compile(r"\n{3,}")
+_IMPORT_PATTERN = re.compile(r"^(use |import |from |require\(|#include)")
+_SIGNATURE_PATTERN = re.compile(
+    r"^(?:pub\s+)?(?:async\s+)?(?:fn|def|function|func|class|struct|enum|trait|interface|type)\s+\w+"
+)
+
+
+@dataclass(frozen=True)
+class _CommentPatterns:
+    line: str | None = None
+    block_start: str | None = None
+    block_end: str | None = None
+    doc_line: str | None = None
+    doc_block_start: str | None = None
+
+
+_LANGUAGE_PATTERNS = {
+    "rust": _CommentPatterns(
+        line="//",
+        block_start="/*",
+        block_end="*/",
+        doc_line="///",
+        doc_block_start="/**",
+    ),
+    "python": _CommentPatterns(
+        line="#",
+        block_start='"""',
+        block_end='"""',
+        doc_block_start='"""',
+    ),
+    "javascript": _CommentPatterns(line="//", block_start="/*", block_end="*/"),
+    "typescript": _CommentPatterns(line="//", block_start="/*", block_end="*/"),
+    "go": _CommentPatterns(line="//", block_start="/*", block_end="*/"),
+    "c": _CommentPatterns(line="//", block_start="/*", block_end="*/"),
+    "cpp": _CommentPatterns(line="//", block_start="/*", block_end="*/"),
+    "java": _CommentPatterns(line="//", block_start="/*", block_end="*/"),
+    "ruby": _CommentPatterns(line="#", block_start="=begin", block_end="=end"),
+    "shell": _CommentPatterns(line="#"),
+    "data": _CommentPatterns(),
+    "unknown": _CommentPatterns(line="//", block_start="/*", block_end="*/"),
+}
+_DATA_EXTENSIONS = {
+    "json",
+    "jsonc",
+    "json5",
+    "yaml",
+    "yml",
+    "toml",
+    "xml",
+    "csv",
+    "tsv",
+    "graphql",
+    "gql",
+    "sql",
+    "md",
+    "markdown",
+    "txt",
+    "env",
+    "lock",
+}
+
+
+def _detect_language(path: str | None) -> str:
+    if not path:
+        return "unknown"
+    suffix = PurePath(path).suffix.lower().lstrip(".")
+    if suffix == "rs":
+        return "rust"
+    if suffix in {"py", "pyw"}:
+        return "python"
+    if suffix in {"js", "mjs", "cjs"}:
+        return "javascript"
+    if suffix in {"ts", "tsx"}:
+        return "typescript"
+    if suffix == "go":
+        return "go"
+    if suffix in {"c", "h"}:
+        return "c"
+    if suffix in {"cpp", "cc", "cxx", "hpp", "hh"}:
+        return "cpp"
+    if suffix == "java":
+        return "java"
+    if suffix == "rb":
+        return "ruby"
+    if suffix in {"sh", "bash", "zsh"}:
+        return "shell"
+    if suffix in _DATA_EXTENSIONS:
+        return "data"
+    return "unknown"
+
+
+def _normalize_filtered_text(text: str) -> str:
+    normalized = _MULTIPLE_BLANK_LINES_RE.sub("\n\n", text)
+    return normalized.strip()
+
+
+def _apply_minimal_filter(content: str, language: str) -> str:
+    patterns = _LANGUAGE_PATTERNS[language]
+    result: list[str] = []
+    in_block_comment = False
+    in_docstring = False
+
+    for line in content.splitlines():
+        trimmed = line.strip()
+
+        if (
+            patterns.block_start is not None
+            and patterns.block_end is not None
+            and not in_docstring
+            and patterns.block_start in trimmed
+            and not trimmed.startswith(patterns.doc_block_start or "###")
+        ):
+            in_block_comment = True
+
+        if in_block_comment:
+            if patterns.block_end is not None and patterns.block_end in trimmed:
+                in_block_comment = False
+            continue
+
+        if language == "python" and trimmed.startswith('"""'):
+            in_docstring = not in_docstring
+            result.append(line)
+            continue
+
+        if in_docstring:
+            result.append(line)
+            continue
+
+        if patterns.line is not None and trimmed.startswith(patterns.line):
+            if patterns.doc_line is not None and trimmed.startswith(patterns.doc_line):
+                result.append(line)
+            continue
+
+        if not trimmed:
+            result.append("")
+            continue
+
+        result.append(line)
+
+    return _normalize_filtered_text("\n".join(result))
+
+
+def _apply_aggressive_filter(content: str, language: str) -> str:
+    if language == "data":
+        return _apply_minimal_filter(content, language)
+
+    minimal = _apply_minimal_filter(content, language)
+    result: list[str] = []
+    brace_depth = 0
+    in_impl_body = False
+
+    for line in minimal.splitlines():
+        trimmed = line.strip()
+
+        if _IMPORT_PATTERN.match(trimmed):
+            result.append(line)
+            continue
+
+        if _SIGNATURE_PATTERN.match(trimmed):
+            result.append(line)
+            in_impl_body = True
+            brace_depth = 0
+            continue
+
+        open_braces = trimmed.count("{")
+        close_braces = trimmed.count("}")
+
+        if in_impl_body:
+            brace_depth += open_braces
+            brace_depth -= close_braces
+            if brace_depth <= 1 and (trimmed in {"{", "}"} or trimmed.endswith("{")):
+                result.append(line)
+            if brace_depth <= 0:
+                in_impl_body = False
+                if trimmed and trimmed != "}":
+                    result.append("    # ... implementation")
+            continue
+
+        if trimmed.startswith(
+            ("const ", "static ", "let ", "pub const ", "pub static ")
+        ):
+            result.append(line)
+
+    return _normalize_filtered_text("\n".join(result))
+
+
+def _apply_read_level(content: str, level: str, language: str) -> str:
+    if level == "minimal":
+        return _apply_minimal_filter(content, language)
+    if level == "aggressive":
+        return _apply_aggressive_filter(content, language)
+    return content
+
+
+def smart_truncate_read(content: str, max_lines: int, language: str) -> str:
+    lines = content.splitlines()
+    if max_lines <= 0:
+        return ""
+    if len(lines) <= max_lines:
+        return content
+
+    result: list[str] = []
+    kept_lines = 0
+    skipped_section = False
+
+    for line in lines:
+        trimmed = line.strip()
+        is_important = bool(
+            _SIGNATURE_PATTERN.match(trimmed)
+            or _IMPORT_PATTERN.match(trimmed)
+            or trimmed.startswith(("pub ", "export "))
+            or trimmed in {"{", "}"}
+        )
+
+        if is_important or kept_lines < max_lines // 2:
+            if skipped_section:
+                result.append(f"    # ... {len(lines) - kept_lines} lines omitted")
+                skipped_section = False
+            result.append(line)
+            kept_lines += 1
+        else:
+            skipped_section = True
+
+        if kept_lines >= max_lines - 1:
+            break
+
+    if skipped_section or kept_lines < len(lines):
+        result.append(
+            f"# ... {len(lines) - kept_lines} more lines (total: {len(lines)})"
+        )
+
+    return "\n".join(result)
+
+
+def apply_read_window(
+    content: str,
+    *,
+    max_lines: int | None,
+    tail_lines: int | None,
+    language: str,
+) -> str:
+    if tail_lines is not None:
+        if tail_lines <= 0:
+            return ""
+        lines = content.splitlines()
+        result = "\n".join(lines[-tail_lines:])
+        if content.endswith("\n") and result:
+            result += "\n"
+        return result
+
+    if max_lines is not None:
+        return smart_truncate_read(content, max_lines, language)
+
+    return content
+
+
+def format_with_line_numbers(content: str) -> str:
+    lines = content.splitlines()
+    if not lines:
+        return ""
+    width = len(str(len(lines)))
+    return "\n".join(
+        f"{index:>{width}} | {line}" for index, line in enumerate(lines, start=1)
+    )
+
+
+def render_read_output(
+    content: str,
+    *,
+    source_path: str | None,
+    level: str = "none",
+    max_lines: int | None = None,
+    tail_lines: int | None = None,
+    line_numbers: bool = False,
+) -> str:
+    language = _detect_language(source_path)
+    filtered = _apply_read_level(content, level, language)
+    if not filtered.strip() and content.strip():
+        filtered = content
+    filtered = apply_read_window(
+        filtered,
+        max_lines=max_lines,
+        tail_lines=tail_lines,
+        language=language,
+    )
+    if line_numbers:
+        filtered = format_with_line_numbers(filtered)
+    return filtered
 
 
 def _command_name(command: str) -> str:
@@ -45,6 +335,69 @@ def _read_filter_name(command_name: str) -> str:
     return "read"
 
 
+def _extract_pytk_read_args(
+    command: str,
+) -> tuple[str | None, str, int | None, int | None, bool]:
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return None, "none", None, None, False
+
+    if len(tokens) < 2 or tokens[0] != "pytk-ai" or tokens[1] != "read":
+        return None, "none", None, None, False
+
+    source_path: str | None = None
+    level = "none"
+    max_lines: int | None = None
+    tail_lines: int | None = None
+    line_numbers = False
+    index = 2
+    while index < len(tokens):
+        token = tokens[index]
+        if token in {"--level", "-l"}:
+            index += 1
+            if index >= len(tokens):
+                break
+            level = tokens[index]
+        elif token.startswith("--level="):
+            level = token.split("=", 1)[1]
+        elif token in {"--max-lines", "-m"}:
+            index += 1
+            if index >= len(tokens):
+                break
+            try:
+                max_lines = int(tokens[index])
+            except ValueError:
+                max_lines = None
+        elif token.startswith("--max-lines="):
+            try:
+                max_lines = int(token.split("=", 1)[1])
+            except ValueError:
+                max_lines = None
+        elif token == "--tail-lines":
+            index += 1
+            if index >= len(tokens):
+                break
+            try:
+                tail_lines = int(tokens[index])
+            except ValueError:
+                tail_lines = None
+        elif token.startswith("--tail-lines="):
+            try:
+                tail_lines = int(token.split("=", 1)[1])
+            except ValueError:
+                tail_lines = None
+        elif token in {"--line-numbers", "-n"}:
+            line_numbers = True
+        elif source_path is None:
+            source_path = token
+        index += 1
+
+    if level not in {"none", "minimal", "aggressive"}:
+        level = "none"
+    return source_path, level, max_lines, tail_lines, line_numbers
+
+
 def _raw_read_output(
     command_name: str, stdout: str, stderr: str, exit_code: int
 ) -> str:
@@ -57,6 +410,7 @@ def _raw_read_output(
 
 
 def _make_read_result(
+    command: str,
     command_name: str,
     stdout: str,
     stderr: str,
@@ -66,7 +420,25 @@ def _make_read_result(
     error: str | None,
 ) -> FilterResult:
     text = _raw_read_output(command_name, stdout, stderr, exit_code)
-    truncated_text, truncated = truncate_lines(text, max_output_lines)
+    source_path = None
+    level = "none"
+    read_max_lines = None
+    tail_lines = None
+    line_numbers = False
+
+    if command_name == "read":
+        source_path, level, read_max_lines, tail_lines, line_numbers = (
+            _extract_pytk_read_args(command)
+        )
+    rendered = render_read_output(
+        text,
+        source_path=source_path,
+        level=level,
+        max_lines=read_max_lines,
+        tail_lines=tail_lines,
+        line_numbers=line_numbers,
+    )
+    truncated_text, truncated = truncate_lines(rendered, max_output_lines)
     return FilterResult(
         output=truncated_text,
         filter_name=_read_filter_name(command_name),
@@ -123,6 +495,50 @@ def _summarize_find(text: str) -> str | None:
             lines.append(f"  ... +{len(sorted_names) - 4} more")
     if len(paths) > shown:
         lines.append(f"... +{len(paths) - shown} more paths")
+    return "\n".join(lines)
+
+
+def _summarize_find_rtk_style(text: str) -> str | None:
+    paths = sorted(line.strip() for line in text.splitlines() if line.strip())
+    if not paths:
+        return "0 for '*'"
+
+    by_dir: dict[str, list[str]] = defaultdict(list)
+    by_ext: dict[str, int] = defaultdict(int)
+    for raw_path in paths:
+        path = PurePath(raw_path)
+        parent = str(path.parent) if str(path.parent) not in {"", "."} else "."
+        name = path.name or raw_path
+        by_dir[parent].append(name)
+        suffix = path.suffix[1:] if path.suffix else "none"
+        by_ext[suffix] += 1
+
+    lines = [f"{len(paths)}F {len(by_dir)}D:", ""]
+    shown = 0
+    for directory in sorted(by_dir):
+        names = sorted(by_dir[directory])
+        if shown >= 50:
+            break
+        remaining_budget = 50 - shown
+        displayed = names[:remaining_budget]
+        dir_display = directory if len(directory) <= 50 else f"...{directory[-47:]}"
+        lines.append(f"{dir_display}/ {' '.join(displayed)}")
+        shown += len(displayed)
+        if len(displayed) < len(names):
+            break
+
+    if shown < len(paths):
+        lines.append(f"+{len(paths) - shown} more")
+
+    if len(by_ext) > 1:
+        ext_summary = " ".join(
+            f".{ext}({count})"
+            for ext, count in sorted(
+                by_ext.items(), key=lambda item: (-item[1], item[0])
+            )[:5]
+        )
+        lines.extend(["", f"ext: {ext_summary}"])
+
     return "\n".join(lines)
 
 
@@ -323,6 +739,51 @@ def _summarize_diff(text: str) -> str | None:
     return "\n".join(result) if result else None
 
 
+def _looks_like_direct_diff_command(command: str) -> bool:
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return False
+    if not tokens:
+        return False
+    if tokens[0] in {"pytk-ai", "python", "python3"}:
+        return False
+    if tokens[0] != "diff":
+        return False
+    args = tokens[1:]
+    return len(args) == 2 and all(not arg.startswith("-") for arg in args)
+
+
+def _summarize_direct_diff(
+    command: str, stdout: str, stderr: str, exit_code: int
+) -> str | None:
+    if not _looks_like_direct_diff_command(command):
+        return None
+    if stderr.strip():
+        return None
+    summary = _summarize_diff(stdout)
+    if summary is None:
+        if exit_code == 0:
+            return "[ok] Files are identical"
+        return None
+
+    lines = summary.splitlines()
+    if not lines:
+        return None
+
+    header = lines[0]
+    match = re.match(r"^(?P<path>.+) \(\+(?P<added>\d+)/-(?P<removed>\d+)\)$", header)
+    if match is None:
+        return summary
+
+    path = match.group("path")
+    added = int(match.group("added"))
+    removed = int(match.group("removed"))
+    body = [path, f"   +{added} added, -{removed} removed, ~0 modified", ""]
+    body.extend(lines[1:])
+    return "\n".join(body).rstrip()
+
+
 def filter_file_output(
     command: str,
     stdout: str,
@@ -343,6 +804,7 @@ def filter_file_output(
 
     if command_name in {"cat", "head", "tail", "read"}:
         return _make_read_result(
+            command,
             command_name,
             stdout,
             stderr,
@@ -372,7 +834,11 @@ def filter_file_output(
         )
 
     if command_name == "diff" and exit_code in {0, 1}:
-        text = _summarize_diff(combined) or generic.output
+        text = (
+            _summarize_direct_diff(command, stdout, stderr, exit_code)
+            or _summarize_diff(combined)
+            or generic.output
+        )
         return make_filter_result(
             text,
             filter_name=filter_name,
@@ -394,7 +860,11 @@ def filter_file_output(
             "0 matches" if not combined.strip() else generic.output
         )
     elif command_name == "find":
-        text = _summarize_find(combined) or generic.output
+        text = (
+            _summarize_find_rtk_style(combined)
+            or _summarize_find(combined)
+            or generic.output
+        )
     elif command_name == "tree":
         text = _summarize_tree(combined) or generic.output
     elif command_name == "wc":

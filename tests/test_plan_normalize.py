@@ -47,41 +47,81 @@ class PlanNormalizeTests(unittest.TestCase):
 
     def test_infer_filter_hint_handles_build_and_lint_commands(self):
         self.assertEqual(infer_filter_hint("cargo build"), "cargo")
+        self.assertEqual(infer_filter_hint("cargo nextest run"), "cargo")
+        self.assertEqual(infer_filter_hint("playwright test"), "playwright")
+        self.assertEqual(infer_filter_hint("pnpm vitest run"), "vitest")
         self.assertEqual(infer_filter_hint("eslint src"), "lint")
         self.assertEqual(infer_filter_hint("next build"), "next")
+        self.assertEqual(infer_filter_hint("dotnet build"), "dotnet")
+        self.assertEqual(infer_filter_hint("dotnet test --filter Name~Auth"), "dotnet")
         self.assertEqual(infer_filter_hint("go test ./..."), "go")
+        self.assertEqual(
+            infer_filter_hint("rails test test/models/user_test.rb"), "rake"
+        )
         self.assertEqual(infer_filter_hint("bundle exec rspec"), "rspec")
         self.assertIsNone(infer_filter_hint("go version"))
+
+    def test_infer_filter_hint_handles_direct_formatter_commands(self):
+        self.assertEqual(infer_filter_hint("prettier --check ."), "format")
+        self.assertEqual(infer_filter_hint("black --check ."), "format")
+        self.assertEqual(infer_filter_hint("biome format src"), "format")
+        self.assertEqual(infer_filter_hint("pnpm exec prettier --check ."), "format")
+        self.assertEqual(infer_filter_hint("biome check --write src"), "format")
+        self.assertEqual(infer_filter_hint("ruff format --check ."), "ruff")
+
+    def test_infer_filter_hint_handles_biome_lint_variants(self):
+        self.assertEqual(infer_filter_hint("biome check src"), "lint")
+        self.assertEqual(infer_filter_hint("pnpm exec biome lint src"), "lint")
 
     def test_infer_filter_hint_handles_file_commands(self):
         self.assertEqual(infer_filter_hint("tree -L 2"), "tree")
         self.assertEqual(infer_filter_hint("wc -l src/app.py"), "wc")
         self.assertEqual(infer_filter_hint("diff -u a b"), "diff")
+        self.assertEqual(infer_filter_hint("diff a b"), "diff")
+        self.assertEqual(infer_filter_hint("find . -name '*.py'"), "find")
+        self.assertEqual(
+            infer_filter_hint("pytk-ai read src/app.py --level minimal --line-numbers"),
+            "read",
+        )
 
     def test_infer_filter_hint_handles_package_manager_commands(self):
         self.assertEqual(infer_filter_hint("pip list"), "package")
         self.assertEqual(infer_filter_hint("uv pip list --outdated"), "package")
         self.assertEqual(infer_filter_hint("uv sync"), "package")
+        self.assertEqual(infer_filter_hint("uv pip install requests"), "package")
         self.assertEqual(infer_filter_hint("npm list"), "package")
+        self.assertEqual(infer_filter_hint("npm run build"), "package")
         self.assertEqual(infer_filter_hint("pnpm ls"), "package")
+        self.assertEqual(infer_filter_hint("pnpm outdated"), "package")
+        self.assertEqual(infer_filter_hint("pnpm install"), "package")
         self.assertEqual(infer_filter_hint("bundle install"), "package")
+        self.assertEqual(infer_filter_hint("bundle update"), "package")
         self.assertEqual(infer_filter_hint("npx prisma generate"), "package")
+        self.assertEqual(infer_filter_hint("prisma migrate status"), "package")
+        self.assertEqual(infer_filter_hint("prisma db push"), "package")
 
     def test_infer_filter_hint_handles_phase5_infra_commands(self):
         self.assertEqual(infer_filter_hint("docker ps"), "docker")
         self.assertEqual(infer_filter_hint("docker compose ps"), "docker")
+        self.assertEqual(infer_filter_hint("docker compose logs web"), "docker")
+        self.assertEqual(infer_filter_hint("docker compose build api"), "docker")
         self.assertEqual(infer_filter_hint("kubectl get pods -A"), "kubectl")
         self.assertEqual(infer_filter_hint("aws ec2 describe-instances"), "aws")
         self.assertEqual(infer_filter_hint("terraform validate"), "terraform")
+        self.assertEqual(infer_filter_hint("psql -c 'select 1'"), "psql")
         self.assertIsNone(infer_filter_hint("docker compose up -d"))
 
     def test_infer_filter_hint_handles_phase6_github_and_api_commands(self):
         self.assertEqual(infer_filter_hint("gh pr list"), "gh")
+        self.assertEqual(infer_filter_hint("gt log"), "gt")
         self.assertEqual(infer_filter_hint("gh pr view 42"), "gh")
         self.assertEqual(infer_filter_hint("gh issue list"), "gh")
         self.assertEqual(infer_filter_hint("gh run list"), "gh")
+        self.assertEqual(infer_filter_hint("gh repo view"), "gh")
+        self.assertEqual(infer_filter_hint("gh api repos/foo/bar"), "gh")
         self.assertEqual(infer_filter_hint("curl https://api.example.com"), "curl")
         self.assertEqual(
             infer_filter_hint("wget https://example.com/file.tar.gz"), "wget"
         )
-        self.assertIsNone(infer_filter_hint("gh issue view 42"))
+        self.assertEqual(infer_filter_hint("gh issue view 42"), "gh")
+        self.assertIsNone(infer_filter_hint("gh repo view --json name,url"))

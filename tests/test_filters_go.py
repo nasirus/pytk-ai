@@ -50,3 +50,34 @@ pkg/server/server.go:20:6: exported type Foo should have comment or be unexporte
         self.assertIn("golangci-lint: 2 issues in 1 files", result.output)
         self.assertIn("errcheck", result.output)
         self.assertIn("revive", result.output)
+
+    def test_golangci_lint_json_summary_prefers_structured_output(self):
+        stdout = """{
+  "Issues": [
+    {
+      "FromLinter": "errcheck",
+      "Text": "Error return value not checked",
+      "SourceLines": ["    if err := foo(); err != nil {"],
+      "Pos": {"Filename": "pkg/server/server.go", "Line": 12, "Column": 2, "Offset": 120}
+    },
+    {
+      "FromLinter": "revive",
+      "Text": "exported type Foo should have comment",
+      "SourceLines": ["type Foo struct {}"],
+      "Pos": {"Filename": "pkg/server/server.go", "Line": 20, "Column": 6, "Offset": 220}
+    }
+  ]
+}
+"""
+        result = filter_output(
+            "golangci-lint run",
+            stdout,
+            "",
+            1,
+            plan=plan_command("golangci-lint run"),
+        )
+        self.assertEqual(result.filter_name, "golangci-lint")
+        self.assertIn("golangci-lint: 2 issues in 1 files", result.output)
+        self.assertIn("Top linters: errcheck (1x), revive (1x)", result.output)
+        self.assertIn("pkg/server/server.go (2 issues)", result.output)
+        self.assertIn("-> if err := foo(); err != nil {", result.output)

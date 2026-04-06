@@ -160,6 +160,10 @@ def _mypy_summary(text: str) -> str | None:
 _RUFF_TEXT_RE = re.compile(
     r"^(?P<path>.+?):(?P<line>\d+):(?P<col>\d+):\s+(?P<code>[A-Z]+\d+)\s+(?P<message>.+)$"
 )
+_RUFF_FORMAT_SUMMARY_RE = re.compile(
+    r"(?P<count>\d+)\s+files?\s+(?P<kind>would be reformatted|reformatted|left unchanged)",
+    re.IGNORECASE,
+)
 
 
 def _compact_path(path: str) -> str:
@@ -200,6 +204,64 @@ def _format_ruff_summary(issues: list[dict[str, object]]) -> str:
     if remaining_files:
         lines.append(f"... +{remaining_files} more files")
     return "\n".join(lines)
+
+
+def _is_ruff_format_command(command: str) -> bool:
+    return bool(re.search(r"(?:^|\s)ruff\s+format(?:\s|$)", command.lower()))
+
+
+def _looks_like_ruff_format_output(text: str) -> bool:
+    lowered = text.lower()
+    return (
+        "would reformat:" in lowered
+        or "left unchanged" in lowered
+        or "files reformatted" in lowered
+        or "file reformatted" in lowered
+    )
+
+
+def _ruff_format_summary(text: str, exit_code: int) -> str | None:
+    stripped = text.strip()
+    if not stripped:
+        return "Ruff format: all files formatted correctly" if exit_code == 0 else None
+
+    files_to_format: list[str] = []
+    counts = {"would be reformatted": 0, "reformatted": 0, "left unchanged": 0}
+
+    for raw_line in stripped.splitlines():
+        line = raw_line.strip()
+        lower = line.lower()
+        if "would reformat:" in lower:
+            files_to_format.append(line.split(":", 1)[1].strip())
+            continue
+        for match in _RUFF_FORMAT_SUMMARY_RE.finditer(line):
+            counts[match.group("kind").lower()] = int(match.group("count"))
+
+    need_formatting = max(len(files_to_format), counts["would be reformatted"])
+    if need_formatting:
+        lines = [f"Ruff format: {need_formatting} files need formatting"]
+        for path in files_to_format[:10]:
+            lines.append(f"  {_compact_path(path)}")
+        if len(files_to_format) > 10:
+            lines.append(f"... +{len(files_to_format) - 10} more files")
+        if counts["left unchanged"]:
+            lines.append(f"{counts['left unchanged']} files already formatted")
+        lines.append("[hint] Run `ruff format` to format these files")
+        return "\n".join(lines)
+
+    if counts["reformatted"]:
+        summary = f"Ruff format: {counts['reformatted']} files reformatted"
+        if counts["left unchanged"]:
+            summary += f" ({counts['left unchanged']} unchanged)"
+        return summary
+
+    if counts["left unchanged"]:
+        return (
+            "Ruff format: all files formatted correctly"
+            f" ({counts['left unchanged']} files checked)"
+        )
+
+    return None
 
 
 def _ruff_summary(text: str, exit_code: int) -> str | None:
@@ -267,7 +329,10 @@ def filter_python_output(
         text = _pytest_summary(text) or text
         filter_name = "python.pytest"
     elif "ruff" in command:
-        text = _ruff_summary(combined, exit_code) or text
+        if _is_ruff_format_command(command) or _looks_like_ruff_format_output(combined):
+            text = _ruff_format_summary(combined, exit_code) or text
+        else:
+            text = _ruff_summary(combined, exit_code) or text
         filter_name = "python.ruff"
     elif "mypy" in command:
         text = _mypy_summary(combined) or text

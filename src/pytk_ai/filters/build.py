@@ -23,6 +23,14 @@ _BIOME_DIAG_RE = re.compile(
     r"(?:lint/(?P<rule>[A-Za-z0-9/_-]+)\s+)?"
     r"(?P<message>.+)$"
 )
+_BIOME_BLOCK_HEADER_RE = re.compile(
+    r"^(?P<path>.+?):(?P<line>\d+):(?P<col>\d+)\s+"
+    r"(?P<rule>lint/[A-Za-z0-9/_-]+)\b.*$"
+)
+_BIOME_NOISE_RE = re.compile(
+    r"^(?:\s*$|Checked\s+\d+\s+file|Fixed\s+\d+\s+file|The following command|Run it with)",
+    re.IGNORECASE,
+)
 _TSC_RE = re.compile(
     r"^(?P<path>.+?)\((?P<line>\d+),(?P<col>\d+)\):\s+"
     r"(?P<severity>error|warning)\s+"
@@ -34,6 +42,18 @@ _NEXT_ROUTE_RE = re.compile(
     r"(?P<first>\d+(?:\.\d+)?)\s*(?P<first_unit>kB|B)"
 )
 _NEXT_TIME_RE = re.compile(r"(?P<time>\d+(?:\.\d+)?\s*(?:ms|s))")
+_CARGO_NEXTEST_SUMMARY_RE = re.compile(
+    r"Summary\s+\[\s*(?P<duration>[\d.]+)s\]\s+\d+\s+tests?\s+run:\s+"
+    r"(?P<passed>\d+)\s+passed(?:,\s+(?P<failed>\d+)\s+failed)?"
+    r"(?:,\s+(?P<skipped>\d+)\s+skipped)?",
+    re.IGNORECASE,
+)
+_CARGO_NEXTEST_START_RE = re.compile(
+    r"Starting\s+\d+\s+tests?\s+across\s+(?P<binaries>\d+)\s+binar(?:y|ies)",
+    re.IGNORECASE,
+)
+_CARGO_CLIPPY_RULE_RE = re.compile(r"\[(?P<rule>[^\]]+)\]\s*$")
+_CARGO_CLIPPY_HELP_RE = re.compile(r"#(?P<rule>[a-z0-9_]+)\s*$", re.IGNORECASE)
 
 
 def _compact_path(path: str) -> str:
@@ -100,8 +120,302 @@ def _parse_cargo_diagnostics(text: str) -> tuple[list[dict[str, str]], int, str 
     return diagnostics, compiled, finished_line
 
 
+def _format_cargo_clippy_summary(text: str) -> tuple[str, str]:
+    compiled = 0
+    warning_groups: dict[str, list[str]] = defaultdict(list)
+    error_details: list[str] = []
+    warnings = 0
+    errors = 0
+    current_rule = ""
+    current_is_error = False
+
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        stripped = line.strip()
+        if stripped.startswith(
+            (
+                "Compiling ",
+                "Checking ",
+                "Downloading ",
+                "Downloaded ",
+                "Finished ",
+            )
+        ):
+            if stripped.startswith(("Compiling ", "Checking ")):
+                compiled += 1
+            continue
+        if stripped.startswith(("warning:", "warning[", "error:", "error[")):
+            if "generated" in stripped and "warning" in stripped:
+                continue
+            if "aborting due to" in stripped or "could not compile" in stripped:
+                continue
+            current_is_error = stripped.startswith(("error:", "error["))
+            rule_match = _CARGO_CLIPPY_RULE_RE.search(stripped)
+            if rule_match:
+                current_rule = rule_match.group("rule")
+            else:
+                prefix = "error: " if current_is_error else "warning: "
+                current_rule = stripped.removeprefix(prefix).strip()
+            if current_is_error:
+                errors += 1
+                error_details.append(_truncate(stripped, 160))
+            else:
+                warnings += 1
+            continue
+        if stripped.startswith("-->") and current_rule:
+            location = stripped.removeprefix("-->").strip()
+            if current_is_error:
+                error_details.append(_truncate(location, 160))
+            else:
+                warning_groups[current_rule].append(location)
+            continue
+        if stripped.startswith("= help:") and not current_is_error and current_rule:
+            help_match = _CARGO_CLIPPY_HELP_RE.search(stripped)
+            if help_match and not current_rule.startswith("clippy::"):
+                rule = f"clippy::{help_match.group('rule')}"
+                warning_groups.setdefault(rule, warning_groups.pop(current_rule, []))
+                current_rule = rule
+
+    if errors == 0 and warnings == 0:
+        summary = "cargo clippy: No issues found"
+        if compiled:
+            summary += f" ({compiled} crates)"
+        return summary, "cargo.clippy"
+
+    lines = [f"cargo clippy: {errors} errors, {warnings} warnings"]
+    if compiled:
+        lines[0] += f" ({compiled} crates)"
+    if error_details:
+        lines.append("Error details:")
+        for detail in error_details[:5]:
+            lines.append(f"  {detail}")
+        if len(error_details) > 5:
+            lines.append(f"  ... +{len(error_details) - 5} more errors")
+    if warning_groups:
+        items = sorted(
+            warning_groups.items(), key=lambda item: (-len(item[1]), item[0])
+        )
+        for rule, locations in items[:15]:
+            lines.append(f"  {rule} ({len(locations)}x)")
+            for location in locations[:3]:
+                lines.append(f"    {location}")
+            if len(locations) > 3:
+                lines.append(f"    ... +{len(locations) - 3} more")
+        if len(items) > 15:
+            lines.append(f"... +{len(items) - 15} more rules")
+    return "\n".join(lines), "cargo.clippy"
+
+
 def _format_cargo_summary(command: str, text: str, exit_code: int) -> tuple[str, str]:
     lowered = command.lower()
+    if "cargo clippy" in lowered:
+        return _format_cargo_clippy_summary(text)
+    if "cargo nextest" in lowered:
+        failures: list[str] = []
+        current_header = ""
+        current_body: list[str] = []
+        summary_line = ""
+        binaries = 0
+        in_failure = False
+        past_summary = False
+        cancelled = False
+
+        def flush_failure() -> None:
+            nonlocal current_header, current_body
+            if not current_header:
+                return
+            block = current_header
+            if current_body:
+                block += "\n" + "\n".join(current_body)
+            failures.append(block)
+            current_header = ""
+            current_body = []
+
+        for raw_line in text.splitlines():
+            line = raw_line.rstrip()
+            stripped = line.strip()
+            if stripped.startswith(
+                (
+                    "Compiling ",
+                    "Downloading ",
+                    "Downloaded ",
+                    "Finished ",
+                    "Locking ",
+                    "Updating ",
+                )
+            ):
+                continue
+            if stripped.startswith("────"):
+                continue
+            if past_summary:
+                continue
+            starting_match = _CARGO_NEXTEST_START_RE.match(stripped)
+            if starting_match:
+                binaries = int(starting_match.group("binaries"))
+                continue
+            if stripped.startswith("PASS"):
+                if in_failure:
+                    flush_failure()
+                    in_failure = False
+                continue
+            if stripped.startswith("FAIL"):
+                if in_failure:
+                    flush_failure()
+                current_header = stripped
+                current_body = []
+                in_failure = True
+                continue
+            if stripped.startswith(("Cancelling", "Canceling")):
+                cancelled = True
+                continue
+            if stripped.startswith("Nextest run ID"):
+                continue
+            if stripped.startswith("Summary"):
+                summary_line = stripped
+                if in_failure:
+                    flush_failure()
+                    in_failure = False
+                past_summary = True
+                continue
+            if in_failure:
+                current_body.append(line)
+
+        if in_failure:
+            flush_failure()
+
+        summary_match = _CARGO_NEXTEST_SUMMARY_RE.search(summary_line)
+        if summary_match:
+            passed = int(summary_match.group("passed"))
+            failed = int(summary_match.group("failed") or 0)
+            skipped = int(summary_match.group("skipped") or 0)
+            duration = summary_match.group("duration")
+            meta_parts: list[str] = []
+            if binaries == 1:
+                meta_parts.append("1 binary")
+            elif binaries > 1:
+                meta_parts.append(f"{binaries} binaries")
+            meta_parts.append(f"{duration}s")
+            summary = (
+                f"cargo nextest: "
+                f"{', '.join(part for part in [f'{passed} passed', f'{failed} failed' if failed else '', f'{skipped} skipped' if skipped else ''] if part)} "
+                f"({', '.join(meta_parts)})"
+            )
+            if failed == 0:
+                return summary, "cargo.nextest"
+            lines = [*failures]
+            if cancelled:
+                lines.append("Cancelling due to test failure")
+            lines.append(summary)
+            return "\n".join(line for line in lines if line), "cargo.nextest"
+
+        if failures:
+            lines = [*failures]
+            if summary_line:
+                lines.append(summary_line)
+            return "\n".join(lines), "cargo.nextest"
+
+        return text.strip() or "cargo nextest", "cargo.nextest"
+
+    if "cargo install" in lowered:
+        compiled = 0
+        installed_crate = ""
+        installed_version = ""
+        notes: list[str] = []
+        errors: list[str] = []
+        current_error: list[str] = []
+        already_installed = ""
+
+        for raw_line in text.splitlines():
+            line = raw_line.rstrip()
+            stripped = line.strip()
+            if not stripped:
+                if current_error:
+                    errors.append("\n".join(current_error))
+                    current_error = []
+                continue
+            if stripped.startswith("Compiling "):
+                compiled += 1
+                if current_error:
+                    current_error.append(line)
+                continue
+            if stripped.startswith(
+                (
+                    "Downloading ",
+                    "Downloaded ",
+                    "Locking ",
+                    "Updating ",
+                    "Adding ",
+                    "Finished ",
+                    "Blocking waiting for file lock",
+                )
+            ):
+                continue
+            if stripped.startswith("Installing "):
+                rest = stripped.removeprefix("Installing ").strip()
+                if rest and not rest.startswith("/"):
+                    parts = rest.split(maxsplit=1)
+                    installed_crate = parts[0]
+                    installed_version = parts[1] if len(parts) > 1 else ""
+                continue
+            if stripped.startswith("Installed ") and not installed_crate:
+                rest = stripped.removeprefix("Installed ").strip()
+                parts = rest.split(maxsplit=2)
+                if parts:
+                    installed_crate = parts[0]
+                if len(parts) > 1:
+                    installed_version = parts[1]
+                continue
+            if stripped.startswith("Ignored package"):
+                marker = stripped.split("`")
+                already_installed = marker[1] if len(marker) >= 3 else stripped
+                continue
+            if stripped.startswith(("Replacing", "Replaced")):
+                notes.append(stripped)
+                continue
+            if stripped.startswith("warning:") and not (
+                "generated" in stripped and "warning" in stripped
+            ):
+                notes.append(stripped)
+                continue
+            if stripped.startswith(("error[", "error:")) and not any(
+                phrase in stripped
+                for phrase in ("aborting due to", "could not compile")
+            ):
+                if current_error:
+                    errors.append("\n".join(current_error))
+                current_error = [line]
+                continue
+            if current_error:
+                current_error.append(line)
+
+        if current_error:
+            errors.append("\n".join(current_error))
+
+        if already_installed:
+            return (
+                f"cargo install: {already_installed} already installed",
+                "cargo.install",
+            )
+
+        crate_info = installed_crate or "package"
+        if installed_version:
+            crate_info = f"{crate_info} {installed_version}"
+
+        if errors:
+            header = f"cargo install: {len(errors)} errors ({crate_info}"
+            if compiled:
+                header += f", {compiled} deps compiled"
+            header += ")"
+            return "\n".join([header, *errors[:15]]), "cargo.install"
+
+        summary = f"cargo install ({crate_info}"
+        if compiled:
+            summary += f", {compiled} deps compiled"
+        summary += ")"
+        if notes:
+            return "\n".join([summary, *notes[:8]]), "cargo.install"
+        return summary, "cargo.install"
+
     if "cargo fmt" in lowered:
         files: list[str] = []
         for line in text.splitlines():
@@ -124,7 +438,7 @@ def _format_cargo_summary(command: str, text: str, exit_code: int) -> tuple[str,
     diagnostics, compiled, finished_line = _parse_cargo_diagnostics(text)
     errors = [diag for diag in diagnostics if diag["severity"] == "error"]
     warnings = [diag for diag in diagnostics if diag["severity"] == "warning"]
-    subcommand = "clippy" if "cargo clippy" in lowered else "build"
+    subcommand = "build"
     filter_name = f"cargo.{subcommand}"
 
     if not diagnostics and exit_code == 0:
@@ -233,9 +547,18 @@ def _format_stylish_lint(tool: str, text: str) -> str | None:
 
 
 def _format_biome(text: str) -> str | None:
+    cleaned_lines = [
+        raw_line.strip()
+        for raw_line in text.splitlines()
+        if not _BIOME_NOISE_RE.match(raw_line.strip())
+    ]
+    cleaned = "\n".join(line for line in cleaned_lines if line).strip()
+    if not cleaned:
+        return "biome: ok"
+
     by_file: dict[str, list[dict[str, str]]] = defaultdict(list)
     severity_counter = Counter()
-    for raw_line in text.splitlines():
+    for raw_line in cleaned.splitlines():
         stripped = raw_line.strip()
         match = _BIOME_DIAG_RE.match(stripped)
         if not match:
@@ -249,6 +572,11 @@ def _format_biome(text: str) -> str | None:
         by_file[match.group("path")].append(entry)
         severity_counter[entry["severity"]] += 1
     if not by_file:
+        if any(_BIOME_BLOCK_HEADER_RE.match(line) for line in cleaned.splitlines()):
+            return cleaned
+        lowered = cleaned.lower()
+        if lowered.startswith("found ") and " error" in lowered:
+            return cleaned
         return None
     rule_counter = Counter(
         entry["rule"]

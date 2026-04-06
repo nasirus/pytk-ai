@@ -1,9 +1,31 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
+import shlex
 import subprocess
 
 from .models import ExecutionResult
+
+_SRC_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _rewrite_local_pytk_command(command: str) -> str:
+    stripped = command.lstrip()
+    if not stripped.startswith("pytk-ai"):
+        return command
+
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return command
+
+    if not tokens or tokens[0] != "pytk-ai":
+        return command
+
+    pythonpath = shlex.quote(str(_SRC_ROOT))
+    rewritten = shlex.join(["python3", "-m", "pytk_ai", *tokens[1:]])
+    return f"PYTHONPATH={pythonpath}${{PYTHONPATH:+:$PYTHONPATH}} {rewritten}"
 
 
 def execute_raw(
@@ -13,6 +35,7 @@ def execute_raw(
     env: dict[str, str] | None = None,
     timeout: float | None = None,
 ) -> ExecutionResult:
+    command = _rewrite_local_pytk_command(command)
     merged_env = os.environ.copy()
     if env:
         merged_env.update(env)

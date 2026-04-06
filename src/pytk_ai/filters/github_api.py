@@ -17,6 +17,9 @@ _GH_PREAMBLE_RE = re.compile(r"^showing\s+\d+\s+of\s+\d+", re.IGNORECASE)
 _GH_ROW_SPLIT_RE = re.compile(r"\t+|\s{2,}")
 _WGET_SAVING_RE = re.compile(r"(?:Saving to|Sauvegarde en)\s*[: ]\s*[\"'«](.*?)[\"'»]")
 _WGET_SAVED_RE = re.compile(r"saved\s+\[(\d+)/(?:\d+)\]", re.IGNORECASE)
+_GH_PR_TITLE_LIMIT = 60
+_GH_ISSUE_TITLE_LIMIT = 60
+_GH_RUN_NAME_LIMIT = 50
 
 
 def _normalized_command(command: str) -> str:
@@ -36,17 +39,200 @@ def _command_tokens(command: str) -> list[str]:
 
 def _gh_mode(command: str) -> str | None:
     parts = _command_tokens(command)
-    if len(parts) < 3 or parts[0] != "gh":
+    if not parts or parts[0] != "gh":
         return None
-    if parts[1] == "pr" and parts[2] == "list":
+    if len(parts) >= 3 and parts[1] == "pr" and parts[2] == "list":
         return "pr.list"
-    if parts[1] == "pr" and parts[2] == "view":
+    if len(parts) >= 3 and parts[1] == "pr" and parts[2] == "view":
         return "pr.view"
-    if parts[1] == "issue" and parts[2] == "list":
+    if len(parts) >= 3 and parts[1] == "issue" and parts[2] == "list":
         return "issue.list"
-    if parts[1] == "run" and parts[2] == "list":
+    if len(parts) >= 3 and parts[1] == "run" and parts[2] == "list":
         return "run.list"
+    if parts[1:3] == ["repo", "view"] or parts[1:2] == ["repo"]:
+        return "repo.view"
+    if parts[1:2] == ["api"]:
+        return "api"
     return None
+
+
+def _truncate(text: str, limit: int) -> str:
+    text = str(text or "")
+    if len(text) <= limit:
+        return text
+    if limit <= 3:
+        return text[:limit]
+    return f"{text[: limit - 3]}..."
+
+
+def _parse_json_payload(stdout: str) -> object | None:
+    cleaned = strip_ansi(stdout).replace("\r", "\n").strip()
+    if not cleaned:
+        return None
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        return None
+
+
+def _gh_state_icon(state: str, *, ultra_compact: bool = False) -> str:
+    state = (state or "").upper()
+    if ultra_compact:
+        return {"OPEN": "O", "MERGED": "M", "CLOSED": "C"}.get(state, "?")
+    return {
+        "OPEN": "[open]",
+        "MERGED": "[merged]",
+        "CLOSED": "[closed]",
+    }.get(state, "[unknown]")
+
+
+def _gh_issue_state_icon(state: str, *, ultra_compact: bool = False) -> str:
+    state = (state or "").upper()
+    if ultra_compact:
+        return "O" if state == "OPEN" else "C"
+    return "[open]" if state == "OPEN" else "[closed]"
+
+
+def _gh_run_icon(status: str, conclusion: str, *, ultra_compact: bool = False) -> str:
+    status = (status or "").lower()
+    conclusion = (conclusion or "").lower()
+    if ultra_compact:
+        if conclusion == "success":
+            return "[ok]"
+        if conclusion == "failure":
+            return "[x]"
+        if conclusion == "cancelled":
+            return "X"
+        if status == "in_progress":
+            return "~"
+        return "?"
+    if conclusion == "success":
+        return "[ok]"
+    if conclusion == "failure":
+        return "[FAIL]"
+    if conclusion == "cancelled":
+        return "[X]"
+    if status == "in_progress":
+        return "[time]"
+    return "[pending]"
+
+
+def _format_pr_list_from_json(payload: object) -> str | None:
+    if not isinstance(payload, list):
+        return None
+    lines = ["Pull Requests"]
+    for pr in payload[:20]:
+        if not isinstance(pr, dict):
+            continue
+        number = pr.get("number", 0)
+        title = _truncate(str(pr.get("title") or "???"), _GH_PR_TITLE_LIMIT)
+        state = str(pr.get("state") or "???")
+        author = pr.get("author")
+        author_login = author.get("login", "???") if isinstance(author, dict) else "???"
+        lines.append(f"  {_gh_state_icon(state)} #{number} {title} ({author_login})")
+    if len(payload) > 20:
+        lines.append(f"  ... {len(payload) - 20} more (use gh pr list for all)")
+    return "\n".join(lines)
+
+
+def _format_pr_view_from_json(payload: object) -> str | None:
+    if not isinstance(payload, dict):
+        return None
+
+    number = payload.get("number", 0)
+    title = str(payload.get("title") or "???")
+    state = str(payload.get("state") or "???")
+    author = payload.get("author")
+    author_login = author.get("login", "???") if isinstance(author, dict) else "???"
+    url = str(payload.get("url") or "")
+    mergeable = str(payload.get("mergeable") or "UNKNOWN")
+
+    lines = [f"{_gh_state_icon(state)} PR #{number}: {title}", f"  {author_login}"]
+    mergeable_str = {
+        "MERGEABLE": "[ok]",
+        "CONFLICTING": "[x]",
+    }.get(mergeable, "?")
+    lines.append(f"  {state} | {mergeable_str}")
+
+    reviews = payload.get("reviews")
+    review_nodes = reviews.get("nodes") if isinstance(reviews, dict) else None
+    if isinstance(review_nodes, list):
+        approved = sum(
+            1
+            for review in review_nodes
+            if isinstance(review, dict) and review.get("state") == "APPROVED"
+        )
+        changes = sum(
+            1
+            for review in review_nodes
+            if isinstance(review, dict) and review.get("state") == "CHANGES_REQUESTED"
+        )
+        if approved or changes:
+            lines.append(f"  Reviews: {approved} approved, {changes} changes requested")
+
+    checks = payload.get("statusCheckRollup")
+    if isinstance(checks, list):
+        total = len(checks)
+        passed = sum(
+            1
+            for check in checks
+            if isinstance(check, dict)
+            and (
+                check.get("conclusion") == "SUCCESS" or check.get("state") == "SUCCESS"
+            )
+        )
+        failed = sum(
+            1
+            for check in checks
+            if isinstance(check, dict)
+            and (
+                check.get("conclusion") == "FAILURE" or check.get("state") == "FAILURE"
+            )
+        )
+        lines.append(f"  Checks: {passed}/{total} passed")
+        if failed:
+            lines.append(f"  [warn] {failed} checks failed")
+
+    lines.append(f"  {url}")
+
+    body = str(payload.get("body") or "")
+    body_filtered = _filter_markdown_body(body)
+    if body_filtered:
+        lines.append("")
+        lines.extend(f"  {line}" if line else "" for line in body_filtered.splitlines())
+
+    return "\n".join(lines).rstrip()
+
+
+def _format_issue_list_from_json(payload: object) -> str | None:
+    if not isinstance(payload, list):
+        return None
+    lines = ["Issues"]
+    for issue in payload[:20]:
+        if not isinstance(issue, dict):
+            continue
+        number = issue.get("number", 0)
+        title = _truncate(str(issue.get("title") or "???"), _GH_ISSUE_TITLE_LIMIT)
+        state = str(issue.get("state") or "???")
+        lines.append(f"  {_gh_issue_state_icon(state)} #{number} {title}")
+    if len(payload) > 20:
+        lines.append(f"  ... {len(payload) - 20} more")
+    return "\n".join(lines)
+
+
+def _format_run_list_from_json(payload: object) -> str | None:
+    if not isinstance(payload, list):
+        return None
+    lines = ["Workflow Runs"]
+    for run in payload:
+        if not isinstance(run, dict):
+            continue
+        database_id = run.get("databaseId", 0)
+        name = _truncate(str(run.get("name") or "???"), _GH_RUN_NAME_LIMIT)
+        status = str(run.get("status") or "???")
+        conclusion = str(run.get("conclusion") or "")
+        lines.append(f"  {_gh_run_icon(status, conclusion)} {name} [{database_id}]")
+    return "\n".join(lines)
 
 
 def _filter_markdown_segment(text: str) -> str:
@@ -189,6 +375,46 @@ def _summarize_pr_view(stdout: str) -> str | None:
                 output.append(
                     f"... +{len(body_lines) - len(trimmed_body)} more body lines"
                 )
+    return "\n".join(output)
+
+
+def _summarize_repo_view(stdout: str) -> str | None:
+    cleaned = strip_ansi(stdout).replace("\r", "\n").strip()
+    if not cleaned:
+        return None
+    if (cleaned.startswith("{") and cleaned.endswith("}")) or (
+        cleaned.startswith("[") and cleaned.endswith("]")
+    ):
+        try:
+            payload = json.loads(cleaned)
+        except json.JSONDecodeError:
+            payload = None
+        if isinstance(payload, dict):
+            owner = payload.get("owner", {})
+            owner_login = owner.get("login", "?") if isinstance(owner, dict) else "?"
+            name = payload.get("name", "?")
+            description = str(payload.get("description") or "").strip()
+            url = str(payload.get("url") or "").strip()
+            stars = payload.get("stargazerCount", 0)
+            forks = payload.get("forkCount", 0)
+            visibility = "private" if payload.get("isPrivate") else "public"
+            lines = [
+                f"gh repo view: {owner_login}/{name}",
+                f"{visibility} | {stars} stars | {forks} forks",
+            ]
+            if description:
+                lines.append(description)
+            if url:
+                lines.append(url)
+            return "\n".join(lines)
+
+    lines = [line.strip() for line in cleaned.splitlines() if line.strip()]
+    if not lines:
+        return None
+    output = [f"gh repo view: {lines[0]}"]
+    output.extend(lines[1:6])
+    if len(lines) > 6:
+        output.append(f"... +{len(lines) - 6} more lines")
     return "\n".join(output)
 
 
@@ -392,19 +618,34 @@ def filter_github_api_output(
     if parts[0] == "gh":
         mode = _gh_mode(command)
         filter_name = f"gh.{mode}" if mode else "gh"
-        if exit_code != 0 or mode is None:
+        if exit_code != 0:
             return make_filter_result(
                 _combine_streams(stdout, stderr, exit_code),
                 filter_name=filter_name,
                 max_output_lines=max_output_lines,
                 error=generic.error,
             )
+        payload = _parse_json_payload(stdout)
         if mode == "pr.list":
-            text = _summarize_gh_list("gh pr list", stdout, "pull requests")
+            text = _format_pr_list_from_json(payload) or _summarize_gh_list(
+                "gh pr list", stdout, "pull requests"
+            )
+        elif mode == "pr.view":
+            text = _format_pr_view_from_json(payload) or _summarize_pr_view(stdout)
         elif mode == "issue.list":
-            text = _summarize_gh_list("gh issue list", stdout, "issues")
+            text = _format_issue_list_from_json(payload) or _summarize_gh_list(
+                "gh issue list", stdout, "issues"
+            )
         elif mode == "run.list":
-            text = _summarize_gh_list("gh run list", stdout, "runs")
+            text = _format_run_list_from_json(payload) or _summarize_gh_list(
+                "gh run list", stdout, "runs"
+            )
+        elif mode == "repo.view":
+            text = _summarize_repo_view(stdout)
+        elif mode == "api":
+            text = _combine_streams(stdout, stderr, exit_code)
+        elif mode is None:
+            text = _combine_streams(stdout, stderr, exit_code)
         else:
             text = _summarize_pr_view(stdout)
         return make_filter_result(

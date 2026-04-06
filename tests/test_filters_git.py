@@ -108,6 +108,19 @@ Date:   Sat Apr 4 12:00:00 2026 +0000
         self.assertIn("def4567 Fix filter fallback", result.output)
         self.assertNotIn("Author:", result.output)
 
+    def test_git_log_rewritten_output_preserves_short_body_lines(self):
+        stdout = """abc1234 Add planner coverage (2 hours ago) <Test User>
+Body line one
+Body line two
+---END---
+def45678 Fix filter fallback (1 day ago) <Test User>
+---END---
+"""
+        result = filter_output("git log", stdout, "", 0, plan=plan_command("git log"))
+        self.assertIn("abc1234 Add planner coverage", result.output)
+        self.assertIn("  Body line one", result.output)
+        self.assertIn("def45678 Fix filter fallback", result.output)
+
     def test_git_diff_compacts_patch_to_per_file_summary(self):
         stdout = """diff --git a/src/app.py b/src/app.py
 index 1111111..2222222 100644
@@ -124,6 +137,50 @@ index 1111111..2222222 100644
         self.assertIn("src/app.py (+2/-1)", result.output)
         self.assertIn("+ new = 2", result.output)
         self.assertNotIn("@@", result.output)
+
+    def test_git_diff_rewritten_output_keeps_stat_and_change_marker_out_of_summary(
+        self,
+    ):
+        stdout = """ src/app.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- Changes ---
+diff --git a/src/app.py b/src/app.py
+index 1111111..2222222 100644
+--- a/src/app.py
++++ b/src/app.py
+@@ -1,3 +1,4 @@
+-old = 1
++new = 2
+ unchanged = True
++extra = 3
+"""
+        result = filter_output("git diff", stdout, "", 0, plan=plan_command("git diff"))
+        self.assertIn("src/app.py (+2/-1)", result.output)
+        self.assertNotIn("--- Changes ---", result.output)
+
+    def test_git_show_rewritten_output_preserves_summary_and_stat_lines(self):
+        stdout = """abc1234 Add planner coverage (2 hours ago) <Test User>
+ src/app.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- Changes ---
+diff --git a/src/app.py b/src/app.py
+index 1111111..2222222 100644
+--- a/src/app.py
++++ b/src/app.py
+@@ -1,3 +1,4 @@
+-old = 1
++new = 2
+ unchanged = True
++extra = 3
+"""
+        result = filter_output(
+            "git show abc1234", stdout, "", 0, plan=plan_command("git show abc1234")
+        )
+        self.assertIn("abc1234 Add planner coverage", result.output)
+        self.assertIn("src/app.py | 3 ++-", result.output)
+        self.assertIn("src/app.py (+2/-1)", result.output)
 
     def test_git_commit_success_is_reduced_to_hash_and_subject(self):
         stdout = "[main abc1234] Add compact git commit filter\n 2 files changed, 5 insertions(+)\n"
@@ -176,6 +233,63 @@ Fast-forward
         )
         self.assertEqual(result.filter_name, "git.add")
         self.assertIn("warning: adding embedded git repository", result.output)
+
+    def test_git_add_rewritten_output_uses_shortstat_summary(self):
+        stdout = " 1 file changed, 2 insertions(+), 1 deletion(-)\n"
+        result = filter_output(
+            "git add tracked.txt",
+            stdout,
+            "",
+            0,
+            plan=plan_command("git add tracked.txt"),
+        )
+        self.assertEqual(
+            result.output, "ok 1 file changed, 2 insertions(+), 1 deletion(-)"
+        )
+
+    def test_git_branch_default_listing_uses_remote_only_section(self):
+        stdout = """* main
+  feature/login
+  remotes/origin/HEAD -> origin/main
+  remotes/origin/main
+  remotes/origin/release/1.0
+"""
+        result = filter_output(
+            "git branch", stdout, "", 0, plan=plan_command("git branch")
+        )
+        self.assertIn("* main", result.output)
+        self.assertIn("feature/login", result.output)
+        self.assertIn("remote-only (1):", result.output)
+        self.assertIn("release/1.0", result.output)
+
+    def test_git_stash_list_compacts_wip_prefix(self):
+        stdout = """stash@{0}: WIP on main: abc1234 Add planner coverage
+stash@{1}: On feature: def5678 Fix fallback
+"""
+        result = filter_output(
+            "git stash list", stdout, "", 0, plan=plan_command("git stash list")
+        )
+        self.assertEqual(
+            result.output,
+            "stash@{0}: abc1234 Add planner coverage\nstash@{1}: def5678 Fix fallback",
+        )
+
+    def test_git_stash_default_success_is_reduced(self):
+        stdout = "Saved working directory and index state WIP on main: abc1234 Add planner coverage\n"
+        result = filter_output(
+            "git stash", stdout, "", 0, plan=plan_command("git stash")
+        )
+        self.assertEqual(result.output, "ok stashed")
+
+    def test_git_worktree_mutation_success_is_reduced_to_ok(self):
+        result = filter_output(
+            "git worktree add ../repo-feature feature",
+            "Preparing worktree (checking out 'feature')\nHEAD is now at abc1234 Add planner coverage\n",
+            "",
+            0,
+            plan=plan_command("git worktree add ../repo-feature feature"),
+        )
+        self.assertEqual(result.output, "ok")
 
     def test_git_failure_preserves_actionable_output(self):
         stderr = "fatal: ambiguous argument 'missing': unknown revision or path not in the working tree.\n"

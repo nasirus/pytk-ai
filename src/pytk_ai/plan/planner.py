@@ -92,7 +92,7 @@ def _plan_segment(segment: str, excluded: Sequence[str] = ()) -> PlanSegment | N
 
     if command_part.startswith("cat "):
         args = command_part[len("cat ") :].lstrip()
-        if args.startswith("-") and not (args.startswith("-n ") or args == "-n"):
+        if args.startswith("-"):
             return _raw_segment(trimmed, skip_reason="unsupported-cat-option")
 
     prefix, command_clean = strip_env_prefix(command_part)

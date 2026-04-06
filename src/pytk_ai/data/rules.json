@@ -20,8 +20,19 @@
     "pytk_ai_cmd": "pytk-ai package"
   },
   {
-    "pattern": "^pnpm\\s+(list|ls)(\\s|$)",
+    "pattern": "^uv\\s+pip\\s+install(\\s|$)",
     "rewrite_prefixes": [
+      "uv pip install"
+    ],
+    "category": "PackageManager",
+    "savings_pct": 75.0,
+    "pytk_ai_cmd": "pytk-ai package"
+  },
+  {
+    "pattern": "^pnpm\\s+(list|ls|outdated|install)(\\s|$)",
+    "rewrite_prefixes": [
+      "pnpm outdated",
+      "pnpm install",
       "pnpm list",
       "pnpm ls"
     ],
@@ -30,8 +41,10 @@
     "pytk_ai_cmd": "pytk-ai package"
   },
   {
-    "pattern": "^npm\\s+(list|ls)(\\s|$)",
+    "pattern": "^npm\\s+(list|ls|run|exec)(\\s|$)",
     "rewrite_prefixes": [
+      "npm run",
+      "npm exec",
       "npm list",
       "npm ls"
     ],
@@ -40,8 +53,9 @@
     "pytk_ai_cmd": "pytk-ai package"
   },
   {
-    "pattern": "^bundle\\s+install(\\s|$)",
+    "pattern": "^bundle\\s+(install|update)(\\s|$)",
     "rewrite_prefixes": [
+      "bundle update",
       "bundle install"
     ],
     "category": "PackageManager",
@@ -49,8 +63,20 @@
     "pytk_ai_cmd": "pytk-ai package"
   },
   {
-    "pattern": "^(npx\\s+|pnpm\\s+)?prisma\\s+generate(\\s|$)",
+    "pattern": "^(npx\\s+|pnpm\\s+)?prisma\\s+(generate|migrate\\s+(dev|status|deploy)|db\\s+push)(\\s|$)",
     "rewrite_prefixes": [
+      "pnpm prisma db push",
+      "npx prisma db push",
+      "prisma db push",
+      "pnpm prisma migrate deploy",
+      "npx prisma migrate deploy",
+      "prisma migrate deploy",
+      "pnpm prisma migrate status",
+      "npx prisma migrate status",
+      "prisma migrate status",
+      "pnpm prisma migrate dev",
+      "npx prisma migrate dev",
+      "prisma migrate dev",
       "pnpm prisma generate",
       "npx prisma generate",
       "prisma generate"
@@ -69,13 +95,22 @@
     "pytk_ai_cmd": "pytk-ai git"
   },
   {
-    "pattern": "^gh\\s+(?:pr\\s+(?:list|view)|issue\\s+list|run\\s+list)(\\s|$)",
+    "pattern": "^gh\\s+",
     "rewrite_prefixes": [
       "gh"
     ],
     "category": "GitHub",
     "savings_pct": 82.0,
     "pytk_ai_cmd": "pytk-ai gh"
+  },
+  {
+    "pattern": "^gt\\s+",
+    "rewrite_prefixes": [
+      "gt"
+    ],
+    "category": "Git",
+    "savings_pct": 75.0,
+    "pytk_ai_cmd": "pytk-ai gt"
   },
   {
     "pattern": "^cargo\\s+test(\\s|$)",
@@ -87,22 +122,13 @@
     "pytk_ai_cmd": "pytk-ai test"
   },
   {
-    "pattern": "^cargo\\s+(build|clippy|check|fmt|install)",
+    "pattern": "^cargo\\s+(build|clippy|check|fmt|install|nextest)",
     "rewrite_prefixes": [
       "cargo"
     ],
     "category": "Cargo",
     "savings_pct": 80.0,
     "pytk_ai_cmd": "pytk-ai cargo"
-  },
-  {
-    "pattern": "^pnpm\\s+(list|ls|outdated|install)",
-    "rewrite_prefixes": [
-      "pnpm"
-    ],
-    "category": "PackageManager",
-    "savings_pct": 80.0,
-    "pytk_ai_cmd": "pytk-ai pnpm"
   },
   {
     "pattern": "^(npm|pnpm|yarn|make)\\s+test(\\s|$)",
@@ -115,15 +141,6 @@
     "category": "Tests",
     "savings_pct": 90.0,
     "pytk_ai_cmd": "pytk-ai test"
-  },
-  {
-    "pattern": "^npm\\s+(run|exec)",
-    "rewrite_prefixes": [
-      "npm"
-    ],
-    "category": "PackageManager",
-    "savings_pct": 70.0,
-    "pytk_ai_cmd": "pytk-ai npm"
   },
   {
     "pattern": "^npx\\s+",
@@ -185,10 +202,63 @@
     "pytk_ai_cmd": "pytk-ai tsc"
   },
   {
-    "pattern": "^(npx\\s+|pnpm\\s+)?(eslint|biome|lint)(\\s|$)",
+    "pattern": "^(?:npx\\s+|pnpm(?:\\s+exec)?\\s+|npm\\s+exec\\s+|yarn\\s+|bunx\\s+)?prettier(\\s|$)",
     "rewrite_prefixes": [
-      "npx eslint",
+      "pnpm exec prettier",
+      "npm exec prettier",
+      "pnpm prettier",
+      "npx prettier",
+      "yarn prettier",
+      "bunx prettier",
+      "prettier"
+    ],
+    "category": "Build",
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai format"
+  },
+  {
+    "pattern": "^(?:npx\\s+|pnpm(?:\\s+exec)?\\s+|npm\\s+exec\\s+|yarn\\s+|bunx\\s+)?biome\\s+format(\\s|$)",
+    "rewrite_prefixes": [
+      "pnpm exec biome format",
+      "npm exec biome format",
+      "pnpm biome format",
+      "npx biome format",
+      "yarn biome format",
+      "bunx biome format",
+      "biome format"
+    ],
+    "category": "Build",
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai format"
+  },
+  {
+    "pattern": "^(?:npx\\s+|pnpm(?:\\s+exec)?\\s+|npm\\s+exec\\s+|yarn\\s+|bunx\\s+)?biome\\s+check(?:\\s+.*)?(?:--write|--fix|--unsafe|--apply|--apply-unsafe)(?:\\s|$)",
+    "rewrite_prefixes": [
+      "pnpm exec biome check",
+      "npm exec biome check",
+      "pnpm biome check",
+      "npx biome check",
+      "yarn biome check",
+      "bunx biome check",
+      "biome check"
+    ],
+    "category": "Build",
+    "savings_pct": 70.0,
+    "pytk_ai_cmd": "pytk-ai format"
+  },
+  {
+    "pattern": "^(?:npx\\s+|pnpm(?:\\s+exec)?\\s+|npm\\s+exec\\s+|yarn\\s+|bunx\\s+)?(?:eslint|biome|lint)(\\s|$)",
+    "rewrite_prefixes": [
+      "pnpm exec eslint",
+      "pnpm exec biome",
+      "npm exec eslint",
+      "npm exec biome",
       "pnpm lint",
+      "yarn eslint",
+      "yarn biome",
+      "bunx eslint",
+      "bunx biome",
+      "npx eslint",
       "npx biome",
       "eslint",
       "biome",
@@ -199,15 +269,13 @@
     "pytk_ai_cmd": "pytk-ai lint"
   },
   {
-    "pattern": "^(npx\\s+|pnpm\\s+)?prettier",
+    "pattern": "^black(\\s|$)",
     "rewrite_prefixes": [
-      "npx prettier",
-      "pnpm prettier",
-      "prettier"
+      "black"
     ],
     "category": "Build",
     "savings_pct": 70.0,
-    "pytk_ai_cmd": "pytk-ai prettier"
+    "pytk_ai_cmd": "pytk-ai format"
   },
   {
     "pattern": "^(npx\\s+|pnpm\\s+)?next\\s+build",
@@ -244,18 +312,7 @@
     "pytk_ai_cmd": "pytk-ai playwright"
   },
   {
-    "pattern": "^(npx\\s+|pnpm\\s+)?prisma",
-    "rewrite_prefixes": [
-      "npx prisma",
-      "pnpm prisma",
-      "prisma"
-    ],
-    "category": "Build",
-    "savings_pct": 88.0,
-    "pytk_ai_cmd": "pytk-ai prisma"
-  },
-  {
-    "pattern": "^docker\\s+(ps|images|logs|compose\\s+ps)(\\s|$)",
+    "pattern": "^docker\\s+(ps|images|logs|compose\\s+(?:ps|logs|build))(\\s|$)",
     "rewrite_prefixes": [
       "docker"
     ],
@@ -387,15 +444,6 @@
     "pytk_ai_cmd": "pytk-ai golangci-lint"
   },
   {
-    "pattern": "^bundle\\s+(install|update)\\b",
-    "rewrite_prefixes": [
-      "bundle"
-    ],
-    "category": "Ruby",
-    "savings_pct": 70.0,
-    "pytk_ai_cmd": "pytk-ai bundle"
-  },
-  {
     "pattern": "^(?:bundle\\s+exec\\s+)?(?:bin/)?(?:rake|rails)\\s+test",
     "rewrite_prefixes": [
       "bundle exec rails",
@@ -484,7 +532,7 @@
     "pytk_ai_cmd": "pytk-ai df"
   },
   {
-    "pattern": "^dotnet\\s+build\\b",
+    "pattern": "^dotnet\\s+(build|test|restore|format)\\b",
     "rewrite_prefixes": [
       "dotnet"
     ],
@@ -716,15 +764,6 @@
     "category": "Build",
     "savings_pct": 65.0,
     "pytk_ai_cmd": "pytk-ai trunk"
-  },
-  {
-    "pattern": "^uv\\s+(sync|pip\\s+install)\\b",
-    "rewrite_prefixes": [
-      "uv"
-    ],
-    "category": "Python",
-    "savings_pct": 65.0,
-    "pytk_ai_cmd": "pytk-ai uv"
   },
   {
     "pattern": "^yamllint\\b",

@@ -12,6 +12,10 @@ _TAIL_N_RE = re.compile(r"^tail\s+-(\d+)\s+(.+)$")
 _TAIL_N_SPACE_RE = re.compile(r"^tail\s+-n\s+(\d+)\s+(.+)$")
 _TAIL_LINES_EQ_RE = re.compile(r"^tail\s+--lines=(\d+)\s+(.+)$")
 _TAIL_LINES_SPACE_RE = re.compile(r"^tail\s+--lines\s+(\d+)\s+(.+)$")
+_JS_EXEC_PREFIX_RE = r"(?:npx\s+|pnpm(?:\s+exec)?\s+|npm\s+exec\s+|yarn\s+|bunx\s+)"
+_BIOME_WRITE_FLAG_RE = re.compile(
+    r"(?:^|\s)--(?:write|fix|unsafe|apply|apply-unsafe)(?:\s|$)"
+)
 
 
 def has_disabled_prefix(command: str) -> bool:
@@ -116,36 +120,60 @@ def infer_filter_hint(command: str) -> str | None:
         return "wc"
     if normalized.startswith("diff ") or normalized == "diff":
         return "diff"
-    if normalized.startswith(("pip list", "pip outdated", "uv sync", "bundle install")):
+    if re.match(rf"^(?:{_JS_EXEC_PREFIX_RE})?prettier(\s|$)", normalized):
+        return "format"
+    if re.match(r"^black(\s|$)", normalized):
+        return "format"
+    if re.match(rf"^(?:{_JS_EXEC_PREFIX_RE})?biome\s+format(\s|$)", normalized):
+        return "format"
+    if re.match(
+        rf"^(?:{_JS_EXEC_PREFIX_RE})?biome\s+check(\s|$)", normalized
+    ) and _BIOME_WRITE_FLAG_RE.search(normalized):
+        return "format"
+    if re.match(rf"^(?:{_JS_EXEC_PREFIX_RE})?(?:eslint|lint|biome)(\s|$)", normalized):
+        return "lint"
+    if re.match(
+        rf"^(?:{_JS_EXEC_PREFIX_RE})?biome\s+(?:check|lint|ci)(\s|$)", normalized
+    ):
+        return "lint"
+    if normalized.startswith(("pip list", "pip outdated", "uv sync", "uv pip install")):
         return "package"
     if normalized.startswith("uv pip list"):
         return "package"
-    if re.match(r"^(?:npm|pnpm)\s+(?:list|ls)(?:\s|$)", normalized):
+    if re.match(r"^bundle\s+(?:install|update)(?:\s|$)", normalized):
         return "package"
-    if re.match(r"^(?:npx\s+|pnpm\s+)?prisma\s+generate(?:\s|$)", normalized):
+    if re.match(r"^(?:npm|pnpm)\s+(?:list|ls|outdated|install)(?:\s|$)", normalized):
         return "package"
-    if re.match(r"^cargo\s+(build|clippy|check|fmt)(\s|$)", normalized):
+    if re.match(r"^npm\s+(?:run|exec)(?:\s|$)", normalized):
+        return "package"
+    if re.match(
+        r"^(?:npx\s+|pnpm\s+)?prisma\s+(?:generate|migrate\s+(?:dev|status|deploy)|db\s+push)(?:\s|$)",
+        normalized,
+    ):
+        return "package"
+    if re.match(r"^cargo\s+(build|clippy|check|fmt|nextest)(\s|$)", normalized):
         return "cargo"
     if normalized.startswith("cargo test"):
         return "test"
+    if re.match(rf"^(?:{_JS_EXEC_PREFIX_RE})?playwright(?:\s|$)", normalized):
+        return "playwright"
+    if re.match(rf"^(?:{_JS_EXEC_PREFIX_RE})?(?:vitest|jest)(?:\s|$)", normalized):
+        return "vitest"
     if re.match(r"^(?:npm|pnpm|yarn|make)\s+test(?:\s|$)", normalized):
         return "test"
     if normalized.startswith("git "):
         return "git"
-    if re.match(r"^gh\s+pr\s+(?:list|view)(?:\s|$)", normalized):
-        return "gh"
-    if re.match(r"^gh\s+issue\s+list(?:\s|$)", normalized):
-        return "gh"
-    if re.match(r"^gh\s+run\s+list(?:\s|$)", normalized):
-        return "gh"
     if normalized.startswith("gh "):
-        return None
+        lowered = normalized.lower()
+        if any(flag in lowered for flag in (" --json", " --jq", " --template")):
+            return None
+        return "gh"
+    if normalized.startswith("gt "):
+        return "gt"
     if re.match(r"^(?:npx\s+|pnpm\s+)?tsc(\s|$)", normalized):
         return "tsc"
     if re.match(r"^(?:npx\s+|pnpm\s+)?next\s+build(\s|$)", normalized):
         return "next"
-    if re.match(r"^(?:npx\s+|pnpm\s+)?(?:eslint|biome|lint)(\s|$)", normalized):
-        return "lint"
     if (
         normalized.startswith("python -m pytest")
         or normalized.startswith("pytest ")
@@ -160,6 +188,8 @@ def infer_filter_hint(command: str) -> str | None:
         return "mypy"
     if normalized.startswith("ruff "):
         return "ruff"
+    if re.match(r"^dotnet\s+(?:build|test|restore|format)(?:\s|$)", normalized):
+        return "dotnet"
     if re.match(r"^go\s+(test|build|vet)(\s|$)", normalized):
         return "go"
     if normalized.startswith("go "):
@@ -168,11 +198,15 @@ def infer_filter_hint(command: str) -> str | None:
         return "golangci-lint"
     if re.match(r"^(?:bundle\s+exec\s+)?rspec(\s|$)", normalized):
         return "rspec"
+    if re.match(
+        r"^(?:bundle\s+exec\s+)?(?:bin/)?(?:rake|rails)\s+test(?:\s|$)", normalized
+    ):
+        return "rake"
     if re.match(r"^(?:bundle\s+exec\s+)?rubocop(\s|$)", normalized):
         return "rubocop"
     if re.match(r"^docker\s+(?:ps|images|logs)(?:\s|$)", normalized):
         return "docker"
-    if re.match(r"^docker\s+compose\s+ps(?:\s|$)", normalized):
+    if re.match(r"^docker\s+compose\s+(?:ps|logs|build)(?:\s|$)", normalized):
         return "docker"
     if normalized.startswith("docker "):
         return None
@@ -193,6 +227,8 @@ def infer_filter_hint(command: str) -> str | None:
         return "terraform"
     if normalized.startswith("terraform "):
         return None
+    if normalized.startswith("psql ") or normalized == "psql":
+        return "psql"
     if normalized.startswith("curl ") or normalized == "curl":
         return "curl"
     if normalized.startswith("wget ") or normalized == "wget":
