@@ -52,7 +52,7 @@ It is designed for multiple specialized agents to use collaboratively:
 
 - PTK already has direct counterparts for most Git, Python, Go, infra, and file/search filters.
 - PTK has partial coverage for RTK read/file filtering levels, some Cargo behaviors, some GH behaviors, Prisma non-generate flows, some package-manager flows, and a small set of TOML overlaps.
-- PTK currently lacks RTK's TOML filter engine and many RTK-only command families, especially `gt`, `.NET`, `prettier`, `vitest`, `playwright`, `psql`, `env`, `deps`, `summary`, `json`, `log`, and `local_llm`.
+- PTK now has a packaged PTK-owned built-in TOML fallback engine for long-tail generic commands; project-local and user-global custom TOML sources remain intentionally out of scope under the narrowed `CORE-01` closure.
 
 ## Recommended Review Order
 
@@ -65,7 +65,7 @@ It is designed for multiple specialized agents to use collaboratively:
 
 | ID | RTK Unit | RTK Source | PTK Target | PTK Coverage | Conformance | Work State | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| CORE-01 | TOML fallback filter pipeline | `rtk/src/core/toml_filter.rs` | `src/pytk_ai/filters/base.py`, `generic.py`, `toml_fallback.py` | Partial | Known scope gap | reviewed | PTK now has a repo-backed built-in-only RTK-style fallback path for generic commands, including command-regex matching and the audited eight-stage transform order, but RTK's packaged built-in registry, project/global filter sources, trust gating, and full registry semantics are still absent. |
+| CORE-01 | TOML fallback filter pipeline | `rtk/src/core/toml_filter.rs` | `src/pytk_ai/filters/base.py`, `generic.py`, `toml_fallback.py` | Yes | Fixed in PTK | fixed | PTK now packages its own built-in TOML fallback registry under `src/pytk_ai/data/filters/builtin_filters.toml`, loads it via package resources instead of the live `rtk/src/filters/*.toml` checkout, and keeps project-local/user-global custom TOML loading intentionally out of scope per the narrowed closure. |
 | CORE-02 | Raw file read / no filter level | `rtk/src/core/filter.rs`, `rtk/src/cmds/system/read.rs` | `read`, `system.read.*` | Yes | Fixed in PTK | fixed | PTK now ships a real `pytk-ai read` surface with RTK-style `--level`, `--max-lines`, `--tail-lines`, stdin (`-`), and optional line-number support instead of only preserving mostly raw `cat`/`head`/`tail` output. |
 | CORE-03 | Minimal file filter | `rtk/src/core/filter.rs` | `read`, `src/pytk_ai/filters/files.py` | Yes | Conforms | reviewed | Verified stale row: PTK `pytk-ai read --level minimal` already mirrors the audited RTK slice by stripping language-aware comments, preserving Rust doc comments and Python docstrings, and normalizing blank-line runs. |
 | CORE-04 | Aggressive file filter | `rtk/src/core/filter.rs` | `read`, `src/pytk_ai/filters/files.py` | Yes | Conforms | reviewed | Verified stale row: PTK `pytk-ai read --level aggressive` already applies the same reviewed minimal-first reduction, keeping imports, signatures, braces, and key constant/static declarations while eliding implementation bodies. |
@@ -606,22 +606,23 @@ Use this format for updates:
 
 ### 2026-04-06 codex
 - Reviewed IDs: CORE-01
-- Result: Improved
+- Result: Fixed
 - Evidence:
 - Re-read `rtk/src/core/toml_filter.rs`, `rtk/build.rs`, and representative built-ins such as `rtk/src/filters/make.toml`, `rsync.toml`, `spring-boot.toml`, and `df.toml` before editing to verify RTK's actual built-in registry ordering and the eight-stage fallback pipeline: `strip_ansi`, chained `replace`, `match_output` with optional `unless`, line strip/keep, line truncation, head/tail omission markers, `max_lines`, and `on_empty`.
-- Added `src/pytk_ai/filters/toml_fallback.py` and updated `src/pytk_ai/filters/generic.py` plus `src/pytk_ai/filters/__init__.py` so PTK's generic fallback path can now load RTK built-in filter definitions from the checked-out `rtk/src/filters/*.toml` files and apply the same ordered declarative transformation stages for commands that do not already route to a dedicated PTK filter.
-- Added targeted regression coverage in `tests/test_filters_generic.py` for built-in fallback command matching (`make`), `match_output` plus `unless` (`rsync`), keep-lines filtering (`spring-boot`), and line truncation plus final line caps (`df`).
+- Added `src/pytk_ai/data/filters/builtin_filters.toml` plus `src/pytk_ai/data/filters/__init__.py`, updated `pyproject.toml` package-data, and switched `src/pytk_ai/filters/toml_fallback.py` to load the packaged PTK-owned bundle via `importlib.resources` instead of reading the live `rtk/src/filters/*.toml` checkout at runtime.
+- Updated `tests/test_filters_generic.py` to keep the existing fallback-behavior regressions and add packaged-loader regressions that assert the loader reads from `pytk_ai.data.filters` and safely returns no built-ins if the packaged bundle is unavailable.
 - Findings:
-- PTK no longer lacks the declarative fallback pipeline entirely: it now has bounded parity for RTK's built-in command-matched fallback behavior on the generic path.
-- `CORE-01` is not fully closed because this implementation is repo-backed and bounded: it does not yet provide a packaged built-in registry independent of the checked-out `rtk/` tree, and it still omits RTK's project-local and user-global TOML sources, trust gating, and broader registry-management semantics.
+- PTK now owns and packages the narrowed-scope built-in TOML fallback registry, removing the last runtime dependency on the checked-out `rtk/` tree for this path.
+- Under the user-narrowed `CORE-01` scope, this is honestly closable: the required built-in declarative fallback support exists, is packaged with PTK, and no longer depends on live RTK files.
+- Project-local `.rtk/filters.toml`, user-global TOML loading, trust gating, and broader RTK registry semantics remain intentionally excluded from this closure rather than unresolved in-scope gaps.
 - Follow-up:
-- Keep `CORE-01` open until PTK vendors the built-in fallback registry into its own package surface and decides whether project/global TOML sources are in scope for parity.
+- No `CORE-01` follow-up remains under the narrowed closure scope. Any future work on project/global custom TOML sources would be a separate out-of-scope expansion.
 
 ## Fix Queue
 
 | ID | Gap Summary | Candidate PTK Area | Status |
 | --- | --- | --- | --- |
-| CORE-01 | Finish RTK-like declarative fallback support by vendoring the built-in registry into PTK packaging and deciding whether project/global TOML sources, trust gating, and debug semantics should be ported. | `src/pytk_ai/filters/generic.py`, `src/pytk_ai/filters/toml_fallback.py`, packaging/data surface | proposed |
+| CORE-01 | Finish RTK-like declarative fallback support by vendoring the built-in registry into PTK packaging and deciding whether project/global TOML sources, trust gating, and debug semantics should be ported. | `src/pytk_ai/filters/generic.py`, `src/pytk_ai/filters/toml_fallback.py`, packaging/data surface | done |
 | CORE-03 | Port or redesign RTK minimal/aggressive file-content filtering for PTK-owned read flows. | `src/pytk_ai/filters/files.py` or a new source-filter module | done |
 | CARGO-02 | Split `cargo clippy` into a dedicated lint-rule-oriented summarizer instead of reusing the generic cargo build reducer. | `src/pytk_ai/filters/build.py` | done |
 | JS-14 | Expand the stronger explicit formatter slice into fuller RTK parity: auto-detected `format` dispatch plus broader formatter command coverage beyond direct/wrapper-owned `prettier`, `black`, and Biome flows. | planning/CLI surface plus formatter filter module(s) | done |

@@ -1,12 +1,17 @@
 import unittest
+from unittest import mock
 
+import pytk_ai.filters.toml_fallback as toml_fallback_module
 from pytk_ai.filters import filter_output
 from pytk_ai.filters.generic import filter_generic_output
-from pytk_ai.filters.toml_fallback import apply_builtin_fallback
+from pytk_ai.filters.toml_fallback import apply_builtin_fallback, load_builtin_filters
 from pytk_ai.plan import plan_command
 
 
 class FiltersGenericTests(unittest.TestCase):
+    def tearDown(self):
+        load_builtin_filters.cache_clear()
+
     def test_generic_filter_removes_ansi_and_truncates(self):
         result = filter_generic_output(
             "echo test",
@@ -58,6 +63,27 @@ class FiltersGenericTests(unittest.TestCase):
         )
         self.assertEqual(result.filter_name, "toml.make")
         self.assertEqual(result.output, "gcc -O2 foo.c")
+
+    def test_load_builtin_filters_uses_packaged_bundle(self):
+        with mock.patch(
+            "pytk_ai.filters.toml_fallback.resources.files",
+            wraps=toml_fallback_module.resources.files,
+        ) as files_mock:
+            filters = load_builtin_filters()
+
+        self.assertEqual(files_mock.call_args.args, ("pytk_ai.data.filters",))
+        self.assertEqual(len(filters), 58)
+        self.assertTrue(
+            any(fallback_filter.name == "make" for fallback_filter in filters)
+        )
+
+    def test_load_builtin_filters_returns_empty_when_packaged_bundle_missing(self):
+        load_builtin_filters.cache_clear()
+        with mock.patch(
+            "pytk_ai.filters.toml_fallback.resources.files",
+            side_effect=FileNotFoundError,
+        ):
+            self.assertEqual(load_builtin_filters(), ())
 
     def test_builtin_toml_fallback_applies_match_output_unless(self):
         fallback = apply_builtin_fallback(

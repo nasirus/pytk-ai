@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import lru_cache
+from importlib import resources
 import os
-from pathlib import Path
 import re
 import sys
 
@@ -15,7 +15,8 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 fallback path
 from .base import strip_ansi
 
 
-_RTK_FILTERS_DIR = Path(__file__).resolve().parents[3] / "rtk" / "src" / "filters"
+_BUILTIN_FILTERS_PACKAGE = "pytk_ai.data.filters"
+_BUILTIN_FILTERS_BUNDLE = "builtin_filters.toml"
 
 
 @dataclass(frozen=True)
@@ -126,26 +127,33 @@ def _int_or_none(value: object) -> int | None:
 
 @lru_cache(maxsize=1)
 def load_builtin_filters() -> tuple[FallbackFilter, ...]:
-    if tomllib is None or not _RTK_FILTERS_DIR.is_dir():
+    if tomllib is None:
+        return ()
+
+    try:
+        bundle = resources.files(_BUILTIN_FILTERS_PACKAGE).joinpath(
+            _BUILTIN_FILTERS_BUNDLE
+        )
+        parsed = tomllib.loads(bundle.read_text(encoding="utf-8"))
+    except (
+        FileNotFoundError,
+        ModuleNotFoundError,
+        OSError,
+        tomllib.TOMLDecodeError,
+    ):
+        return ()
+
+    definitions = parsed.get("filters", {})
+    if not isinstance(definitions, dict):
         return ()
 
     filters: list[FallbackFilter] = []
-    for path in sorted(_RTK_FILTERS_DIR.glob("*.toml")):
-        try:
-            with path.open("rb") as handle:
-                parsed = tomllib.load(handle)
-        except (OSError, tomllib.TOMLDecodeError):
+    for name, defn in definitions.items():
+        if not isinstance(name, str) or not isinstance(defn, dict):
             continue
-
-        definitions = parsed.get("filters", {})
-        if not isinstance(definitions, dict):
-            continue
-        for name, defn in definitions.items():
-            if not isinstance(name, str) or not isinstance(defn, dict):
-                continue
-            compiled = _compile_filter(name, defn)
-            if compiled is not None:
-                filters.append(compiled)
+        compiled = _compile_filter(name, defn)
+        if compiled is not None:
+            filters.append(compiled)
     return tuple(filters)
 
 
