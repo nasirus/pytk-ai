@@ -32,7 +32,7 @@ jobs:
           python -m pip install -e .
 
       - name: Run benchmarks
-        run: python -m benchmarks.runner --fixture-only
+        run: python -m benchmarks.runner
 
       - name: Print summary
         run: |
