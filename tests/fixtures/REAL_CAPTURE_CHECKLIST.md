@@ -51,23 +51,23 @@ Capture flow:
 - [x] `bundle install` -> `packages/bundle_install`
 - [x] `npx prisma generate` -> `packages/prisma_generate`
 - [x] `cargo build` -> `build/cargo_build_error`
-- [ ] `cargo clippy --all-targets` -> `build/cargo_clippy`
-- [ ] `cargo fmt --check` -> `build/cargo_fmt_check`
-- [ ] `eslint src` -> `build/eslint_stylish`
-- [ ] `biome lint src` -> `build/biome_lint`
-- [ ] `tsc --noEmit` -> `build/tsc_errors`
-- [ ] `next build` -> `build/next_build_ok`, `build/next_build_fail`
-- [ ] `go test ./...` -> `go/go_test_fail`
+- [x] `cargo clippy --all-targets` -> `build/cargo_clippy`
+- [x] `cargo fmt --check` -> `build/cargo_fmt_check`
+- [x] `eslint src` -> `build/eslint_stylish`
+- [x] `biome lint src` -> `build/biome_lint`
+- [x] `tsc --noEmit` -> `build/tsc_errors`
+- [x] `next build` -> `build/next_build_ok`, `build/next_build_fail`
+- [x] `go test ./...` -> `go/go_test_fail`
 - [ ] `golangci-lint run` -> `go/golangci_lint`
 - [ ] `rubocop` -> `ruby/rubocop_offenses`
 - [ ] `rspec` -> `ruby/rspec_failures`
 
 ## P2: Service-backed or heavier environment setup
 
-- [ ] `docker ps` -> `infra/docker_ps`
-- [ ] `docker images` -> `infra/docker_images`
-- [ ] `docker logs web` -> `infra/docker_logs`
-- [ ] `docker compose ps` -> `infra/docker_compose_ps`
+- [x] `docker ps` -> `infra/docker_ps`
+- [x] `docker images` -> `infra/docker_images`
+- [x] `docker logs web` -> `infra/docker_logs`
+- [x] `docker compose ps` -> `infra/docker_compose_ps`
 - [ ] `kubectl get pods -A` -> `infra/kubectl_pods_table`
 - [ ] `kubectl get pods -A -o json` -> `infra/kubectl_pods_json`
 - [ ] `kubectl get services` -> `infra/kubectl_services`

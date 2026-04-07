@@ -1,15 +1,112 @@
-src/app.ts:3:1 error lint/style/useConst This variable is never reassigned.
-src/app.ts:7:5 warning lint/suspicious/noConsoleLog Avoid console.log in production.
-src/lib/util.ts:12:3 error lint/correctness/noUnreachable This code is unreachable.
-src/lib/util.ts:18:7 error lint/style/noVar Use const instead of var.
-src/lib/config.ts:5:1 error lint/suspicious/noExplicitAny Avoid using any type.
-src/lib/config.ts:22:5 warning lint/complexity/noCognitiveComplexity Function is too complex.
-src/models/user.ts:8:3 error lint/correctness/useIsNan Use isNaN() instead of === NaN.
-src/models/user.ts:15:1 warning lint/style/useConst This variable is never reassigned.
-src/models/post.ts:42:5 error lint/suspicious/noConsoleLog Avoid console.log in production.
-src/models/post.ts:58:1 error lint/style/useConst This variable is never reassigned.
-src/services/email.ts:10:3 warning lint/complexity/noCognitiveComplexity Function is too complex.
-src/services/email.ts:28:7 error lint/suspicious/noExplicitAny Avoid using any type.
-src/routes/api.ts:12:1 error lint/correctness/noUnusedVariables Variable is declared but never used.
-src/routes/api.ts:35:5 warning lint/suspicious/noConsoleLog Avoid console.log in production.
-src/routes/admin.ts:8:3 error lint/style/noVar Use const instead of var.
+src/billing.ts:1:47 lint/suspicious/noExplicitAny ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+  > 1 │ export function calculate(total: number, tax: any) {
+      │                                               ^^^
+    2 │   if (tax == null) console.log(total)
+    3 │   return total + tax
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src/config.ts:7:20 lint/suspicious/noExplicitAny ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    6 │ export function parseOptions(input: unknown) {
+  > 7 │   return (input as any) ?? options
+      │                    ^^^
+    8 │ }
+    9 │ 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src/feature.ts:3:30 lint/suspicious/noExplicitAny ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    1 │ const flags = [true, false]
+    2 │ 
+  > 3 │ export function choose(flag: any) {
+      │                              ^^^
+    4 │   if (flag == true) {
+    5 │     return flags[0]
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src/lib.ts:1:34 lint/suspicious/noExplicitAny ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+  > 1 │ export function formatFlag(flag: any) {
+      │                                  ^^^
+    2 │   if (flag === true) return "yes"
+    3 │   return "no"
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+src/lib.ts:6:7 lint/correctness/noUnusedVariables  FIXABLE  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ! This variable unused is unused.
+  
+    4 │ }
+    5 │ 
+  > 6 │ const unused = 42
+      │       ^^^^^^
+    7 │ 
+  
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+  
+  i Unsafe fix: If this is intentional, prepend unused with an underscore.
+  
+    4 4 │   }
+    5 5 │   
+    6   │ - const·unused·=·42
+      6 │ + const·_unused·=·42
+    7 7 │   
+  
+
+src/app.ts:4:12 lint/suspicious/noDoubleEquals  FIXABLE  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Using == may be unsafe if you are relying on type coercion.
+  
+    2 │ export function greet(name: string) {
+    3 │   console.log("hello", name)
+  > 4 │   if (name == "admin") return "ok"
+      │            ^^
+    5 │ }
+    6 │ 
+  
+  i == is only allowed when comparing against null.
+  
+  i Unsafe fix: Use === instead.
+  
+    4 │ ··if·(name·===·"admin")·return·"ok"
+      │              +                     
+  
+
+src/feature.ts:4:12 lint/suspicious/noDoubleEquals  FIXABLE  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Using == may be unsafe if you are relying on type coercion.
+  
+    3 │ export function choose(flag: any) {
+  > 4 │   if (flag == true) {
+      │            ^^
+    5 │     return flags[0]
+    6 │   }
+  
+  i == is only allowed when comparing against null.
+  
+  i Unsafe fix: Use === instead.
+  
+    4 │ ··if·(flag·===·true)·{
+      │              +        
+  
+
+lint ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while running checks.

@@ -23,9 +23,10 @@ class FixturesGoTests(unittest.TestCase):
     def test_go_test_fail(self):
         f, result = self._run("go_test_fail")
         self.assertEqual(result.filter_name, "go.test")
-        self.assertIn("Go test: 1 packages passed, 1 packages failed", result.output)
-        self.assertIn("[FAIL] TestThing", result.output)
-        self.assertIn("expected 2, got 1", result.output)
+        self.assertIn("Go test: 3 packages passed, 1 packages failed", result.output)
+        self.assertIn("example.com/go-fixture/pkg/auth (3 failed)", result.output)
+        self.assertIn("[FAIL] TestValidateEmail", result.output)
+        self.assertIn('expected missing, got ""', result.output)
 
     def test_golangci_lint(self):
         f, result = self._run("golangci_lint")

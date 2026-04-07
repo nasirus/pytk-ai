@@ -1,3 +1,4 @@
-NAME      IMAGE         COMMAND      SERVICE   CREATED      STATUS        PORTS
-web-1     nginx:latest  "nginx -g"  web       2 hours ago  Up 2 hours   0.0.0.0:80->80/tcp
-db-1      postgres:16   "postgres"  db        2 hours ago  Up 2 hours   0.0.0.0:5432->5432/tcp
+NAME      IMAGE                COMMAND                   SERVICE   CREATED         STATUS                   PORTS
+cache     postgres:16-alpine   "docker-entrypoint.s…"    cache     3 seconds ago   Up 2 seconds (healthy)   5432/tcp
+db        redis:7.2            "docker-entrypoint.s…"    db        3 seconds ago   Up 2 seconds (healthy)   6379/tcp
+web       ubuntu:24.04         "bash -lc 'printf \"b…"   web       3 seconds ago   Up 2 seconds (healthy)

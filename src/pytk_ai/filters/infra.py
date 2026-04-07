@@ -11,6 +11,7 @@ from .generic import _combine_streams, filter_generic_output
 
 _TABLE_SPLIT_RE = re.compile(r"\s{2,}")
 _SIZE_RE = re.compile(r"(?P<value>\d+(?:\.\d+)?)\s*(?P<unit>B|KB|MB|GB)", re.I)
+_IMAGE_ID_RE = re.compile(r"^[0-9a-f]{6,64}$", re.I)
 _AWS_READ_RE = re.compile(
     r"^(?:list|get|describe)(?:-[a-z0-9-]+)?$",
     re.IGNORECASE,
@@ -186,9 +187,11 @@ def _parse_docker_images(stdout: str) -> list[tuple[str, str]] | None:
     images: list[tuple[str, str]] = []
     for raw_line in stdout.splitlines():
         parts = _split_table_line(raw_line)
-        if not parts or parts[0] == "REPOSITORY":
+        if not parts or parts[0] in {"REPOSITORY", "IMAGE"}:
             continue
-        if len(parts) >= 5:
+        if len(parts) >= 4 and _IMAGE_ID_RE.match(parts[1]):
+            images.append((parts[0], parts[2]))
+        elif len(parts) >= 5:
             images.append((f"{parts[0]}:{parts[1]}", parts[-1]))
         elif len(parts) >= 2:
             images.append((parts[0], parts[1]))
@@ -201,15 +204,31 @@ def _parse_compose_ps(stdout: str) -> list[dict[str, str]] | None:
         parts = _split_table_line(raw_line)
         if not parts or parts[0] == "NAME":
             continue
-        if len(parts) >= 4:
-            services.append(
-                {
-                    "name": parts[0],
-                    "image": parts[1],
-                    "status": parts[-2] if len(parts) >= 2 else "",
-                    "ports": parts[-1] if len(parts) >= 1 else "",
-                }
+        if len(parts) >= 5 and parts[-1].startswith(
+            (
+                "Up ",
+                "Exited ",
+                "Restarting ",
+                "Paused ",
+                "Created ",
+                "Dead ",
             )
+        ):
+            status = parts[-1]
+            ports = ""
+        elif len(parts) >= 6:
+            status = parts[-2]
+            ports = parts[-1]
+        else:
+            continue
+        services.append(
+            {
+                "name": parts[0],
+                "image": parts[1],
+                "status": status,
+                "ports": ports,
+            }
+        )
     return services or None
 
 

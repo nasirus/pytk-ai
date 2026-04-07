@@ -1,4 +1,47 @@
+    Updating crates.io index
+     Locking 5 packages to latest Rust 1.94.1 compatible versions
+    Checking memchr v2.8.0
+    Checking regex-syntax v0.8.10
+    Checking aho-corasick v1.1.4
+    Checking regex-automata v0.4.14
+    Checking regex v1.12.3
+    Checking cargo-clippy-fixture v0.1.0 (/tmp/tmp.SYLuu0AUHs/cargo-clippy-fixture)
 warning: this `map_or` can be simplified
- --> src/lib.rs:10:9
+ --> src/lib.rs:5:5
   |
-  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_map_or
+5 | /     values
+6 | |         .iter()
+7 | |         .find(|value| matcher.is_match(value))
+8 | |         .map_or(false, |value| value.len() > 5)
+  | |_______________________________________________^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#unnecessary_map_or
+  = note: `#[warn(clippy::unnecessary_map_or)]` on by default
+help: use is_some_and instead
+  |
+8 -         .map_or(false, |value| value.len() > 5)
+8 +         .is_some_and(|value| value.len() > 5)
+  |
+
+warning: accessing first element with `values.get(0)`
+  --> src/lib.rs:12:5
+   |
+12 |     values.get(0)
+   |     ^^^^^^^^^^^^^ help: try: `values.first()`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#get_first
+   = note: `#[warn(clippy::get_first)]` on by default
+
+warning: `cargo-clippy-fixture` (lib test) generated 2 warnings (2 duplicates)
+warning: `cargo-clippy-fixture` (lib) generated 2 warnings (run `cargo clippy --fix --lib -p cargo-clippy-fixture` to apply 2 suggestions)
+warning: useless use of `vec!`
+ --> tests/clippy.rs:3:19
+  |
+3 |     let numbers = vec![1, 2, 3];
+  |                   ^^^^^^^^^^^^^ help: you can use an array directly: `[1, 2, 3]`
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#useless_vec
+  = note: `#[warn(clippy::useless_vec)]` on by default
+
+warning: `cargo-clippy-fixture` (test "clippy") generated 1 warning (run `cargo clippy --fix --test "clippy" -p cargo-clippy-fixture` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.05s

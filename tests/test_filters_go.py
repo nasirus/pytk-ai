@@ -6,11 +6,18 @@ from pytk_ai.plan import plan_command
 
 class FiltersGoTests(unittest.TestCase):
     def test_go_test_summarizes_failed_package_and_test(self):
-        stdout = """ok  example.com/project/pkg/a 0.015s
---- FAIL: TestThing (0.00s)
-    thing_test.go:12: expected 2, got 1
+        stdout = """ok   example.com/go-fixture/pkg/a 0.001s
+--- FAIL: TestValidateEmail (0.00s)
+    auth_test.go:8: expected alice@example.com to be valid
+--- FAIL: TestParseUsername (0.00s)
+    auth_test.go:17: expected carol-admin, got "carol"
+--- FAIL: TestParseUsernameWithMissingLocalPart (0.00s)
+    auth_test.go:23: expected missing, got ""
 FAIL
-FAIL    example.com/project/pkg/b  0.023s
+FAIL    example.com/go-fixture/pkg/auth  0.001s
+ok   example.com/go-fixture/pkg/b 0.001s
+ok   example.com/go-fixture/pkg/c 0.001s
+FAIL
 """
         result = filter_output(
             "go test ./...",
@@ -20,9 +27,10 @@ FAIL    example.com/project/pkg/b  0.023s
             plan=plan_command("go test ./..."),
         )
         self.assertEqual(result.filter_name, "go.test")
-        self.assertIn("Go test: 1 packages passed, 1 packages failed", result.output)
-        self.assertIn("[FAIL] TestThing", result.output)
-        self.assertIn("expected 2, got 1", result.output)
+        self.assertIn("Go test: 3 packages passed, 1 packages failed", result.output)
+        self.assertIn("example.com/go-fixture/pkg/auth (3 failed)", result.output)
+        self.assertIn("[FAIL] TestParseUsernameWithMissingLocalPart", result.output)
+        self.assertIn('expected missing, got ""', result.output)
 
     def test_non_test_build_vet_go_commands_keep_generic_output(self):
         result = filter_output(

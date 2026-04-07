@@ -58,22 +58,66 @@ error[E0425]: cannot find function `missing_symbol` in this scope
         self.assertIn("E0425", result.output)
 
     def test_cargo_clippy_groups_warnings(self):
-        stderr = """warning: this `map_or` can be simplified
- --> src/lib.rs:10:9
+        stderr = """    Checking memchr v2.8.0
+    Checking regex-syntax v0.8.10
+    Checking aho-corasick v1.1.4
+    Checking regex-automata v0.4.14
+    Checking regex v1.12.3
+    Checking cargo-clippy-fixture v0.1.0 (/tmp/tmp.SYLuu0AUHs/cargo-clippy-fixture)
+warning: this `map_or` can be simplified
+ --> src/lib.rs:5:5
   |
-  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_map_or
+5 | /     values
+6 | |         .iter()
+7 | |         .find(|value| matcher.is_match(value))
+8 | |         .map_or(false, |value| value.len() > 5)
+  | |_______________________________________________^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#unnecessary_map_or
+  = note: `#[warn(clippy::unnecessary_map_or)]` on by default
+help: use is_some_and instead
+  |
+8 -         .map_or(false, |value| value.len() > 5)
+8 +         .is_some_and(|value| value.len() > 5)
+  |
+
+warning: accessing first element with `values.get(0)`
+  --> src/lib.rs:12:5
+   |
+12 |     values.get(0)
+   |     ^^^^^^^^^^^^^ help: try: `values.first()`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#get_first
+   = note: `#[warn(clippy::get_first)]` on by default
+
+warning: useless use of `vec!`
+ --> tests/clippy.rs:3:19
+  |
+3 |     let numbers = vec![1, 2, 3];
+  |                   ^^^^^^^^^^^^^ help: you can use an array directly: `[1, 2, 3]`
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#useless_vec
+  = note: `#[warn(clippy::useless_vec)]` on by default
+
+warning: `cargo-clippy-fixture` (lib test) generated 2 warnings (2 duplicates)
+warning: `cargo-clippy-fixture` (lib) generated 2 warnings (run `cargo clippy --fix --lib -p cargo-clippy-fixture` to apply 2 suggestions)
+warning: `cargo-clippy-fixture` (test "clippy") generated 1 warning (run `cargo clippy --fix --test "clippy" -p cargo-clippy-fixture` to apply 1 suggestion)
 """
         result = filter_output(
             "cargo clippy --all-targets",
             "",
             stderr,
-            1,
+            0,
             plan=plan_command("cargo clippy --all-targets"),
         )
         self.assertEqual(result.filter_name, "cargo.clippy")
-        self.assertIn("cargo clippy: 0 errors, 1 warnings", result.output)
+        self.assertIn("cargo clippy: 0 errors, 3 warnings (6 crates)", result.output)
         self.assertIn("clippy::unnecessary_map_or", result.output)
-        self.assertIn("src/lib.rs:10:9", result.output)
+        self.assertIn("clippy::get_first", result.output)
+        self.assertIn("clippy::useless_vec", result.output)
+        self.assertIn("src/lib.rs:5:5", result.output)
+        self.assertIn("src/lib.rs:12:5", result.output)
+        self.assertIn("tests/clippy.rs:3:19", result.output)
 
     def test_cargo_clippy_keeps_error_details_separate(self):
         stderr = """Checking demo v0.1.0 (/tmp/demo)
@@ -95,8 +139,47 @@ warning: this function has too many arguments [clippy::too_many_arguments]
         self.assertIn("clippy::too_many_arguments", result.output)
 
     def test_cargo_fmt_check_lists_reformat_targets(self):
-        stdout = """Would reformat: src/lib.rs
-Would reformat: tests/test_app.rs
+        stdout = """Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/examples/demo.rs:1:
+-fn main( ){ let values=[1,2,3]; println!("{:?}",values); }
++fn main() {
++    let values = [1, 2, 3];
++    println!("{:?}", values);
++}
+ 
+Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/src/handlers/api.rs:1:
+-pub fn handle()->Result<(),String>{Ok(())}
++pub fn handle() -> Result<(), String> {
++    Ok(())
++}
+ 
+Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/src/lib.rs:2:
+ pub mod models;
+ pub mod utils;
+ 
+-pub fn sum(a:i32,b:i32)->i32{a+b}
++pub fn sum(a: i32, b: i32) -> i32 {
++    a + b
++}
+ 
+Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/src/models/user.rs:1:
+-pub struct User{pub name:String,pub age:u8}
++pub struct User {
++    pub name: String,
++    pub age: u8,
++}
+ 
+Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/src/utils/helpers.rs:1:
+-pub fn double(x:i32)->i32{x*2}
++pub fn double(x: i32) -> i32 {
++    x * 2
++}
+ 
+Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/tests/test_app.rs:1:
+ #[test]
+-fn app_works( ){ assert_eq!(2+2,4); }
++fn app_works() {
++    assert_eq!(2 + 2, 4);
++}
 """
         result = filter_output(
             "cargo fmt --check",
@@ -106,8 +189,10 @@ Would reformat: tests/test_app.rs
             plan=plan_command("cargo fmt --check"),
         )
         self.assertEqual(result.filter_name, "cargo.fmt")
-        self.assertIn("2 files need formatting", result.output)
+        self.assertIn("cargo fmt: 6 files need formatting", result.output)
+        self.assertIn("examples/demo.rs", result.output)
         self.assertIn("src/lib.rs", result.output)
+        self.assertIn("src/handlers/api.rs", result.output)
 
     def test_cargo_install_summarizes_success_and_replacements(self):
         stdout = """Updating crates.io index
@@ -378,32 +463,59 @@ Would reformat: tests/test_app.py
         self.assertIn("Ruff format: 2 files need formatting", result.output)
 
     def test_tsc_output_is_grouped_by_file(self):
-        stderr = """src/app.ts(10,5): error TS2322: Type 'string' is not assignable to type 'number'.
-src/app.ts(12,7): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
-  The expected type comes from the function signature.
+        stdout = """shared/user.ts(8,3): error TS2741: Property 'id' is missing in type '{ name: string; }' but required in type 'User'.
+src/app.ts(4,7): error TS2322: Type 'number' is not assignable to type 'string'.
+src/app.ts(5,7): error TS2322: Type 'string' is not assignable to type 'number'.
+src/app.ts(6,7): error TS2322: Type 'string' is not assignable to type 'boolean'.
+src/config.ts(6,7): error TS2322: Type 'string' is not assignable to type 'number'.
+src/config.ts(7,24): error TS2339: Property 'port' does not exist on type 'AppConfig'.
+src/server.ts(2,11): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/server.ts(5,7): error TS2322: Type 'undefined' is not assignable to type 'string'.
+src/utils.ts(1,24): error TS2304: Cannot find name 'nonExistentFunction'.
+src/utils.ts(2,21): error TS18050: The value 'null' cannot be used here.
+types/flags.ts(5,7): error TS2741: Property 'enabled' is missing in type '{}' but required in type 'FeatureFlag'.
 """
         result = filter_output(
             "tsc --noEmit",
+            stdout,
             "",
-            stderr,
             2,
             plan=plan_command("tsc --noEmit"),
         )
         self.assertEqual(result.filter_name, "tsc")
-        self.assertIn("TypeScript: 2 errors in 1 files", result.output)
-        self.assertIn("TS2322", result.output)
+        self.assertIn("TypeScript: 11 errors in 6 files", result.output)
+        self.assertIn("Top codes: TS2322 (5x), TS2741 (2x)", result.output)
+        self.assertIn("src/config.ts (2)", result.output)
         self.assertIn(
-            "expected type comes from the function signature", result.output.lower()
+            "L7: TS2339 Property 'port' does not exist on type 'AppConfig'.",
+            result.output,
         )
 
     def test_next_build_extracts_routes_and_sizes(self):
         stdout = """▲ Next.js 15.2.0
-Creating an optimized production build ...
-✓ Compiled successfully in 12.4s
-Route (app)                    Size     First Load JS
-┌ ○ /                          1.2 kB        132 kB
-├ ● /dashboard                 2.5 kB        156 kB
-└ ○ /api/auth                  0.5 kB         89 kB
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/6) ...
+   Generating static pages (1/6) ...
+   Generating static pages (2/6) ...
+   Generating static pages (4/6) ...
+ ✓ Generating static pages (6/6)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    145 B           117 kB
+├ ○ /_not-found                          978 B           118 kB
+├ ○ /dashboard                           145 B           117 kB
+└ ○ /settings                            145 B           117 kB
++ First Load JS shared by all            117 kB
+  ├ chunks/4bd1b696-2bfa57da125389e3.js  53 kB
+  ├ chunks/587-a077fef3f86ee83a.js       62.3 kB
+  └ other shared chunks (total)          1.87 kB
+
+○  (Static)  prerendered as static content
 """
         result = filter_output(
             "next build",
@@ -413,24 +525,46 @@ Route (app)                    Size     First Load JS
             plan=plan_command("next build"),
         )
         self.assertEqual(result.filter_name, "next.build")
-        self.assertIn("3 routes (2 static, 1 dynamic)", result.output)
+        self.assertIn("4 routes (4 static, 0 dynamic)", result.output)
         self.assertIn("/dashboard", result.output)
-        self.assertIn("Time: 12.4s", result.output)
+        self.assertIn("/settings", result.output)
+        self.assertIn("Errors: 0 | Warnings: 0", result.output)
 
     def test_next_build_failure_keeps_raw_diagnostics(self):
+        stdout = """⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+   ▲ Next.js 15.2.0
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+"""
         stderr = """Failed to compile.
 
-./src/app/page.tsx:7:12
+./app/page.tsx:2:9
 Type error: Type 'string' is not assignable to type 'number'.
+
+[0m [90m 1 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mPage[39m() {[0m
+[0m[31m[1m>[22m[39m[90m 2 |[39m   [36mconst[39m count[33m:[39m number [33m=[39m [32m"3"[39m[0m
+[0m [90m   |[39m         [31m[1m^[22m[39m[0m
+[0m [90m 3 |[39m   [36mreturn[39m [33m<[39m[33mmain[39m[33m>[39m{count}[33m<[39m[33m/[39m[33mmain[33m>[39m[0m
+[0m [90m 4 |[39m }[0m
+[0m [90m 5 |[39m[0m
+
+Next.js build worker exited with code: 1 and signal: null
 """
         result = filter_output(
             "next build",
-            "",
+            stdout,
             stderr,
             1,
             plan=plan_command("next build"),
         )
         self.assertEqual(result.filter_name, "next.build")
         self.assertIn("Failed to compile.", result.output)
-        self.assertIn("./src/app/page.tsx:7:12", result.output)
+        self.assertIn("./app/page.tsx:2:9", result.output)
         self.assertIn("Type error:", result.output)

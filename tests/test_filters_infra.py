@@ -23,9 +23,10 @@ abc123def456   nginx:latest   "nginx"   2 hours ago    Up 2 hours     0.0.0.0:80
         self.assertIn("987654fedcba cache (redis:7) Up 20 minutes", result.output)
 
     def test_docker_images_summarizes_images_and_total_size(self):
-        stdout = """REPOSITORY     TAG       IMAGE ID       CREATED       SIZE
-nginx          latest    abc123         2 days ago    187MB
-redis          7         def456         3 days ago    117MB
+        stdout = """IMAGE                                              ID             DISK USAGE   CONTENT SIZE   EXTRA
+browserless/chrome:latest                         57d19e414d9f       4.51GB         1.25GB   U
+diygod/rsshub:latest                              5deed9faf8ee        643MB          119MB   U
+docker/desktop-cloud-provider-kind:v0.5.0         4ad59ce20658        595MB          162MB   U
 """
         result = filter_output(
             "docker images",
@@ -35,8 +36,11 @@ redis          7         def456         3 days ago    117MB
             plan=plan_command("docker images"),
         )
         self.assertEqual(result.filter_name, "docker.images")
-        self.assertIn("docker images: 2 images (304MB)", result.output)
-        self.assertIn("nginx:latest [187MB]", result.output)
+        self.assertIn("docker images: 3 images (5.7GB)", result.output)
+        self.assertIn("browserless/chrome:latest [4.51GB]", result.output)
+        self.assertIn(
+            "docker/desktop-cloud-provider-kind:v0.5.0 [595MB]", result.output
+        )
 
     def test_docker_logs_deduplicates_repeated_lines(self):
         stdout = "boot\nsame\nsame\nsame\nready\n"
@@ -52,9 +56,9 @@ redis          7         def456         3 days ago    117MB
         self.assertIn("repeated line omitted 2 time(s)", result.output)
 
     def test_docker_compose_ps_summarizes_services(self):
-        stdout = """NAME      IMAGE         COMMAND      SERVICE   CREATED      STATUS        PORTS
-web-1     nginx:latest  \"nginx -g\"  web       2 hours ago  Up 2 hours   0.0.0.0:80->80/tcp
-db-1      postgres:16   \"postgres\"  db        2 hours ago  Up 2 hours   0.0.0.0:5432->5432/tcp
+        stdout = """NAME      IMAGE                COMMAND                   SERVICE   CREATED         STATUS                   PORTS
+cache     postgres:16-alpine   \"docker-entrypoint.s…\"    cache     3 seconds ago   Up 2 seconds (healthy)   5432/tcp
+web       ubuntu:24.04         \"bash -lc 'printf \\\"b…\"   web       3 seconds ago   Up 2 seconds (healthy)
 """
         result = filter_output(
             "docker compose ps",
@@ -65,7 +69,10 @@ db-1      postgres:16   \"postgres\"  db        2 hours ago  Up 2 hours   0.0.0.
         )
         self.assertEqual(result.filter_name, "docker.compose.ps")
         self.assertIn("docker compose ps: 2 services", result.output)
-        self.assertIn("web-1 (nginx:latest) Up 2 hours [80]", result.output)
+        self.assertIn(
+            "cache (postgres:16-alpine) Up 2 seconds (healthy) [5432]", result.output
+        )
+        self.assertIn("web (ubuntu:24.04) Up 2 seconds (healthy)", result.output)
 
     def test_docker_compose_logs_deduplicates_repeated_lines(self):
         stdout = "web-1  | boot\nweb-1  | same\nweb-1  | same\nweb-1  | ready\n"

@@ -743,6 +743,8 @@ def filter_next_output(
             warnings += 1
         if "error" in stripped.lower() and "0 errors" not in stripped.lower():
             errors += 1
+        if stripped.startswith(("○  (", "●  (", "◐  (", "λ  (", "ƒ  (")):
+            continue
         if stripped.startswith(("○ ", "┌ ○", "├ ○", "└ ○")):
             static_routes += 1
         elif stripped.startswith(("● ", "◐ ", "λ ", "ƒ ", "├ ●", "└ ●", "├ λ", "└ λ")):

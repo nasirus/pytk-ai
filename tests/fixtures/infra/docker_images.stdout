@@ -1,3 +1,34 @@
-REPOSITORY     TAG       IMAGE ID       CREATED       SIZE
-nginx          latest    abc123         2 days ago    187MB
-redis          7         def456         3 days ago    117MB
+IMAGE                                                                                                   ID             DISK USAGE   CONTENT SIZE   EXTRA
+browserless/chrome:latest                                                                               57d19e414d9f       4.51GB         1.25GB   U    
+diygod/rsshub:latest                                                                                    5deed9faf8ee        643MB          119MB   U    
+docker/desktop-cloud-provider-kind:v0.5.0                                                               4ad59ce20658        595MB          162MB   U    
+docker/desktop-containerd-registry-mirror:v0.0.3                                                        179a9ea3ae47       50.3MB         16.1MB   U    
+docker/desktop-kubernetes:kubernetes-v1.34.1-cni-v1.7.1-critools-v1.33.0-cri-dockerd-v0.3.20-1-debian   12d6673564e0        592MB          185MB        
+docker/desktop-storage-provisioner:v3.0                                                                 57d2b6ad1c6f       80.3MB         23.9MB   U    
+docker/desktop-vpnkit-controller:v4.0                                                                   bdaff3408b1c       52.6MB         11.9MB   U    
+envoyproxy/envoy:v1.36.4                                                                                08acc53db6f4        248MB         62.1MB        
+getmeili/meilisearch:v1.12.8                                                                            c9fac23131cc        238MB         95.1MB        
+getmeili/meilisearch:v1.13.3                                                                            bed3fb650e62        240MB         95.8MB        
+ghcr.io/getsentry/spotlight:latest                                                                      7cab88b8a890        282MB         70.7MB        
+ghcr.io/ggml-org/llama.cpp:server                                                                       6e1cf05ec95a        168MB         43.6MB   U    
+ghcr.io/hyoban/puppeteer-real-browser-hono:latest                                                       21bb4cd27144       2.85GB          711MB   U    
+kindest/node:v1.34.3                                                                                    08497ee19eac       1.35GB          395MB        
+kindest/node:v1.35.1                                                                                    05d7bcdefbda       1.29GB          379MB   U    
+postgres:16                                                                                             f992505e18f1        641MB          166MB        
+postgres:16-alpine                                                                                      8ef47cb3d258        395MB          111MB   U    
+postgres:17-alpine                                                                                      bb377b7239d2        399MB          112MB        
+postgres:18.1-alpine3.22                                                                                655a411a84c1        401MB          112MB        
+postgres:alpine3.23                                                                                     4eb15de8e7b6        403MB          113MB   U    
+redis:7.2                                                                                               a39bcfd02a18        146MB         18.8MB   U    
+redis:alpine                                                                                            6cbef353e480        131MB         33.9MB   U    
+registry.k8s.io/coredns/coredns:v1.12.1                                                                 e8c262566636        101MB         22.4MB   U    
+registry.k8s.io/etcd:3.6.4-0                                                                            e36c08168342        273MB         74.3MB   U    
+registry.k8s.io/kube-apiserver:v1.34.1                                                                  b9d7c117f8ac        118MB         27.1MB   U    
+registry.k8s.io/kube-controller-manager:v1.34.1                                                         2bf47c1b01f5        101MB         22.8MB   U    
+registry.k8s.io/kube-proxy:v1.34.1                                                                      913cc83ca0b5        102MB           26MB   U    
+registry.k8s.io/kube-scheduler:v1.34.1                                                                  6e9fbc4e25a5       73.5MB         17.4MB   U    
+registry.k8s.io/pause:3.10                                                                              ee6521f290b2       1.06MB          318kB   U    
+registry.k8s.io/pause:3.10.1                                                                            278fb9dbcca9       1.06MB          318kB        
+temporalio/ui:2.34.0                                                                                    cb17ea423d76        163MB         48.1MB        
+triliumnext/trilium:latest                                                                              f9c978d08f24        400MB          114MB        
+ubuntu:24.04                                                                                            cd1dba651b30        119MB         31.7MB   U    

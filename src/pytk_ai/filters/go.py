@@ -104,7 +104,8 @@ def _filter_go_test(text: str, exit_code: int) -> str:
     failures: dict[str, list[dict[str, object]]] = defaultdict(list)
     current_failure: dict[str, object] | None = None
     build_errors: dict[str, list[str]] = defaultdict(list)
-    current_package = ""
+    pending_failures: list[dict[str, object]] = []
+    pending_build_errors: list[str] = []
 
     for raw_line in text.splitlines():
         line = raw_line.rstrip()
@@ -113,12 +114,17 @@ def _filter_go_test(text: str, exit_code: int) -> str:
         if ok_match:
             package_passes += 1
             current_failure = None
-            current_package = ok_match.group(1)
             continue
         fail_match = _GO_PACKAGE_FAIL_RE.match(stripped)
         if fail_match:
-            current_package = fail_match.group(1)
-            failed_packages.add(current_package)
+            package = fail_match.group(1)
+            failed_packages.add(package)
+            if pending_build_errors:
+                build_errors[package].extend(pending_build_errors)
+                pending_build_errors = []
+            if pending_failures:
+                failures[package].extend(pending_failures)
+                pending_failures = []
             current_failure = None
             continue
         test_fail_match = _GO_TEST_FAIL_RE.match(stripped)
@@ -127,7 +133,7 @@ def _filter_go_test(text: str, exit_code: int) -> str:
                 "name": test_fail_match.group(1),
                 "lines": [],
             }
-            failures[current_package or "<unknown>"].append(current_failure)
+            pending_failures.append(current_failure)
             continue
         if current_failure is not None:
             lowered = stripped.lower()
@@ -154,7 +160,7 @@ def _filter_go_test(text: str, exit_code: int) -> str:
                 or "error" in stripped.lower()
             )
         ):
-            build_errors[current_package or "<build>"].append(stripped)
+            pending_build_errors.append(stripped)
 
     if exit_code == 0 and package_passes and not failed_packages:
         return f"Go test: {package_passes} packages passed"

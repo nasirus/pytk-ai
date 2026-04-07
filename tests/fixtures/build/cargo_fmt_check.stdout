@@ -1,7 +1,41 @@
-Would reformat: src/lib.rs
-Would reformat: tests/test_app.rs
-Would reformat: src/main.rs
-Would reformat: src/models/user.rs
-Would reformat: src/handlers/api.rs
-Would reformat: src/utils/helpers.rs
-Would reformat: examples/demo.rs
+Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/examples/demo.rs:1:
+-fn main( ){ let values=[1,2,3]; println!("{:?}",values); }
++fn main() {
++    let values = [1, 2, 3];
++    println!("{:?}", values);
++}
+ 
+Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/src/handlers/api.rs:1:
+-pub fn handle()->Result<(),String>{Ok(())}
++pub fn handle() -> Result<(), String> {
++    Ok(())
++}
+ 
+Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/src/lib.rs:2:
+ pub mod models;
+ pub mod utils;
+ 
+-pub fn sum(a:i32,b:i32)->i32{a+b}
++pub fn sum(a: i32, b: i32) -> i32 {
++    a + b
++}
+ 
+Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/src/models/user.rs:1:
+-pub struct User{pub name:String,pub age:u8}
++pub struct User {
++    pub name: String,
++    pub age: u8,
++}
+ 
+Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/src/utils/helpers.rs:1:
+-pub fn double(x:i32)->i32{x*2}
++pub fn double(x: i32) -> i32 {
++    x * 2
++}
+ 
+Diff in /tmp/tmp.puuQXIls90/cargo-fmt-fixture/tests/test_app.rs:1:
+ #[test]
+-fn app_works( ){ assert_eq!(2+2,4); }
++fn app_works() {
++    assert_eq!(2 + 2, 4);
++}

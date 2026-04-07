@@ -1,26 +1,35 @@
-/repo/src/app.ts
-  1:7   error    'value' is assigned a value but never used  @typescript-eslint/no-unused-vars
-  4:1   warning  Unexpected console statement                no-console
-  15:3  error    Missing return type on function             @typescript-eslint/explicit-function-return-type
+/tmp/tmp.JhurthOCBe/src/app.js
+  1:1   error    Unexpected var, use let or const instead               no-var
+  2:5   warning  'unusedName' is never reassigned. Use 'const' instead  prefer-const
+  5:11  warning  Expected '===' and instead saw '=='                    eqeqeq
+  5:19  error    Expected { after 'if' condition                        curly
+  5:19  warning  Unexpected console statement                           no-console
+  6:1   warning  Unexpected console statement                           no-console
 
-/repo/src/lib.ts
-  2:3   error    Missing return type on function  @typescript-eslint/explicit-function-return-type
-  8:5   warning  Unexpected console statement     no-console
-  12:1  error    Unexpected var                   no-var
+/tmp/tmp.JhurthOCBe/src/lib.js
+  1:1   error    Unexpected var, use let or const instead         no-var
+  2:5   warning  'flag' is never reassigned. Use 'const' instead  prefer-const
+  5:13  error    Expected { after 'if' condition                  curly
+  9:1   warning  Unexpected console statement                     no-console
 
-/repo/src/utils.ts
-  3:7   error    'helper' is assigned a value but never used  @typescript-eslint/no-unused-vars
-  18:1  error    Missing return type on function             @typescript-eslint/explicit-function-return-type
-  25:5  warning  Unexpected console statement                no-console
+/tmp/tmp.JhurthOCBe/src/middleware.js
+  1:1   error    Unexpected var, use let or const instead  no-var
+  6:18  error    Expected { after 'if' condition           curly
+  6:18  warning  Unexpected console statement              no-console
+  7:12  warning  Expected '===' and instead saw '=='       eqeqeq
 
-/repo/src/middleware.ts
-  1:1  error    Unexpected var                   no-var
-  10:3  error    Missing return type on function  @typescript-eslint/explicit-function-return-type
-  22:7  error    'x' is assigned a value but never used      @typescript-eslint/no-unused-vars
+/tmp/tmp.JhurthOCBe/src/utils.js
+  5:3   warning  Unexpected console statement              no-console
+  8:1   error    Unexpected var, use let or const instead  no-var
+  9:11  warning  Expected '===' and instead saw '=='       eqeqeq
 
-/repo/src/validators.ts
-  5:1  error    Missing return type on function             @typescript-eslint/explicit-function-return-type
-  12:5  warning  Unexpected console statement                no-console
-  18:1  error    Unexpected var                             no-var
+/tmp/tmp.JhurthOCBe/src/validators.js
+  1:5   warning  'patterns' is never reassigned. Use 'const' instead  prefer-const
+  2:1   error    Unexpected var, use let or const instead             no-var
+  5:13  warning  Expected '===' and instead saw '=='                  eqeqeq
+  5:20  error    Expected { after 'if' condition                      curly
+  6:33  error    Expected { after 'if' condition                      curly
+  6:33  warning  Unexpected console statement                         no-console
 
-✖ 17 problems (12 errors, 5 warnings)
+✖ 23 problems (10 errors, 13 warnings)
+  10 errors and 3 warnings potentially fixable with the `--fix` option.

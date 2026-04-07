@@ -1,4 +1,13 @@
 Failed to compile.
 
-./src/app/page.tsx:7:12
+./app/page.tsx:2:9
 Type error: Type 'string' is not assignable to type 'number'.
+
+[0m [90m 1 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mPage[39m() {[0m
+[0m[31m[1m>[22m[39m[90m 2 |[39m   [36mconst[39m count[33m:[39m number [33m=[39m [32m"3"[39m[0m
+[0m [90m   |[39m         [31m[1m^[22m[39m[0m
+[0m [90m 3 |[39m   [36mreturn[39m [33m<[39m[33mmain[39m[33m>[39m{count}[33m<[39m[33m/[39m[33mmain[33m>[39m[0m
+[0m [90m 4 |[39m }[0m
+[0m [90m 5 |[39m[0m
+
+Next.js build worker exited with code: 1 and signal: null
