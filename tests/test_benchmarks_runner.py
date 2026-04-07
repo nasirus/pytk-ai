@@ -75,9 +75,7 @@ raise SystemExit(1)
             plan = build_rtk_replay_plan(scenario, rtk_bin=str(fake_rtk))
             try:
                 self.assertEqual(plan.benchmark_mode, "rewrite-tree")
-                self.assertTrue(
-                    (plan.workdir / "tests" / "fixtures" / "user_data.py").exists()
-                )
+                self.assertTrue((plan.workdir / "src" / "jobs" / "worker.py").exists())
             finally:
                 plan.cleanup()
 
@@ -123,9 +121,11 @@ raise SystemExit(1)
 
         self.assertEqual(document["schema_version"], 2)
         self.assertEqual(document["rtk_version"], "rtk 9.9.9")
-        echo_row = next(
-            row for row in document["results"] if row["command"] == "echo test"
+        printf_row = next(
+            row
+            for row in document["results"]
+            if row["command"].startswith("printf '\\033[31mERROR\\033[0m build failed")
         )
-        self.assertEqual(echo_row["engine"], "rtk")
-        self.assertEqual(echo_row["status"], "ok")
-        self.assertEqual(echo_row["benchmark_mode"], "fallback-stub")
+        self.assertEqual(printf_row["engine"], "rtk")
+        self.assertEqual(printf_row["status"], "ok")
+        self.assertEqual(printf_row["benchmark_mode"], "rewrite-stub")
