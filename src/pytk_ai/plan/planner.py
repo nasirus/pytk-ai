@@ -288,8 +288,15 @@ def plan_command(command: str, excluded: Sequence[str] | None = None) -> Command
     managed = any(segment.managed for segment in planned_segments)
     changed = planned_command != trimmed
     filter_hint = next(
-        (segment.filter_hint for segment in planned_segments if segment.filter_hint),
-        infer_filter_hint(trimmed),
+        (
+            segment.filter_hint
+            for segment in planned_segments
+            if segment.managed and segment.filter_hint
+        ),
+        next(
+            (segment.filter_hint for segment in planned_segments if segment.filter_hint),
+            infer_filter_hint(trimmed),
+        ),
     )
     skip_reason = (
         None

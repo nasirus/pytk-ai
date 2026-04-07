@@ -46,6 +46,13 @@ class PlanPlannerTests(unittest.TestCase):
         self.assertTrue(plan.managed)
         self.assertEqual(plan.segments[1].skip_reason, "unsupported-command")
 
+    def test_plan_command_prefers_managed_filter_hint_in_compound_commands(self):
+        plan = plan_command("cd /workspace/project && git status")
+        self.assertTrue(plan.managed)
+        self.assertEqual(plan.filter_hint, "git")
+        self.assertEqual(plan.segments[0].filter_hint, "cd")
+        self.assertEqual(plan.segments[1].filter_hint, "git")
+
     def test_plan_command_respects_excluded_commands(self):
         plan = plan_command("git status", excluded=("git",))
         self.assertFalse(plan.managed)
