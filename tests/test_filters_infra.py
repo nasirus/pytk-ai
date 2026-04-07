@@ -237,16 +237,47 @@ apps        api          ClusterIP   10.96.10.10   <none>        8080/TCP   2d
         self.assertIn("aws ec2 describe-instances: 1 instances", result.output)
         self.assertIn("i-abc123 running t3.micro 10.0.1.5 (web)", result.output)
 
+    def test_aws_read_handles_empty_describe_instances(self):
+        result = filter_output(
+            "aws ec2 describe-instances --output json",
+            '{\n  "Reservations": []\n}\n',
+            "",
+            0,
+            plan=plan_command("aws ec2 describe-instances --output json"),
+        )
+        self.assertEqual(result.filter_name, "aws.read")
+        self.assertEqual(result.output, "aws ec2 describe-instances: 0 instances")
+
     def test_terraform_plan_strips_refresh_noise(self):
-        stdout = """Acquiring state lock. This may take a few moments...
-Refreshing state... [id=vpc-abc]
+        stdout = """null_resource.api: Refreshing state... [id=6927522921210075819]
+null_resource.web: Refreshing state... [id=430575008670822448]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+-/+ destroy and then create replacement
 
 Terraform will perform the following actions:
 
-  # aws_instance.web will be created
-  + resource \"aws_instance\" \"web\" {}
+  # null_resource.metrics will be created
+  + resource \"null_resource\" \"metrics\" {
+      + id       = (known after apply)
+      + triggers = {
+          + "version" = "1"
+        }
+    }
 
-Plan: 1 to add, 0 to change, 0 to destroy.
+  # null_resource.web must be replaced
+-/+ resource \"null_resource\" \"web\" {
+      ~ id       = \"430575008670822448\" -> (known after apply)
+      ~ triggers = { # forces replacement
+          + \"feature\"     = \"enabled\"
+          ~ \"version\"     = \"1\" -> \"2\"
+            # (1 unchanged element hidden)
+        }
+    }
+
+Plan: 2 to add, 0 to change, 1 to destroy.
 """
         result = filter_output(
             "terraform plan",
@@ -257,7 +288,9 @@ Plan: 1 to add, 0 to change, 0 to destroy.
         )
         self.assertEqual(result.filter_name, "terraform.plan")
         self.assertNotIn("Refreshing state", result.output)
-        self.assertIn("Plan: 1 to add, 0 to change, 0 to destroy.", result.output)
+        self.assertIn("Plan: 2 to add, 0 to change, 1 to destroy.", result.output)
+        self.assertIn("null_resource.metrics will be created", result.output)
+        self.assertIn("null_resource.web must be replaced", result.output)
 
     def test_terraform_validate_short_circuits_success(self):
         result = filter_output(
@@ -271,7 +304,13 @@ Plan: 1 to add, 0 to change, 0 to destroy.
         self.assertEqual(result.output, "terraform validate: ok (valid)")
 
     def test_infra_failures_keep_raw_output(self):
-        stderr = "Error: Unsupported block type\n  on main.tf line 7\n"
+        stderr = """Error: Unsupported block type
+
+  on main.tf line 2, in resource "null_resource" "broken":
+   2:   invalid_block {
+
+Blocks of type "invalid_block" are not expected here.
+"""
         result = filter_output(
             "terraform validate",
             "",

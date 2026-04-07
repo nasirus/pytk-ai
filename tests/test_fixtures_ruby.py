@@ -23,12 +23,17 @@ class FixturesRubyTests(unittest.TestCase):
     def test_rubocop_offenses(self):
         f, result = self._run("rubocop_offenses")
         self.assertEqual(result.filter_name, "rubocop")
-        self.assertIn("rubocop:", result.output)
-        self.assertIn("offenses", result.output)
+        self.assertIn("rubocop: 20 offenses in 6 files", result.output)
+        self.assertIn("app/controllers/api.rb (5)", result.output)
+        self.assertIn("Gemfile (4)", result.output)
+        self.assertIn("app/models/post.rb (2)", result.output)
+        self.assertIn("Style/Documentation", result.output)
+        self.assertIn("Lint/Syntax", result.output)
 
     def test_rspec_failures(self):
         f, result = self._run("rspec_failures")
         self.assertEqual(result.filter_name, "rspec")
-        self.assertIn("RSpec: 2 examples, 1 failure", result.output)
-        self.assertIn("User saves to database", result.output)
-        self.assertIn("expected: true", result.output)
+        self.assertIn("RSpec: 4 examples, 1 failure", result.output)
+        self.assertIn("Account builds the expected email address", result.output)
+        self.assertIn("./spec/models/account_spec.rb:16", result.output)
+        self.assertIn('expected: "ada@exmple.com"', result.output)

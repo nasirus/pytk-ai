@@ -38,9 +38,10 @@ class LiveSystemTests(unittest.TestCase):
         result = run_command("find . -name '*.py'", cwd=str(self.root))
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.filter_name, "search.find")
-        self.assertIn("3F 2D:", result.filtered_output)
-        self.assertIn("src/ app.py util.py", result.filtered_output)
-        self.assertIn("tests/ test_app.py", result.filtered_output)
+        self.assertEqual(
+            result.filtered_output,
+            "src/app.py\nsrc/util.py\ntests/test_app.py",
+        )
 
     def test_diff_direct_file_compare(self):
         before = self.root / "before.txt"

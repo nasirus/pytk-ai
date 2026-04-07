@@ -1,0 +1,51 @@
+pkg/server/server.go:16:16: Error return value of `fmt.Fprintf` is not checked (errcheck)
+    fmt.Fprintf(os.Stdout, "starting\n")
+               ^
+pkg/server/server.go:17:19: Error return value of `io.WriteString` is not checked (errcheck)
+    io.WriteString(os.Stdout, "ready\n")
+                  ^
+pkg/cache/cache.go:1:1: package-comments: should have a package comment (revive)
+package cache
+^
+pkg/cache/cache.go:5:1: exported: exported function Store should have comment or be unexported (revive)
+func Store(x int) int {
+^
+pkg/middleware/auth.go:1:1: package-comments: should have a package comment (revive)
+package middleware
+^
+pkg/middleware/auth.go:9:1: exported: exported function Validate should have comment or be unexported (revive)
+func Validate(token string) bool {
+^
+pkg/models/user.go:1:1: package-comments: should have a package comment (revive)
+package models
+^
+pkg/models/user.go:3:6: exported: exported type UserID should have comment or be unexported (revive)
+type UserID int
+     ^
+pkg/models/user.go:5:6: exported: exported type User should have comment or be unexported (revive)
+type User struct {
+     ^
+pkg/models/user.go:10:1: exported: exported method User.Rename should have comment or be unexported (revive)
+func (u *User) Rename(name string) {
+^
+pkg/server/server.go:9:6: exported: exported type Server should have comment or be unexported (revive)
+type Server struct{}
+     ^
+pkg/server/server.go:11:1: exported: exported function NewServer should have comment or be unexported (revive)
+func NewServer() *Server {
+^
+pkg/server/server.go:15:1: exported: exported method Server.Handle should have comment or be unexported (revive)
+func (sv *Server) Handle() error {
+^
+pkg/utils/helper.go:1:1: package-comments: should have a package comment (revive)
+package utils
+^
+pkg/utils/helper.go:5:1: exported: exported function Log should have comment or be unexported (revive)
+func Log(u string) {
+^
+pkg/utils/helper.go:9:1: exported: exported function Add should have comment or be unexported (revive)
+func Add(a, b int) int {
+^
+15 issues:
+* errcheck: 2
+* revive: 13

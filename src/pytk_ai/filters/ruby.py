@@ -11,6 +11,7 @@ from .generic import _combine_streams, filter_generic_output
 _RUBOCOP_RE = re.compile(
     r"^(?P<path>.+?):(?P<line>\d+):(?P<col>\d+):\s+"
     r"(?P<severity>[A-Z]):\s+"
+    r"(?:\[Correctable\]\s+)?"
     r"(?P<cop>[A-Za-z0-9/_]+):\s+"
     r"(?P<message>.+)$"
 )

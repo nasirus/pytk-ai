@@ -1,2 +1,6 @@
 Error: Unsupported block type
-  on main.tf line 7
+
+  on main.tf line 2, in resource "null_resource" "broken":
+   2:   invalid_block {
+
+Blocks of type "invalid_block" are not expected here.

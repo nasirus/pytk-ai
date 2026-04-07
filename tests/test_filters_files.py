@@ -212,6 +212,19 @@ src/app.py:14:    return main()
         self.assertEqual(result.output, "")
 
     def test_find_groups_paths_by_directory(self):
+        stdout = "\n".join(f"src/file_{index}.py" for index in range(12)) + "\n"
+        result = filter_output(
+            "find . -name '*.py'",
+            stdout,
+            "",
+            0,
+            plan=plan_command("find . -name '*.py'"),
+        )
+        self.assertEqual(result.filter_name, "search.find")
+        self.assertIn("12F 1D:", result.output)
+        self.assertIn("src/ file_0.py", result.output)
+
+    def test_find_four_short_results_fall_back_to_generic_output(self):
         stdout = """src/app.py
 src/lib/util.py
 tests/test_app.py
@@ -225,35 +238,50 @@ README.md
             plan=plan_command("find . -name '*.py'"),
         )
         self.assertEqual(result.filter_name, "search.find")
-        self.assertIn("4F 4D:", result.output)
-        self.assertIn("src/ app.py", result.output)
-        self.assertIn("src/lib/ util.py", result.output)
-        self.assertIn("./ README.md", result.output)
-        self.assertIn("ext: .py(3) .md(1)", result.output)
+        self.assertEqual(
+            result.output,
+            "src/app.py\nsrc/lib/util.py\ntests/test_app.py\nREADME.md",
+        )
+
+    def test_find_single_result_falls_back_to_generic_output(self):
+        stdout = "./tool_bash_analysis/reporting.py\n"
+        result = filter_output(
+            "find . -name 'reporting.py'",
+            stdout,
+            "",
+            0,
+            plan=plan_command("find . -name 'reporting.py'"),
+        )
+        self.assertEqual(result.filter_name, "search.find")
+        self.assertEqual(result.output, "./tool_bash_analysis/reporting.py")
+
+    def test_find_two_short_results_fall_back_to_generic_output(self):
+        stdout = "src/app.py\ntests/test_app.py\n"
+        result = filter_output(
+            "find . -name '*.py'",
+            stdout,
+            "",
+            0,
+            plan=plan_command("find . -name '*.py'"),
+        )
+        self.assertEqual(result.filter_name, "search.find")
+        self.assertEqual(result.output, "src/app.py\ntests/test_app.py")
 
     def test_compound_find_uses_managed_segment_command(self):
         command = "cd /workspace/project && find . -name '*.py'"
-        stdout = """src/app.py
-src/lib/util.py
-tests/test_app.py
-README.md
-"""
+        stdout = "\n".join(f"src/file_{index}.py" for index in range(12)) + "\n"
         result = filter_output(command, stdout, "", 0, plan=plan_command(command))
         self.assertEqual(result.filter_name, "search.find")
-        self.assertIn("4F 4D:", result.output)
-        self.assertIn("src/ app.py", result.output)
+        self.assertIn("12F 1D:", result.output)
+        self.assertIn("src/ file_0.py", result.output)
 
     def test_compound_find_with_trailing_semicolon_keeps_search_filter_name(self):
         command = "cd /workspace/project && find . -name '*.py';"
-        stdout = """src/app.py
-src/lib/util.py
-tests/test_app.py
-README.md
-"""
+        stdout = "\n".join(f"src/file_{index}.py" for index in range(12)) + "\n"
         result = filter_output(command, stdout, "", 0, plan=plan_command(command))
         self.assertEqual(result.filter_name, "search.find")
-        self.assertIn("4F 4D:", result.output)
-        self.assertIn("src/ app.py", result.output)
+        self.assertIn("12F 1D:", result.output)
+        self.assertIn("src/ file_0.py", result.output)
 
     def test_compound_find_with_true_guard_falls_back_to_generic(self):
         command = "cd /workspace/project && find missingdir -name '*.py' || true"
@@ -267,8 +295,7 @@ README.md
         stdout = "src/app.py\ntests/test_app.py\n"
         result = filter_output(command, stdout, "", 0, plan=plan_command(command))
         self.assertEqual(result.filter_name, "search.find")
-        self.assertIn("2F 2D:", result.output)
-        self.assertIn("src/ app.py", result.output)
+        self.assertEqual(result.output, "src/app.py\ntests/test_app.py")
 
     def test_find_with_redirected_error_and_true_guard_falls_back_to_generic(self):
         command = "find missingdir 2>/dev/null || true"

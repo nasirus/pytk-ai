@@ -31,5 +31,11 @@ class FixturesGoTests(unittest.TestCase):
     def test_golangci_lint(self):
         f, result = self._run("golangci_lint")
         self.assertEqual(result.filter_name, "golangci-lint")
-        self.assertIn("golangci-lint:", result.output)
-        self.assertIn("issues", result.output)
+        self.assertIn("golangci-lint: 16 issues in 5 files", result.output)
+        self.assertIn("Top linters: revive (14x), errcheck (2x)", result.output)
+        self.assertIn("pkg/server/server.go (5)", result.output)
+        self.assertIn("pkg/cache/cache.go (2)", result.output)
+        self.assertIn("pkg/models/user.go (4)", result.output)
+        self.assertIn(
+            "L16: [errcheck] Error return value of `fmt.Fprintf`", result.output
+        )

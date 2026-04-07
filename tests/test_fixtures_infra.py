@@ -54,25 +54,33 @@ class FixturesInfraTests(unittest.TestCase):
     def test_kubectl_pods_json(self):
         f, result = self._run("kubectl_pods_json")
         self.assertEqual(result.filter_name, f["filter_name"])
-        self.assertIn("kubectl pods: 2 pods", result.output)
-        self.assertIn("jobs/worker-456 Pending", result.output)
+        self.assertIn("kubectl pods: 13 pods", result.output)
+        self.assertIn("11 running, 1 pending, 1 failed", result.output)
+        self.assertIn("pytk-fixture/failed-shell Failed", result.output)
+        self.assertIn("pytk-fixture/pending-worker Pending", result.output)
 
     def test_kubectl_services(self):
         f, result = self._run("kubectl_services")
         self.assertEqual(result.filter_name, f["filter_name"])
-        self.assertIn("kubectl services: 2 services", result.output)
+        self.assertIn("kubectl services: 3 services", result.output)
+        self.assertIn("pytk-api ClusterIP [8080/TCP]", result.output)
+        self.assertIn("pytk-metrics NodePort [9090:30090/TCP]", result.output)
 
     def test_kubectl_pods_table(self):
         f, result = self._run("kubectl_pods_table")
         self.assertEqual(result.filter_name, f["filter_name"])
-        self.assertIn("kubectl pods: 3 pods", result.output)
-        self.assertIn("ops/cron-789 CrashLoopBackOff", result.output)
+        self.assertIn("kubectl pods: 13 pods", result.output)
+        self.assertIn("11 running, 1 pending, 1 failed", result.output)
+        self.assertIn("pytk-fixture/failed-shell StartError", result.output)
+        self.assertIn("pytk-fixture/pending-worker Pending", result.output)
 
     def test_terraform_plan(self):
         f, result = self._run("terraform_plan")
         self.assertEqual(result.filter_name, f["filter_name"])
         self.assertNotIn("Refreshing state", result.output)
-        self.assertIn("Plan: 1 to add, 0 to change, 0 to destroy.", result.output)
+        self.assertIn("Plan: 2 to add, 0 to change, 1 to destroy.", result.output)
+        self.assertIn("null_resource.metrics will be created", result.output)
+        self.assertIn("null_resource.web must be replaced", result.output)
 
     def test_terraform_validate_ok(self):
         f, result = self._run("terraform_validate_ok")
@@ -83,15 +91,17 @@ class FixturesInfraTests(unittest.TestCase):
         f, result = self._run("terraform_validate_fail")
         self.assertEqual(result.filter_name, "terraform.validate")
         self.assertIn("Unsupported block type", result.output)
+        self.assertIn(
+            'Blocks of type "invalid_block" are not expected here.', result.output
+        )
 
     def test_aws_ec2(self):
         f, result = self._run("aws_ec2")
         self.assertEqual(result.filter_name, f["filter_name"])
-        self.assertIn("1 instances", result.output)
-        self.assertIn("i-abc123", result.output)
+        self.assertIn("0 instances", result.output)
 
     def test_success_fixtures_reduce_tokens(self):
-        for name in ("docker_ps", "docker_images", "terraform_plan", "aws_ec2"):
+        for name in ("docker_ps", "docker_images", "terraform_plan"):
             with self.subTest(name=name):
                 f, result = self._run(name)
                 self.assertLess(len(result.output), len(f["stdout"]))

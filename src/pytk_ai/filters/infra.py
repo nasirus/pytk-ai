@@ -17,7 +17,13 @@ _AWS_READ_RE = re.compile(
     re.IGNORECASE,
 )
 _TERRAFORM_NOISE_RE = re.compile(
-    r"^(?:Refreshing state.*|Acquiring state lock.*|Releasing state lock.*|\s*#.*unchanged|\s*)$"
+    r"^(?:"
+    r"(?:[^:]+:\s+)?Refreshing state.*|"
+    r"Acquiring state lock.*|"
+    r"Releasing state lock.*|"
+    r"\s*#.*unchanged|"
+    r"\s*"
+    r")$"
 )
 
 

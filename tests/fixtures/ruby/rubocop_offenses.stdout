@@ -1,11 +1,20 @@
-app/models/user.rb:10:5: C: Layout/TrailingWhitespace: Trailing whitespace detected.
-app/models/user.rb:12:3: W: Lint/UselessAssignment: Useless assignment to variable - x.
-app/models/post.rb:5:1: C: Naming/VariableName: Use snake_case for variable names.
-app/models/post.rb:15:3: W: Lint/UselessAssignment: Useless assignment to variable - value.
-app/controllers/api.rb:8:5: C: Layout/LineLength: Line is too long.
-app/controllers/api.rb:22:1: W: Lint/AssignmentInCondition: Avoid assignment in conditional.
-app/helpers/formatter.rb:10:3: C: Style/RedundantReturn: Redundant return detected.
-app/helpers/formatter.rb:18:5: W: Lint/UselessAssignment: Useless assignment to variable - temp.
-config/routes.rb:12:1: C: Layout/TrailingWhitespace: Trailing whitespace detected.
-spec/models/user_spec.rb:5:3: W: Lint/UselessAssignment: Useless assignment to variable - result.
-lib/utils.rb:20:5: C: Style/RedundantReturn: Redundant return detected.
+/tmp/tmp.0JPQIVyM5K/Gemfile:1:1: C: [Correctable] Style/FrozenStringLiteralComment: Missing frozen string literal comment.
+/tmp/tmp.0JPQIVyM5K/Gemfile:1:8: C: [Correctable] Style/StringLiterals: Prefer single-quoted strings when you don't need string interpolation or special symbols.
+/tmp/tmp.0JPQIVyM5K/Gemfile:3:5: C: [Correctable] Style/StringLiterals: Prefer single-quoted strings when you don't need string interpolation or special symbols.
+/tmp/tmp.0JPQIVyM5K/Gemfile:3:16: C: [Correctable] Style/StringLiterals: Prefer single-quoted strings when you don't need string interpolation or special symbols.
+/tmp/tmp.0JPQIVyM5K/app/controllers/api.rb:1:1: C: Style/Documentation: Missing top-level documentation comment for `class ApiController`.
+/tmp/tmp.0JPQIVyM5K/app/controllers/api.rb:1:1: C: [Correctable] Style/FrozenStringLiteralComment: Missing frozen string literal comment.
+/tmp/tmp.0JPQIVyM5K/app/controllers/api.rb:3:5: W: [Correctable] Lint/UselessAssignment: Useless assignment to variable - `result`.
+/tmp/tmp.0JPQIVyM5K/app/controllers/api.rb:4:5: C: [Correctable] Style/GuardClause: Use a guard clause (`return unless result = 2`) instead of wrapping the code inside a conditional expression.
+/tmp/tmp.0JPQIVyM5K/app/controllers/api.rb:4:15: W: [Correctable] Lint/AssignmentInCondition: Use `==` if you meant to do a comparison or wrap the expression in parentheses to indicate you meant to assign in a condition.
+/tmp/tmp.0JPQIVyM5K/app/models/post.rb:1:7: F: Lint/Syntax: class or module name must be a constant literal (Using Ruby 2.7 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)
+/tmp/tmp.0JPQIVyM5K/app/models/post.rb:8:1: F: Lint/Syntax: unexpected token kEND (Using Ruby 2.7 parser; configure using `TargetRubyVersion` parameter, under `AllCops`)
+/tmp/tmp.0JPQIVyM5K/app/models/user.rb:1:1: C: Style/Documentation: Missing top-level documentation comment for `class User`.
+/tmp/tmp.0JPQIVyM5K/app/models/user.rb:1:1: C: [Correctable] Style/FrozenStringLiteralComment: Missing frozen string literal comment.
+/tmp/tmp.0JPQIVyM5K/app/models/user.rb:3:17: C: [Correctable] Layout/TrailingWhitespace: Trailing whitespace detected.
+/tmp/tmp.0JPQIVyM5K/app/models/user.rb:4:5: W: [Correctable] Lint/UselessAssignment: Useless assignment to variable - `x`.
+/tmp/tmp.0JPQIVyM5K/lib/utils.rb:1:1: C: Style/Documentation: Missing top-level documentation comment for `module Utils`.
+/tmp/tmp.0JPQIVyM5K/lib/utils.rb:1:1: C: [Correctable] Style/FrozenStringLiteralComment: Missing frozen string literal comment.
+/tmp/tmp.0JPQIVyM5K/lib/utils.rb:3:5: C: [Correctable] Style/RedundantReturn: Redundant `return` detected.
+/tmp/tmp.0JPQIVyM5K/spec/models/user_spec.rb:1:1: C: [Correctable] Style/FrozenStringLiteralComment: Missing frozen string literal comment.
+/tmp/tmp.0JPQIVyM5K/spec/models/user_spec.rb:2:6: C: [Correctable] Style/StringLiterals: Prefer single-quoted strings when you don't need string interpolation or special symbols.

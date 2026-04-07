@@ -61,8 +61,8 @@ RuntimeError: boom
         self.assertIn("RuntimeError: boom", result.output)
 
     def test_rubocop_groups_offenses_by_file(self):
-        stdout = """app/models/user.rb:10:5: C: Layout/TrailingWhitespace: Trailing whitespace detected.
-app/models/user.rb:12:3: W: Lint/UselessAssignment: Useless assignment to variable - x.
+        stdout = """/tmp/demo/app/models/user.rb:1:1: C: Style/Documentation: Missing top-level documentation comment for `class User`.
+/tmp/demo/app/models/user.rb:4:5: W: [Correctable] Lint/UselessAssignment: Useless assignment to variable - `x`.
 """
         result = filter_output(
             "rubocop",
@@ -73,7 +73,9 @@ app/models/user.rb:12:3: W: Lint/UselessAssignment: Useless assignment to variab
         )
         self.assertEqual(result.filter_name, "rubocop")
         self.assertIn("rubocop: 2 offenses in 1 files", result.output)
-        self.assertIn("Layout/TrailingWhitespace", result.output)
+        self.assertIn("app/models/user.rb (2)", result.output)
+        self.assertIn("Style/Documentation", result.output)
+        self.assertIn("Lint/UselessAssignment", result.output)
 
     def test_rubocop_json_reports_correctable_counts(self):
         stdout = """{

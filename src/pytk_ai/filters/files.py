@@ -542,6 +542,12 @@ def _summarize_find_rtk_style(text: str) -> str | None:
     return "\n".join(lines)
 
 
+def _prefer_shorter_summary(summary: str | None, fallback: str) -> str:
+    if summary is None:
+        return fallback
+    return summary if len(summary) < len(fallback) else fallback
+
+
 def _summarize_tree(text: str) -> str | None:
     lines = [line.rstrip() for line in text.splitlines() if line.strip()]
     if not lines:
@@ -860,10 +866,9 @@ def filter_file_output(
             "0 matches" if not combined.strip() else generic.output
         )
     elif command_name == "find":
-        text = (
-            _summarize_find_rtk_style(combined)
-            or _summarize_find(combined)
-            or generic.output
+        text = _prefer_shorter_summary(
+            _summarize_find_rtk_style(combined) or _summarize_find(combined),
+            generic.output,
         )
     elif command_name == "tree":
         text = _summarize_tree(combined) or generic.output

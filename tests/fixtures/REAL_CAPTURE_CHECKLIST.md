@@ -58,9 +58,9 @@ Capture flow:
 - [x] `tsc --noEmit` -> `build/tsc_errors`
 - [x] `next build` -> `build/next_build_ok`, `build/next_build_fail`
 - [x] `go test ./...` -> `go/go_test_fail`
-- [ ] `golangci-lint run` -> `go/golangci_lint`
-- [ ] `rubocop` -> `ruby/rubocop_offenses`
-- [ ] `rspec` -> `ruby/rspec_failures`
+- [x] `golangci-lint run` -> `go/golangci_lint`
+- [x] `rubocop` -> `ruby/rubocop_offenses`
+- [x] `rspec` -> `ruby/rspec_failures`
 
 ## P2: Service-backed or heavier environment setup
 
@@ -68,12 +68,12 @@ Capture flow:
 - [x] `docker images` -> `infra/docker_images`
 - [x] `docker logs web` -> `infra/docker_logs`
 - [x] `docker compose ps` -> `infra/docker_compose_ps`
-- [ ] `kubectl get pods -A` -> `infra/kubectl_pods_table`
-- [ ] `kubectl get pods -A -o json` -> `infra/kubectl_pods_json`
-- [ ] `kubectl get services` -> `infra/kubectl_services`
-- [ ] `terraform plan` -> `infra/terraform_plan`
-- [ ] `terraform validate` -> `infra/terraform_validate_ok`, `infra/terraform_validate_fail`
-- [ ] `aws ec2 describe-instances --output json` -> `infra/aws_ec2`
+- [x] `kubectl get pods -A` -> `infra/kubectl_pods_table`
+- [x] `kubectl get pods -A -o json` -> `infra/kubectl_pods_json`
+- [x] `kubectl get services` -> `infra/kubectl_services`
+- [x] `terraform plan` -> `infra/terraform_plan`
+- [x] `terraform validate` -> `infra/terraform_validate_ok`, `infra/terraform_validate_fail`
+- [x] `aws ec2 describe-instances --output json` -> `infra/aws_ec2`
 
 ## Secondary: Fixture dirs not covered by `tests/test_fixtures_*.py`
 
