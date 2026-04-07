@@ -52,8 +52,16 @@ class FixturesGitTests(unittest.TestCase):
 
     def test_pull_fastforward(self):
         f, result = self._run("pull_fastforward")
+        match = re.search(
+            r"(\d+)\s+files? changed(?:,\s+(\d+)\s+insertions?\(\+\))?(?:,\s+(\d+)\s+deletions?\(-\))?",
+            f["stdout"],
+        )
         self.assertEqual(result.filter_name, "git.pull")
-        self.assertEqual(result.output, "ok 1 files +6 -2")
+        self.assertIsNotNone(match)
+        self.assertEqual(
+            result.output,
+            f"ok {match.group(1)} files +{match.group(2) or '0'} -{match.group(3) or '0'}",
+        )
 
     def test_branch_vv(self):
         f, result = self._run("branch_vv")

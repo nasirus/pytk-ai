@@ -1,4 +1,8 @@
-Updating abc1234..def5678
+From /tmp/tmp.2lQHPuhZwB/remote
+   ab1367e..1564f84  main       -> origin/main
+Updating ab1367e..1564f84
 Fast-forward
- src/app.py | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ docs/cli.md            | 2 ++
+ src/pytk_ai/runner.py  | 5 ++++-
+ tests/test_live_git.py | 3 ++-
+ 3 files changed, 8 insertions(+), 2 deletions(-)
