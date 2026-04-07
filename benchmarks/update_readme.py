@@ -10,6 +10,8 @@ import argparse
 import json
 from pathlib import Path
 
+from .scenarios import discover_scenarios
+
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 README_PATH = Path(__file__).resolve().parents[1] / "README.md"
 START_MARKER = "<!-- BENCHMARK-START -->"
@@ -27,6 +29,26 @@ def load_results_document(results_path: Path) -> dict:
     if not isinstance(results, list):
         raise ValueError("benchmark results must include a results array")
     return document
+
+
+def validate_results_coverage(document: dict) -> None:
+    expected = {(scenario.category, scenario.name) for scenario in discover_scenarios()}
+    actual = {(row["category"], row["name"]) for row in document["results"]}
+
+    missing = expected - actual
+    if not missing:
+        return
+
+    missing_categories = sorted({category for category, _ in missing})
+    preview = ", ".join(missing_categories[:5])
+    if len(missing_categories) > 5:
+        preview += ", ..."
+    raise ValueError(
+        "benchmark results are partial: "
+        f"missing {len(missing)} scenarios across {len(missing_categories)} categories "
+        f"({preview}). Run `python -m benchmarks.runner` without `--category`, "
+        "or pass `--allow-partial` if the truncated README output is intentional."
+    )
 
 
 def _truncate_command(command: str, limit: int = 40) -> str:
@@ -248,6 +270,11 @@ def main() -> None:
     parser.add_argument(
         "--results", type=str, default=None, help="path to results JSON"
     )
+    parser.add_argument(
+        "--allow-partial",
+        action="store_true",
+        help="allow updating README from a partial benchmark results file",
+    )
     args = parser.parse_args()
 
     results_path = Path(args.results) if args.results else RESULTS_DIR / "latest.json"
@@ -256,6 +283,8 @@ def main() -> None:
         return
 
     document = load_results_document(results_path)
+    if not args.allow_partial:
+        validate_results_coverage(document)
     tables = format_benchmark_tables(document)
 
     if args.dry_run:

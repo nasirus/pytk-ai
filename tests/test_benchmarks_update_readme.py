@@ -2,8 +2,13 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
-from benchmarks.update_readme import format_benchmark_tables, load_results_document
+from benchmarks.update_readme import (
+    format_benchmark_tables,
+    load_results_document,
+    validate_results_coverage,
+)
 
 
 class BenchmarkReadmeFormattingTests(unittest.TestCase):
@@ -91,3 +96,36 @@ class BenchmarkReadmeFormattingTests(unittest.TestCase):
             "| git/status_dirty | `git status` | 100 | 30 | 70.0% | 20 | 80.0% | RTK +10.0pp |",
             table,
         )
+
+    def test_validate_results_coverage_rejects_partial_documents(self):
+        document = {
+            "schema_version": 2,
+            "token_estimator": "cl100k_base",
+            "results": [
+                {
+                    "engine": "pytk",
+                    "status": "ok",
+                    "benchmark_mode": "fixture",
+                    "category": "files",
+                    "name": "find_results",
+                    "command": "find . -name '*.py'",
+                    "rewritten_command": "find . -name '*.py'",
+                    "filter_name": "search.find",
+                    "raw_tokens": 10,
+                    "filtered_tokens": 5,
+                    "saved_tokens": 5,
+                    "reduction_pct": 50.0,
+                }
+            ],
+        }
+
+        fake_scenarios = [
+            mock.Mock(category="files", name="find_results"),
+            mock.Mock(category="git", name="status_dirty"),
+        ]
+        with mock.patch(
+            "benchmarks.update_readme.discover_scenarios",
+            return_value=fake_scenarios,
+        ):
+            with self.assertRaisesRegex(ValueError, "benchmark results are partial"):
+                validate_results_coverage(document)
