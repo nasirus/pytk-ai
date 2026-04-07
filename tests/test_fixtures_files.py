@@ -1,3 +1,4 @@
+import re
 import unittest
 
 try:
@@ -35,24 +36,48 @@ class FixturesFilesTests(unittest.TestCase):
     def test_find_results(self):
         f, result = self._run("find_results")
         self.assertEqual(result.filter_name, "search.find")
-        self.assertIn("40F 13D:", result.output)
-        self.assertIn("./ README.md", result.output)
-        self.assertIn("ext: .py(39) .md(1)", result.output)
+        self.assertIn("13F 9D:", result.output)
+        self.assertIn("config/ settings.py", result.output)
+        self.assertIn("src/api/ auth.py router.py", result.output)
+        self.assertIn("tests/unit/ test_auth.py test_jobs.py", result.output)
+        self.assertIn("scripts/ migrate.py setup.py", result.output)
 
     def test_tree_output(self):
         f, result = self._run("tree_output")
         self.assertEqual(result.filter_name, "files.tree")
-        self.assertIn("2 directories, 3 files", result.output)
+        self.assertIn("tree: 10 directories, 12 files", result.output)
+        self.assertIn("├── README.md", result.output)
         self.assertIn("├── src", result.output)
+        self.assertIn("... +", result.output)
 
     def test_wc_multi(self):
         f, result = self._run("wc_multi")
         self.assertEqual(result.filter_name, "files.wc")
         self.assertIn("wc total:", result.output)
-        self.assertIn("500 lines", result.output)
+        self.assertIn("268 lines", result.output)
+        self.assertIn("src/app.py: 202 lines, 347 words, 3114 bytes", result.output)
+        self.assertIn(
+            "tests/test_app.py: 66 lines, 126 words, 1237 bytes", result.output
+        )
 
     def test_diff_unified(self):
         f, result = self._run("diff_unified")
+        add_count = sum(
+            1
+            for line in f["stdout"].splitlines()
+            if line.startswith("+") and not line.startswith("+++")
+        )
+        delete_count = sum(
+            1
+            for line in f["stdout"].splitlines()
+            if line.startswith("-") and not line.startswith("---")
+        )
+        label = re.search(r"^\+\+\+ (\S+)", f["stdout"], re.MULTILINE)
         self.assertEqual(result.filter_name, "files.diff")
-        self.assertIn("b.txt (+2/-1)", result.output)
-        self.assertIn("+ new", result.output)
+        self.assertIsNotNone(label)
+        self.assertIn(
+            f"{label.group(1)} (+{add_count}/-{delete_count})",
+            result.output,
+        )
+        self.assertIn("+ line 2 updated", result.output)
+        self.assertIn("... +", result.output)

@@ -1,8 +1,24 @@
 .
+├── README.md
+├── config
+│   └── settings.py
+├── docs
+│   └── runbook.md
+├── pyproject.toml
+├── scripts
+│   └── setup.sh
 ├── src
+│   ├── __init__.py
+│   ├── api
+│   │   └── router.py
 │   ├── app.py
-│   └── lib.py
+│   └── jobs
+│       └── worker.py
 └── tests
-    └── test_app.py
+    ├── integration
+    │   └── test_api.py
+    ├── test_main.py
+    └── unit
+        └── test_jobs.py
 
-2 directories, 3 files
+10 directories, 12 files

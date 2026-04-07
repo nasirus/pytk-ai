@@ -27,13 +27,13 @@ Capture flow:
 - [x] `git commit -m "Add compact filter"` -> `git/commit_success`
 - [x] `git pull` -> `git/pull_fastforward`
 - [x] `rg main` -> `files/rg_matches`
-- [ ] `rg [ src` -> `files/rg_error`
-- [ ] `find . -name '*.py'` -> `files/find_results`
-- [ ] `tree` -> `files/tree_output`
-- [ ] `wc src/app.py tests/test_app.py` -> `files/wc_multi`
-- [ ] `diff -u a.txt b.txt` -> `files/diff_unified`
-- [ ] `ls -la` -> `system/ls_la`
-- [ ] `cat missing.txt` -> `system/cat_missing`
+- [x] `rg [ src` -> `files/rg_error`
+- [x] `find . -name '*.py'` -> `files/find_results`
+- [x] `tree` -> `files/tree_output`
+- [x] `wc src/app.py tests/test_app.py` -> `files/wc_multi`
+- [x] `diff -u a.txt b.txt` -> `files/diff_unified`
+- [x] `ls -la` -> `system/ls_la`
+- [x] `cat missing.txt` -> `system/cat_missing`
 - [ ] `cat tailwind.config.js` -> `system/cat_tailwind`
 - [ ] `tail server.log` -> `system/tail_repeated`
 - [ ] `ruff check .` -> `python/ruff_check`

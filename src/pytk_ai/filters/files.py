@@ -690,7 +690,7 @@ def _summarize_diff(text: str) -> str | None:
     result: list[str] = []
 
     def clean_label(label: str) -> str:
-        return label.removeprefix("a/").removeprefix("b/")
+        return label.split("\t", 1)[0].removeprefix("a/").removeprefix("b/")
 
     def flush() -> None:
         nonlocal current_file, added, removed, changes

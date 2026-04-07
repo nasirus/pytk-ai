@@ -1,14 +1,15 @@
-total 48
-drwxr-xr-x  15 user staff  480 Jan  1 12:00 .
-drwxr-xr-x   5 user staff  160 Jan  1 12:00 ..
-drwxr-xr-x  12 user staff  384 Jan  1 12:00 .git
-drwxr-xr-x   3 user staff   96 Jan  1 12:00 .vscode
-drwxr-xr-x   4 user staff  128 Jan  1 12:00 node_modules
-drwxr-xr-x   8 user staff  256 Jan  1 12:00 src
-drwxr-xr-x   3 user staff   96 Jan  1 12:00 tests
--rw-r--r--   1 user staff 1234 Jan  1 12:00 Cargo.toml
--rw-r--r--   1 user staff 5678 Jan  1 12:00 README.md
--rw-r--r--   1 user staff  456 Jan  1 12:00 setup.py
-lrwxr-xr-x   1 user staff   12 Jan  1 12:00 link -> target
-drwxr-xr-x   5 user staff  160 Jan  1 12:00 __pycache__
--rw-r--r--   1 user staff  100 Jan  1 12:00 .gitignore
+total 52
+drwx------  9 nasirus nasirus 4096 Apr  7 12:32 .
+drwxrwxrwt 55 root    root    4096 Apr  7 12:32 ..
+drwxr-xr-x  7 nasirus nasirus 4096 Apr  7 12:32 .git
+drwxr-xr-x  2 nasirus nasirus 4096 Apr  7 12:32 .vscode
+-rw-r--r--  1 nasirus nasirus   49 Apr  7 12:32 Cargo.toml
+-rw-r--r--  1 nasirus nasirus   26 Apr  7 12:32 README.md
+drwxr-xr-x  2 nasirus nasirus 4096 Apr  7 12:32 __pycache__
+drwxr-xr-x  2 nasirus nasirus 4096 Apr  7 12:32 docs
+lrwxrwxrwx  1 nasirus nasirus    9 Apr  7 12:32 latest -> README.md
+drwxr-xr-x  2 nasirus nasirus 4096 Apr  7 12:32 node_modules
+-rw-r--r--  1 nasirus nasirus   41 Apr  7 12:32 pyproject.toml
+-rw-r--r--  1 nasirus nasirus   15 Apr  7 12:32 setup.py
+drwxr-xr-x  2 nasirus nasirus 4096 Apr  7 12:32 src
+drwxr-xr-x  2 nasirus nasirus 4096 Apr  7 12:32 tests

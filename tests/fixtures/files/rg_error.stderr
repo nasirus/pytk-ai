@@ -1,4 +1,4 @@
-regex parse error:
-    [
-    ^
+rg: regex parse error:
+    (?:[)
+       ^
 error: unclosed character class
