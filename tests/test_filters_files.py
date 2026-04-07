@@ -100,6 +100,117 @@ tests/test_app.py:3:from src.app import main
         self.assertIn("regex parse error", result.output)
         self.assertIn("unclosed character class", result.output)
 
+    def test_compound_grep_uses_managed_segment_command(self):
+        command = "cd /workspace/project && grep -n 'def ' src/app.py"
+        stdout = """src/app.py:10:def main():
+src/app.py:14:    return main()
+"""
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "search.grep")
+        self.assertIn("2 matches in 1 files", result.output)
+        self.assertIn("src/app.py (2)", result.output)
+
+    def test_plain_grep_still_uses_search_filter_name(self):
+        stdout = """src/app.py:10:def main():
+src/app.py:14:    return main()
+"""
+        result = filter_output(
+            "grep -n 'def ' src/app.py",
+            stdout,
+            "",
+            0,
+            plan=plan_command("grep -n 'def ' src/app.py"),
+        )
+        self.assertEqual(result.filter_name, "search.grep")
+        self.assertIn("2 matches in 1 files", result.output)
+
+    def test_plain_grep_with_trailing_semicolon_keeps_search_filter_name(self):
+        stdout = """src/app.py:10:def main():
+src/app.py:14:    return main()
+"""
+        command = "grep -n 'def ' src/app.py;"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "search.grep")
+        self.assertIn("2 matches in 1 files", result.output)
+
+    def test_grep_with_true_guard_keeps_search_filter_name(self):
+        stdout = """src/app.py:10:def main():
+src/app.py:14:    return main()
+"""
+        command = "grep -n 'def ' src/app.py || true"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "search.grep")
+        self.assertIn("2 matches in 1 files", result.output)
+
+    def test_grep_no_matches_with_true_guard_reports_zero_matches(self):
+        command = "grep -n 'def ' src/app.py || true"
+        result = filter_output(command, "", "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "search.grep")
+        self.assertEqual(result.output, "0 matches")
+
+    def test_grep_with_redirected_error_and_true_guard_falls_back_to_generic(self):
+        command = "grep foo missing.txt 2>/dev/null || true"
+        result = filter_output(command, "", "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertEqual(result.output, "")
+
+    def test_relative_cd_prefix_with_stdout_falls_back_to_generic(self):
+        command = "cd repo && grep -n 'def ' src/app.py"
+        stdout = "/workspace/project\nsrc/app.py:10:def main()\n"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertEqual(result.output, "/workspace/project\nsrc/app.py:10:def main()")
+
+    def test_grep_with_non_noop_or_tail_falls_back_to_generic(self):
+        command = "grep -n 'def ' src/app.py || echo nope"
+        stdout = "src/app.py:10:def main()\nnope\n"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertEqual(result.output, "src/app.py:10:def main()\nnope")
+
+    def test_compound_grep_with_trailing_command_falls_back_to_generic(self):
+        command = "cd /workspace/project && grep -n 'def ' src/app.py && echo done"
+        stdout = "src/app.py:10:def main()\ndone\n"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertEqual(result.output, "src/app.py:10:def main()\ndone")
+
+    def test_piped_grep_falls_back_to_generic(self):
+        command = "grep -n 'def ' src/app.py | head -n 1"
+        stdout = "src/app.py:10:def main()\n"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertEqual(result.output, "src/app.py:10:def main()")
+
+    def test_semicolon_cd_prefix_falls_back_to_generic(self):
+        command = "cd /missing; grep -n 'def ' src/app.py"
+        stdout = "src/app.py:10:def main()\n"
+        stderr = "bash: line 1: cd: /missing: No such file or directory\n"
+        result = filter_output(command, stdout, stderr, 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertIn("cd: /missing", result.output)
+        self.assertIn("src/app.py:10:def main()", result.output)
+
+    def test_failed_cd_and_grep_falls_back_to_generic(self):
+        command = "cd /missing && grep -n 'def ' src/app.py"
+        stderr = "bash: line 1: cd: /missing: No such file or directory\n"
+        result = filter_output(command, "", stderr, 1, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertIn("cd: /missing", result.output)
+
+    def test_cd_dash_prefix_falls_back_to_generic(self):
+        command = "cd - && grep -n 'def ' src/app.py"
+        stdout = "/workspace/previous\nsrc/app.py:10:def main()\n"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertEqual(result.output, "/workspace/previous\nsrc/app.py:10:def main()")
+
+    def test_cd_with_redirect_prefix_falls_back_to_generic(self):
+        command = "cd /missing 2>/dev/null && grep -n 'def ' src/app.py"
+        result = filter_output(command, "", "", 1, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertEqual(result.output, "")
+
     def test_find_groups_paths_by_directory(self):
         stdout = """src/app.py
 src/lib/util.py
@@ -120,6 +231,72 @@ README.md
         self.assertIn("./ README.md", result.output)
         self.assertIn("ext: .py(3) .md(1)", result.output)
 
+    def test_compound_find_uses_managed_segment_command(self):
+        command = "cd /workspace/project && find . -name '*.py'"
+        stdout = """src/app.py
+src/lib/util.py
+tests/test_app.py
+README.md
+"""
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "search.find")
+        self.assertIn("4F 4D:", result.output)
+        self.assertIn("src/ app.py", result.output)
+
+    def test_compound_find_with_trailing_semicolon_keeps_search_filter_name(self):
+        command = "cd /workspace/project && find . -name '*.py';"
+        stdout = """src/app.py
+src/lib/util.py
+tests/test_app.py
+README.md
+"""
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "search.find")
+        self.assertIn("4F 4D:", result.output)
+        self.assertIn("src/ app.py", result.output)
+
+    def test_compound_find_with_true_guard_falls_back_to_generic(self):
+        command = "cd /workspace/project && find missingdir -name '*.py' || true"
+        stderr = "find: 'missingdir': No such file or directory\n"
+        result = filter_output(command, "", stderr, 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertIn("find: 'missingdir': No such file or directory", result.output)
+
+    def test_find_with_true_guard_keeps_search_filter_name(self):
+        command = "find . -name '*.py' || true"
+        stdout = "src/app.py\ntests/test_app.py\n"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "search.find")
+        self.assertIn("2F 2D:", result.output)
+        self.assertIn("src/ app.py", result.output)
+
+    def test_find_with_redirected_error_and_true_guard_falls_back_to_generic(self):
+        command = "find missingdir 2>/dev/null || true"
+        result = filter_output(command, "", "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertEqual(result.output, "")
+
+    def test_compound_find_with_trailing_command_falls_back_to_generic(self):
+        command = "cd /workspace/project && find . -name '*.py' && echo done"
+        stdout = "src/app.py\ntests/test_app.py\ndone\n"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertEqual(result.output, "src/app.py\ntests/test_app.py\ndone")
+
+    def test_failed_cd_and_find_falls_back_to_generic(self):
+        command = "cd /missing && find . -name '*.py'"
+        stderr = "bash: line 1: cd: /missing: No such file or directory\n"
+        result = filter_output(command, "", stderr, 1, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "generic")
+        self.assertIn("cd: /missing", result.output)
+
+    def test_pytk_read_with_true_guard_preserves_read_window(self):
+        command = "pytk-ai read demo.py --tail-lines 1 || true"
+        stdout = "a\nb\nc\n"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "read")
+        self.assertEqual(result.output, "c")
+
     def test_tree_extracts_summary_and_keeps_shape(self):
         stdout = """.\n├── src\n│   ├── app.py\n│   └── lib.py\n└── tests\n    └── test_app.py\n\n2 directories, 3 files\n"""
         result = filter_output("tree", stdout, "", 0, plan=plan_command("tree"))
@@ -127,6 +304,13 @@ README.md
         self.assertIn("2 directories, 3 files", result.output)
         self.assertIn("├── src", result.output)
         self.assertNotIn("\n.\n", f"\n{result.output}\n")
+
+    def test_tree_with_true_guard_keeps_tree_filter_name(self):
+        stdout = """.\n├── src\n└── tests\n\n2 directories, 0 files\n"""
+        command = "tree || true"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "files.tree")
+        self.assertIn("2 directories, 0 files", result.output)
 
     def test_wc_summarizes_totals_and_files(self):
         stdout = """  10  30 200 src/app.py
@@ -170,6 +354,13 @@ README.md
         )
         self.assertEqual(result.filter_name, "files.wc")
         self.assertEqual(result.output, "10  30 src/app.py")
+
+    def test_wc_with_true_guard_keeps_wc_filter_name(self):
+        stdout = "  10 demo.py\n"
+        command = "wc -l demo.py || true"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "files.wc")
+        self.assertEqual(result.output, "wc demo.py: 10 lines")
 
     def test_diff_summarizes_unified_patch(self):
         stdout = """--- a.txt
@@ -222,6 +413,18 @@ README.md
         )
         self.assertEqual(result.filter_name, "files.diff")
         self.assertEqual(result.output, "[ok] Files are identical")
+
+    def test_diff_with_true_guard_keeps_diff_filter_name(self):
+        stdout = """--- a.txt
++++ b.txt
+@@ -1 +1 @@
+-old
++new
+"""
+        command = "diff -u a.txt b.txt || true"
+        result = filter_output(command, stdout, "", 0, plan=plan_command(command))
+        self.assertEqual(result.filter_name, "files.diff")
+        self.assertIn("b.txt (+1/-1)", result.output)
 
     def test_env_prefixed_and_absolute_commands_use_file_filters(self):
         grep_result = filter_output(

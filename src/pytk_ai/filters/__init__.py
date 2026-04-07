@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import re
+import shlex
+
 from ..models import FilterResult, FilterUsageMode
 from ..plan import CommandPlan
-from ..plan.normalize import infer_filter_hint
+from ..plan.models import PlanSegment
+from ..plan.normalize import infer_filter_hint, strip_trailing_redirect_suffix
 from .base import finalize_filter_result
 from .build import (
     filter_cargo_output,
@@ -69,6 +73,110 @@ _FILTERS = {
     "wget": filter_github_api_output,
 }
 
+_CD_FAILURE_RE = re.compile(r"(?m)^(?:[^:\n]+:\s+)*cd:\s")
+
+
+def _is_cdpath_safe_target(path: str) -> bool:
+    return path in {".", ".."} or path.startswith(("/", "./", "../", "~"))
+
+
+def _is_safe_file_filter_prefix(segment: PlanSegment) -> bool:
+    if segment.managed or segment.filter_hint != "cd" or segment.operator != "&&":
+        return False
+    try:
+        tokens = shlex.split(segment.original)
+    except ValueError:
+        return False
+    return (
+        len(tokens) == 2
+        and tokens[0] == "cd"
+        and tokens[1] != "-"
+        and _is_cdpath_safe_target(tokens[1])
+    )
+
+
+def _has_trailing_command_terminator(command: str, *, segment: PlanSegment) -> bool:
+    return segment.operator == ";" and command.rstrip().endswith(";")
+
+
+def _is_noop_true_tail_segment(command: str, *, segment: PlanSegment) -> bool:
+    if segment.managed or segment.filter_hint != "true":
+        return False
+    if segment.original.strip() != "true":
+        return False
+    if segment.operator is None:
+        return True
+    return _has_trailing_command_terminator(command, segment=segment)
+
+
+def _is_safe_file_filter_segment(
+    command: str,
+    *,
+    segments: tuple[PlanSegment, ...],
+    index: int,
+    segment: PlanSegment,
+    stderr: str,
+) -> bool:
+    if index == len(segments) - 1:
+        if segment.operator is None:
+            return True
+        return _has_trailing_command_terminator(command, segment=segment)
+
+    if segment.operator != "||":
+        return False
+
+    tail_index = index + 1
+    if tail_index != len(segments) - 1:
+        return False
+    if not _is_noop_true_tail_segment(command, segment=segments[tail_index]):
+        return False
+    if stderr.strip():
+        return False
+    _, redirect_suffix = strip_trailing_redirect_suffix(segment.original.strip())
+    if redirect_suffix:
+        return False
+    return bool(segment.original.strip())
+
+
+def _effective_filter_command(
+    command: str,
+    *,
+    plan: CommandPlan | None,
+    filter_hint: str | None,
+    stderr: str,
+) -> str | None:
+    if plan is None or not plan.segments:
+        return command
+
+    if filter_hint:
+        for index, segment in enumerate(plan.segments):
+            if segment.filter_hint != filter_hint:
+                continue
+            if not segment.managed:
+                continue
+            if not _is_safe_file_filter_segment(
+                command,
+                segments=plan.segments,
+                index=index,
+                segment=segment,
+                stderr=stderr,
+            ):
+                return None
+            if any(
+                not _is_safe_file_filter_prefix(prefix)
+                for prefix in plan.segments[:index]
+            ):
+                return None
+            if index > 0 and _CD_FAILURE_RE.search(stderr):
+                return None
+            return segment.original
+
+    for segment in plan.segments:
+        if segment.managed:
+            return None
+
+    return command
+
 
 def filter_output(
     command: str,
@@ -86,10 +194,21 @@ def filter_output(
         else infer_filter_hint(command)
     )
     filter_func = _FILTERS.get(filter_hint, filter_generic_output)
+    effective_command = command
+    if filter_func is filter_file_output:
+        effective_command = _effective_filter_command(
+            command,
+            plan=plan,
+            filter_hint=filter_hint,
+            stderr=stderr,
+        )
+        if effective_command is None:
+            filter_func = filter_generic_output
+            effective_command = command
     try:
         return finalize_filter_result(
             filter_func(
-                command,
+                effective_command,
                 stdout,
                 stderr,
                 exit_code,

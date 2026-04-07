@@ -48,9 +48,9 @@ Capture flow:
 - [x] `uv sync` -> `packages/uv_sync_ok`
 - [x] `npm list` -> `packages/npm_list`, `packages/npm_list_error`
 - [x] `pnpm list --json` -> `packages/pnpm_list_json`
-- [ ] `bundle install` -> `packages/bundle_install`
+- [x] `bundle install` -> `packages/bundle_install`
 - [x] `npx prisma generate` -> `packages/prisma_generate`
-- [ ] `cargo build` -> `build/cargo_build_error`
+- [x] `cargo build` -> `build/cargo_build_error`
 - [ ] `cargo clippy --all-targets` -> `build/cargo_clippy`
 - [ ] `cargo fmt --check` -> `build/cargo_fmt_check`
 - [ ] `eslint src` -> `build/eslint_stylish`

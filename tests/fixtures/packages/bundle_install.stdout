@@ -1,6 +1,46 @@
-Fetching gem metadata from https://rubygems.org/.........
+Fetching gem metadata from https://rubygems.org/.......
 Resolving dependencies...
-Using rake 13.1.0
-Installing rspec 3.13.0
+Fetching rake 13.3.1
+Installing rake 13.3.1
+Fetching logger 1.7.0
+Fetching racc 1.8.1
+Fetching simplecov-html 0.13.2
+Fetching thor 1.5.0
+Fetching zeitwerk 2.7.5
+Fetching diff-lcs 1.6.2
+Fetching docile 1.4.1
+Fetching json 2.19.3
+Fetching uri 1.1.1
+Fetching rspec-support 3.13.7
+Fetching simplecov_json_formatter 0.1.4
+Installing logger 1.7.0
+Installing docile 1.4.1
+Installing uri 1.1.1
+Installing simplecov_json_formatter 0.1.4
+Installing rspec-support 3.13.7
+Installing zeitwerk 2.7.5
+Installing racc 1.8.1 with native extensions
+Installing thor 1.5.0
+Installing diff-lcs 1.6.2
+Installing json 2.19.3 with native extensions
+Fetching net-http 0.9.1
+Installing simplecov-html 0.13.2
+Fetching rspec-core 3.13.6
+Installing net-http 0.9.1
+Fetching faraday-net_http 3.4.2
+Fetching simplecov 0.22.0
+Fetching rspec-expectations 3.13.5
+Fetching rspec-mocks 3.13.8
+Installing faraday-net_http 3.4.2
+Installing rspec-core 3.13.6
 Installing simplecov 0.22.0
-Bundle complete! 85 Gemfile dependencies, 202 gems now installed.
+Installing rspec-mocks 3.13.8
+Installing rspec-expectations 3.13.5
+Fetching rspec 3.13.2
+Installing rspec 3.13.2
+Fetching nokogiri 1.19.2 (x86_64-linux-gnu)
+Installing nokogiri 1.19.2 (x86_64-linux-gnu)
+Fetching faraday 2.14.1
+Installing faraday 2.14.1
+Bundle complete! 7 Gemfile dependencies, 22 gems now installed.
+Bundled gems are installed into `./vendor/bundle`

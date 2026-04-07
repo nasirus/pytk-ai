@@ -89,6 +89,13 @@ def _parse_cargo_diagnostics(text: str) -> tuple[list[dict[str, str]], int, str 
             continue
         match = _CARGO_DIAG_RE.match(line)
         if match:
+            if match.group("severity") == "warning" and "generated" in stripped:
+                continue
+            if match.group("severity") == "error" and any(
+                phrase in stripped
+                for phrase in ("could not compile", "aborting due to")
+            ):
+                continue
             if current is not None:
                 diagnostics.append(current)
             current = {

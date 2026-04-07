@@ -23,18 +23,24 @@ class FiltersBuildTests(unittest.TestCase):
         self.assertIn("cannot find value", result.output)
 
     def test_cargo_build_groups_rustc_errors(self):
-        stderr = """Compiling demo v0.1.0 (/tmp/demo)
-error[E0425]: cannot find value `missing` in this scope
- --> src/main.rs:2:5
+        stderr = """Compiling regex-automata v0.4.14
+Compiling serde_derive v1.0.228
+Compiling regex v1.12.3
+Compiling cargo-build-fixture v0.1.0 (/tmp/tmp.TO6ZAC5XyZ/cargo-build-fixture)
+warning: function `unused_helper` is never used
+ --> src/lib.rs:5:4
   |
-2 |     missing();
-  |     ^^^^^^^ not found in this scope
+5 | fn unused_helper() -> usize {
+  |    ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
 
-warning: unused variable: `x`
- --> src/lib.rs:4:9
+warning: `cargo-build-fixture` (lib) generated 1 warning
+error[E0425]: cannot find function `missing_symbol` in this scope
+ --> src/main.rs:14:5
   |
-4 |     let x = 1;
-  |         ^ help: if this is intentional, prefix it with an underscore: `_x`
+14 |     missing_symbol();
+  |     ^^^^^^^^^^^^^^ not found in this scope
 """
         result = filter_output(
             "cargo build",
@@ -45,6 +51,9 @@ warning: unused variable: `x`
         )
         self.assertEqual(result.filter_name, "cargo.build")
         self.assertIn("cargo build: 1 errors, 1 warnings", result.output)
+        self.assertIn("(4 crates)", result.output)
+        self.assertIn("Top codes: E0425 (1x)", result.output)
+        self.assertIn("src/lib.rs", result.output)
         self.assertIn("src/main.rs", result.output)
         self.assertIn("E0425", result.output)
 

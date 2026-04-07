@@ -71,7 +71,11 @@ class FixturesPackagesTests(unittest.TestCase):
         f, result = self._run("bundle_install")
         self.assertEqual(result.filter_name, "bundle.install")
         self.assertIn("bundle install: complete", result.output)
-        self.assertIn("Installed gems: 2", result.output)
+        self.assertIn("Installed gems: 21", result.output)
+        self.assertIn("rake 13.3.1", result.output)
+        self.assertIn("logger 1.7.0", result.output)
+        self.assertIn("racc 1.8.1 with native extensions", result.output)
+        self.assertIn("... +13 more installed gems", result.output)
 
     def test_prisma_generate(self):
         f, result = self._run("prisma_generate")

@@ -24,6 +24,10 @@ class FixturesBuildTests(unittest.TestCase):
         f, result = self._run("cargo_build_error")
         self.assertEqual(result.filter_name, "cargo.build")
         self.assertIn("cargo build: 1 errors, 1 warnings", result.output)
+        self.assertIn("(4 crates)", result.output)
+        self.assertIn("Top codes: E0425 (1x)", result.output)
+        self.assertIn("src/lib.rs", result.output)
+        self.assertIn("src/main.rs", result.output)
         self.assertIn("E0425", result.output)
 
     def test_cargo_clippy(self):
