@@ -75,9 +75,9 @@ Capture flow:
 - [x] `terraform validate` -> `infra/terraform_validate_ok`, `infra/terraform_validate_fail`
 - [x] `aws ec2 describe-instances --output json` -> `infra/aws_ec2`
 
-## Secondary: Fixture dirs not covered by `tests/test_fixtures_*.py`
+## Secondary: Previously Uncovered Fixture Dirs
 
-- [ ] `echo test` -> `generic/ansi_output`
-- [ ] `git status` -> `generic/git_status_hints`
-- [ ] `cargo test` -> `tests/cargo_test_fail`
-- [ ] `npm test` -> `tests/npm_test_fail`
+- [x] `printf '\033[31mERROR\033[0m build failed\n\033[33mWARN\033[0m cache miss\n\033[32mPASS\033[0m 3 tests\nplain detail\nextra context line\n'` -> `generic/ansi_output`
+- [x] `git status` -> `generic/git_status_hints`
+- [x] `cargo test --no-fail-fast` -> `tests/cargo_test_fail`
+- [x] `npm test` -> `tests/npm_test_fail`

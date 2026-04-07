@@ -1,0 +1,26 @@
+FAIL __tests__/labels.test.js
+  ● labels › fails on purpose with a realistic assertion message
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: "delta"
+    Received array: ["alpha", "beta", "gamma"]
+
+       5 |
+       6 |   test("fails on purpose with a realistic assertion message", () => {
+    >  7 |     expect(["alpha", "beta", "gamma"]).toContain("delta");
+         |                                        ^
+       8 |   });
+       9 | });
+      10 |
+
+      at Object.toContain (__tests__/labels.test.js:7:40)
+
+PASS __tests__/sum.test.js
+PASS __tests__/meta.test.js
+
+Test Suites: 1 failed, 2 passed, 3 total
+Tests:       1 failed, 4 passed, 5 total
+Snapshots:   0 total
+Time:        0.298 s
+Ran all test suites.

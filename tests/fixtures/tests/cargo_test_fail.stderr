@@ -1,0 +1,19 @@
+warning: function `unused_internal_helper` is never used
+  --> src/lib.rs:16:4
+   |
+16 | fn unused_internal_helper() -> &'static str {
+   |    ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `cargo-test-fixture` (lib) generated 1 warning
+warning: `cargo-test-fixture` (lib test) generated 1 warning (1 duplicate)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (target/debug/deps/cargo_test_fixture-6b15446bd13873db)
+     Running tests/auth.rs (target/debug/deps/auth-7683dd898e17f6c5)
+error: test failed, to rerun pass `--test auth`
+     Running tests/cache.rs (target/debug/deps/cache-a28e41afcadad5a4)
+     Running tests/report.rs (target/debug/deps/report-10db81cb01609439)
+   Doc-tests cargo_test_fixture
+error: 1 target failed:
+    `--test auth`

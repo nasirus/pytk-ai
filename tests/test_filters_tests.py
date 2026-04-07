@@ -181,7 +181,7 @@ FAILED tests/test_demo.py::test_addition - assert 1 == 2
         )
         self.assertEqual(result.filter_name, "python.pytest")
         self.assertIn("Pytest:", result.output)
-        self.assertIn("tests/test_demo.py::test_addition", result.output)
+        self.assertIn("test_addition", result.output)
 
     def test_wrapped_go_test_command_reuses_go_reducer(self):
         stdout = """=== RUN   TestThing

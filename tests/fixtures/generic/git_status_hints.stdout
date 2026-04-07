@@ -1,2 +1,18 @@
 On branch main
-  (use "git add" to track)
+Your branch is behind 'origin/main' by 1 commit, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   docs/report.md
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   README.md
+	modified:   src/app.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	tmp.log
+

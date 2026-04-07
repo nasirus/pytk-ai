@@ -26,6 +26,7 @@ _FAILURE_PATTERNS = (
     re.compile(r"^FAILED\b"),
     re.compile(r"^FAIL\b"),
     re.compile(r"^ERROR\b"),
+    re.compile(r"^---- .+ ----$"),
     re.compile(r"^thread '.*' panicked at "),
     re.compile(r"^assertion `.*` failed"),
     re.compile(r"^\s*at .+:\d+:\d+"),

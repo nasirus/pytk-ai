@@ -1,9 +1,14 @@
 """Live execution tests for system/file commands against real directories."""
 
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
+try:
+    from tests.helpers import requires_tool
+except ImportError:
+    from helpers import requires_tool
 from pytk_ai.runner import run_command
 
 
@@ -109,3 +114,44 @@ class LiveSystemTests(unittest.TestCase):
         result = run_command("cat no_such_file.txt", cwd=str(self.root))
         self.assertNotEqual(result.exit_code, 0)
         self.assertIn("No such file or directory", result.filtered_output)
+
+
+@requires_tool("git")
+class LiveSystemGitIgnoreTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls._tmpdir = tempfile.TemporaryDirectory(prefix="ptk-live-find-gitignore-")
+        cls.root = Path(cls._tmpdir.name)
+
+        subprocess.run(
+            ["git", "init", "-q", "-b", "main"],
+            cwd=cls.root,
+            capture_output=True,
+            check=True,
+        )
+
+        (cls.root / ".gitignore").write_text("ignored.py\nignored_dir/\n")
+        src = cls.root / "src"
+        src.mkdir()
+        (src / "app.py").write_text("def main():\n    pass\n")
+        (src / "util.py").write_text("x = 1\n")
+        (cls.root / "ignored.py").write_text("print('ignored')\n")
+        ignored_dir = cls.root / "ignored_dir"
+        ignored_dir.mkdir()
+        (ignored_dir / "skip.py").write_text("print('skip')\n")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._tmpdir.cleanup()
+
+    def test_find_skips_gitignored_files(self):
+        result = run_command("find . -name '*.py'", cwd=str(self.root))
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.filter_name, "search.find")
+        self.assertEqual(result.filtered_output, "src/app.py\nsrc/util.py")
+
+    def test_find_type_d_skips_gitignored_directories(self):
+        result = run_command("find . -type d -name '*dir'", cwd=str(self.root))
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.filter_name, "search.find")
+        self.assertEqual(result.filtered_output, "")

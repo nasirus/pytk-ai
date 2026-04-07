@@ -1,1 +1,1 @@
-{"command": "echo test", "exit_code": 0, "filter_name": "generic"}
+{"command": "printf '\\033[31mERROR\\033[0m build failed\\n\\033[33mWARN\\033[0m cache miss\\n\\033[32mPASS\\033[0m 3 tests\\nplain detail\\nextra context line\\n'", "exit_code": 0, "filter_name": "generic"}

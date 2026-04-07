@@ -1,5 +1,5 @@
-[31mred[0m
-1
-2
-3
-4
+[31mERROR[0m build failed
+[33mWARN[0m cache miss
+[32mPASS[0m 3 tests
+plain detail
+extra context line

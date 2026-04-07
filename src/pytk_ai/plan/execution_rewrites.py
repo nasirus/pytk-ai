@@ -106,6 +106,7 @@ _FIND_REWRITE_SCRIPT = textwrap.dedent(
     """
     import fnmatch
     import os
+    import subprocess
     import sys
 
     path, pattern, file_type, max_depth_raw, case_insensitive = sys.argv[1:6]
@@ -115,62 +116,211 @@ _FIND_REWRITE_SCRIPT = textwrap.dedent(
 
     max_depth = None if max_depth_raw == "" else int(max_depth_raw)
     want_dirs = file_type == "d"
-    ignore_dirs = {
-        ".git",
-        "node_modules",
-        "target",
-        "dist",
-        "build",
-        ".next",
-        "__pycache__",
-        ".venv",
-        "venv",
-        "env",
-        ".mypy_cache",
-        ".pytest_cache",
-        ".idea",
-        ".vscode",
-        ".vs",
-        ".cache",
-        ".turbo",
-        ".vercel",
-        ".tox",
-        ".nyc_output",
-        ".eggs",
-        "coverage",
-        ".ruff_cache",
-    }
     root = os.path.abspath(path)
     pattern_cmp = pattern.lower() if case_insensitive == "1" else pattern
-    results = []
 
-    for current_root, dirnames, filenames in os.walk(root, topdown=True):
-        rel_root = os.path.relpath(current_root, root)
-        depth = 0 if rel_root == "." else rel_root.count(os.sep) + 1
-        dirnames[:] = [
-            name
-            for name in dirnames
-            if not name.startswith(".") and name not in ignore_dirs
+    def _depth(rel_path):
+        return 0 if rel_path in {"", "."} else rel_path.count(os.sep) + 1
+
+    def _is_hidden_name(name):
+        return name.startswith(".")
+
+    def _has_hidden_part(rel_path):
+        return any(
+            part.startswith(".")
+            for part in rel_path.split(os.sep)
+            if part not in {"", "."}
+        )
+
+    def _normalize_rel_path(rel_path):
+        return rel_path.replace(os.sep, "/")
+
+    def _matches(name):
+        candidate = name.lower() if case_insensitive == "1" else name
+        return fnmatch.fnmatchcase(candidate, pattern_cmp)
+
+    def _git_repo_root(start_path):
+        base = start_path if os.path.isdir(start_path) else os.path.dirname(start_path)
+        if not base:
+            base = "."
+        try:
+            proc = subprocess.run(
+                ["git", "-C", base, "rev-parse", "--show-toplevel"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except OSError:
+            return None
+        if proc.returncode != 0:
+            return None
+        repo_root = proc.stdout.strip()
+        return os.path.abspath(repo_root) if repo_root else None
+
+    def _repo_rel_path(full_path, repo_root):
+        rel_path = os.path.relpath(full_path, repo_root)
+        if rel_path == "." or rel_path == ".." or rel_path.startswith(".." + os.sep):
+            return None
+        return rel_path
+
+    def _git_check_ignored(repo_root, rel_paths):
+        normalized = [
+            _normalize_rel_path(rel_path)
+            for rel_path in rel_paths
+            if rel_path and rel_path != "."
         ]
-        if max_depth is not None and depth >= max_depth:
-            dirnames[:] = []
+        if not normalized:
+            return set()
+        try:
+            proc = subprocess.run(
+                ["git", "-C", repo_root, "check-ignore", "-z", "--stdin"],
+                input="\\0".join(normalized) + "\\0",
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except OSError:
+            return set()
+        if proc.returncode not in {0, 1}:
+            return set()
+        return {entry for entry in proc.stdout.split("\\0") if entry}
 
-        if want_dirs:
-            entries = [(name, os.path.join(current_root, name)) for name in dirnames]
-        else:
-            entries = [
-                (name, os.path.join(current_root, name))
-                for name in filenames
-                if not name.startswith(".")
-            ]
+    def _visible_git_files(repo_root):
+        repo_rel_root = _repo_rel_path(root, repo_root)
+        args = ["git", "-C", repo_root, "ls-files", "--cached", "--others", "--exclude-standard", "-z"]
+        if repo_rel_root is not None:
+            args.extend(["--", _normalize_rel_path(repo_rel_root)])
+        try:
+            proc = subprocess.run(args, capture_output=True, check=False)
+        except OSError:
+            return None
+        if proc.returncode != 0:
+            return None
 
-        for name, full_path in entries:
-            candidate = name.lower() if case_insensitive == "1" else name
-            if not fnmatch.fnmatchcase(candidate, pattern_cmp):
+        results = []
+        for raw_entry in proc.stdout.split(b"\\0"):
+            if not raw_entry:
+                continue
+            repo_rel = raw_entry.decode("utf-8", errors="surrogateescape")
+            full_path = os.path.join(repo_root, repo_rel)
+            if not os.path.isfile(full_path):
                 continue
             rel_path = os.path.relpath(full_path, root)
-            if rel_path and rel_path != ".":
-                results.append(rel_path)
+            if rel_path == "." or rel_path == ".." or rel_path.startswith(".." + os.sep):
+                continue
+            if _has_hidden_part(rel_path):
+                continue
+            if max_depth is not None and _depth(rel_path) > max_depth:
+                continue
+            if _matches(os.path.basename(full_path)):
+                results.append(_normalize_rel_path(rel_path))
+        return results
+
+    repo_root = _git_repo_root(root)
+    root_repo_rel = _repo_rel_path(root, repo_root) if repo_root else None
+    if root_repo_rel and _normalize_rel_path(root_repo_rel) in _git_check_ignored(repo_root, [root_repo_rel]):
+        raise SystemExit(0)
+
+    results = []
+    used_git_file_listing = False
+    if not want_dirs and repo_root is not None:
+        visible_files = _visible_git_files(repo_root)
+        if visible_files is not None:
+            results = visible_files
+            used_git_file_listing = True
+    if not used_git_file_listing:
+        fallback_ignore_dirs = {
+            "node_modules",
+            "target",
+            "dist",
+            "build",
+            ".next",
+            "__pycache__",
+            ".venv",
+            "venv",
+            "env",
+            ".mypy_cache",
+            ".pytest_cache",
+            ".idea",
+            ".vscode",
+            ".vs",
+            ".cache",
+            ".turbo",
+            ".vercel",
+            ".tox",
+            ".nyc_output",
+            ".eggs",
+            "coverage",
+            ".ruff_cache",
+        }
+
+        for current_root, dirnames, filenames in os.walk(root, topdown=True):
+            rel_root = os.path.relpath(current_root, root)
+            depth = 0 if rel_root == "." else rel_root.count(os.sep) + 1
+
+            visible_dirnames = [name for name in dirnames if not _is_hidden_name(name)]
+            if repo_root is None:
+                visible_dirnames = [
+                    name for name in visible_dirnames if name not in fallback_ignore_dirs
+                ]
+            else:
+                dir_rel_map = {
+                    name: _repo_rel_path(os.path.join(current_root, name), repo_root)
+                    for name in visible_dirnames
+                }
+                ignored_dirs = _git_check_ignored(
+                    repo_root,
+                    [rel_path for rel_path in dir_rel_map.values() if rel_path is not None],
+                )
+                visible_dirnames = [
+                    name
+                    for name in visible_dirnames
+                    if (
+                        dir_rel_map[name] is None
+                        or _normalize_rel_path(dir_rel_map[name]) not in ignored_dirs
+                    )
+                ]
+
+            dirnames[:] = visible_dirnames
+            if max_depth is not None and depth >= max_depth:
+                dirnames[:] = []
+
+            if want_dirs:
+                entries = [(name, os.path.join(current_root, name)) for name in dirnames]
+            else:
+                visible_filenames = [name for name in filenames if not _is_hidden_name(name)]
+                if repo_root is not None:
+                    file_rel_map = {
+                        name: _repo_rel_path(os.path.join(current_root, name), repo_root)
+                        for name in visible_filenames
+                    }
+                    ignored_files = _git_check_ignored(
+                        repo_root,
+                        [
+                            rel_path
+                            for rel_path in file_rel_map.values()
+                            if rel_path is not None
+                        ],
+                    )
+                    visible_filenames = [
+                        name
+                        for name in visible_filenames
+                        if (
+                            file_rel_map[name] is None
+                            or _normalize_rel_path(file_rel_map[name]) not in ignored_files
+                        )
+                    ]
+                entries = [
+                    (name, os.path.join(current_root, name))
+                    for name in visible_filenames
+                ]
+
+            for name, full_path in entries:
+                if not _matches(name):
+                    continue
+                rel_path = os.path.relpath(full_path, root)
+                if rel_path and rel_path != ".":
+                    results.append(_normalize_rel_path(rel_path))
 
     results.sort()
     sys.stdout.write("\\n".join(results))

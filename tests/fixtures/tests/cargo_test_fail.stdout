@@ -1,9 +1,64 @@
-running 2 tests
-test ok_case ... ok
-test failing_case ... FAILED
+
+running 3 tests
+test tests::keeps_existing_lowercase_values ... ok
+test tests::normalizes_whitespace_and_case ... ok
+test tests::scores_passwords_by_length_and_character_mix ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test normalizes_display_email ... FAILED
+test rejects_empty_passwords ... FAILED
+test uses_uppercase_bonus ... FAILED
 
 failures:
 
-    failing_case
+---- normalizes_display_email stdout ----
 
-test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out
+thread 'normalizes_display_email' (50720) panicked at tests/auth.rs:5:5:
+assertion `left == right` failed
+  left: "admin@example.com"
+ right: "admin@corp.example"
+
+---- rejects_empty_passwords stdout ----
+
+thread 'rejects_empty_passwords' (50721) panicked at tests/auth.rs:10:5:
+assertion failed: password_strength("") > 4
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- uses_uppercase_bonus stdout ----
+
+thread 'uses_uppercase_bonus' (50722) panicked at tests/auth.rs:15:5:
+assertion `left == right` failed
+  left: 13
+ right: 15
+
+
+failures:
+    normalizes_display_email
+    rejects_empty_passwords
+    uses_uppercase_bonus
+
+test result: FAILED. 0 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test extracts_namespace_and_identifier ... ok
+test preserves_empty_suffix ... ok
+test splits_cache_keys ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test renders_plural_counts ... ok
+test renders_singular_counts ... ok
+test summarizes_zero_count ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
