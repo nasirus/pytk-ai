@@ -1,13 +1,33 @@
-On branch main
-Your branch is up to date with 'origin/main'.
+On branch feature/status-fixture
+Your branch and 'origin/feature/status-fixture' have diverged,
+and have 1 and 1 different commits each, respectively.
+  (use "git pull" if you want to integrate the remote branch with yours)
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	deleted:    config/settings.yml
+	new file:   db/migrations/20260407_status_fixture.sql
+	renamed:    docs/guide.md -> docs/getting-started.md
+	renamed:    docs/release-notes.md -> docs/history/release-notes.md
+	new file:   scripts/dev.sh
+	modified:   src/app.py
+	modified:   src/worker.py
 
 Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
+  (use "git add/rm <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
-	modified:   src/app.py
+	modified:   config/environments/dev.yml
+	deleted:    docs/roadmap.md
+	modified:   services/api/routes.py
+	modified:   src/utils.py
+	modified:   web/package.json
 
 Untracked files:
   (use "git add <file>..." to include in what will be committed)
-	newfile.txt
+	README.local.md
+	data/
+	logs/
+	notes/
+	scratch/
+	tmp/
 
-no changes added to commit (use "git add" and/or "git commit -a")
