@@ -26,7 +26,7 @@ Capture flow:
 - [x] `git show missing` -> `git/show_failure`
 - [x] `git commit -m "Add compact filter"` -> `git/commit_success`
 - [x] `git pull` -> `git/pull_fastforward`
-- [ ] `rg main` -> `files/rg_matches`
+- [x] `rg main` -> `files/rg_matches`
 - [ ] `rg [ src` -> `files/rg_error`
 - [ ] `find . -name '*.py'` -> `files/find_results`
 - [ ] `tree` -> `files/tree_output`

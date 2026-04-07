@@ -53,3 +53,4 @@
 - 2026-04-05: Added `PROMPT-PHASE2-FILTER-FIXES.md`, a reusable handoff prompt for incremental PTK discrepancy fixing.
 - 2026-04-05: Added explicit acceptance criteria and stop conditions to the Phase 1 and Phase 2 review prompts.
 - 2026-04-07: Recaptured `git pull` into `tests/fixtures/git/pull_fastforward.stdout` from a real fast-forward pull touching three files, updated `tests/test_fixtures_git.py` to derive the summary counts from the captured output, marked it done in `tests/fixtures/REAL_CAPTURE_CHECKLIST.md`, and will verify with the targeted fixture test plus Ruff checks.
+- 2026-04-07: Recaptured `rg main` into `tests/fixtures/files/rg_matches.stdout` from a real ripgrep run across code, tests, docs, and config files, marked it done in `tests/fixtures/REAL_CAPTURE_CHECKLIST.md`, and will verify with the targeted fixture test plus Ruff checks.

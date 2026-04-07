@@ -1,107 +1,28 @@
-src/app.py:10:def main():
-src/app.py:14:    return main()
-src/app.py:28:    main_call()
-src/app.py:45:    if __name__ == "main":
-src/app.py:62:    main()
-src/app.py:78:    process_main()
-src/app.py:95:    enter_main()
-src/lib/util.py:5:def main_process():
-src/lib/util.py:18:    main_helper()
-src/lib/util.py:32:    call_main()
-src/lib/util.py:45:def main_utility():
-src/lib/util.py:58:    main_logic()
-src/lib/util.py:72:    execute_main()
-src/lib/util.py:88:def main_handler():
-src/lib/config.py:12:def main_config():
-src/lib/config.py:25:    load_main_settings()
-src/lib/config.py:42:    main_override = True
-src/lib/config.py:58:def config_main():
-src/lib/config.py:75:    main_setup()
-src/lib/database.py:8:def main_db():
-src/lib/database.py:22:    main_connection()
-src/lib/database.py:35:def main_query():
-src/lib/database.py:50:    run_main_db()
-src/lib/middleware.py:15:def main_middleware():
-src/lib/middleware.py:30:    main_chain()
-src/lib/middleware.py:48:def apply_main():
-src/lib/validators.py:10:def main_validator():
-src/lib/validators.py:24:    execute_main_validation()
-src/lib/validators.py:42:def validate_main():
-src/models/user.py:8:def get_main_user():
-src/models/user.py:20:    main_id = user_id
-src/models/user.py:35:    return main_data
-src/models/user.py:50:def main_user_fetch():
-src/models/user.py:68:    main_user_record()
-src/models/post.py:25:def load_main_post():
-src/models/post.py:40:    main_post_id = post_id
-src/models/post.py:55:    main_load()
-src/models/post.py:72:def main_post_handler():
-src/models/post.py:88:    retrieve_main_post()
-src/models/comment.py:12:def fetch_main_comment():
-src/models/comment.py:28:    main_comment_data()
-src/models/comment.py:45:def main_comment_fetch():
-src/models/comment.py:62:    load_main_comments()
-src/models/tag.py:8:def get_main_tag():
-src/models/tag.py:22:    main_tag_list()
-src/services/email.py:30:def send_main_email():
-src/services/email.py:45:    main_sender()
-src/services/email.py:62:    main_template = template
-src/services/email.py:78:def main_email_dispatch():
-src/services/email.py:95:    execute_main_send()
-src/services/storage.py:15:def store_main_file():
-src/services/storage.py:28:    main_store()
-src/services/storage.py:44:    main_path = path
-src/services/storage.py:58:def main_storage_save():
-src/services/storage.py:75:    persist_main_file()
-src/services/queue.py:8:def queue_main_job():
-src/services/queue.py:22:    main_queue_processor()
-src/services/queue.py:38:def main_job_handler():
-src/services/queue.py:54:    process_main_queue()
-src/routes/api.py:20:def main_endpoint():
-src/routes/api.py:35:    main_handler()
-src/routes/api.py:52:def handle_main_route():
-src/routes/api.py:68:    dispatch_main_request()
-src/routes/admin.py:12:def admin_main():
-src/routes/admin.py:28:    main_access_check()
-src/routes/admin.py:45:def main_admin_handler():
-src/routes/admin.py:62:    verify_main_admin()
-src/routes/health.py:5:def health_main():
-src/routes/health.py:18:    main_status()
-src/routes/health.py:32:def main_health_check():
-src/routes/health.py:48:    check_main_health()
-tests/test_app.py:3:from src.app import main
-tests/test_app.py:12:def test_main():
-tests/test_app.py:25:    assert main() is not None
-tests/test_app.py:42:def test_main_function():
-tests/test_models.py:5:from src.models import main
-tests/test_models.py:20:    run_main_test()
-tests/test_models.py:38:def main_model_test():
-tests/test_services.py:8:from src.services import main
-tests/test_services.py:32:    main_service_test()
-tests/test_services.py:50:def test_main_service():
-tests/unit/test_auth.py:15:def test_main_auth():
-tests/unit/test_auth.py:32:def main_auth_test():
-tests/unit/test_validators.py:22:def test_main_validator():
-tests/unit/test_validators.py:40:def main_validator_test():
-tests/integration/test_api.py:10:def test_main_api():
-tests/integration/test_api.py:28:def main_api_test():
-tests/integration/test_services.py:18:def test_main_services():
-tests/integration/test_services.py:35:def main_services_test():
-tests/fixtures/user_data.py:5:main_user_id = 123
-tests/fixtures/user_data.py:15:def get_main_user_fixture():
-tests/fixtures/post_data.py:8:main_post_id = 456
-tests/fixtures/post_data.py:18:def get_main_post_fixture():
-tests/fixtures/comment_data.py:3:main_comment_id = 789
-tests/fixtures/comment_data.py:12:def get_main_comment_fixture():
-docs/api.py:10:def main_endpoint_docs():
-docs/api.py:28:def document_main_endpoints():
-docs/architecture.py:15:def describe_main():
-docs/architecture.py:32:def main_architecture_overview():
-docs/deployment.py:20:def main_deploy():
-docs/deployment.py:38:def document_main_deployment():
-config/development.py:12:main_debug = True
-config/development.py:25:def set_main_dev_config():
-config/production.py:8:main_env = "prod"
-config/production.py:20:def apply_main_prod_config():
-config/testing.py:5:main_test = True
-config/testing.py:15:def configure_main_test():
+config/app.toml:1:service_name = "main-app"
+config/app.toml:2:main_queue = "main-jobs"
+config/app.toml:3:main_region = "eu-west-1"
+docs/runbook.md:3:Use the `main` service entrypoint for local smoke tests.
+docs/runbook.md:4:Restart the main worker after changing queue settings.
+tests/test_main.py:1:from src.main import main
+tests/test_main.py:2:from src.jobs.scheduler import enqueue_main_job
+tests/test_main.py:5:def test_main_returns_context():
+tests/test_main.py:6:    assert main()["name"] == "main-app"
+tests/test_main.py:9:def test_enqueue_main_job():
+tests/test_main.py:10:    assert enqueue_main_job("sync") == "main-jobs:sync"
+src/main.py:1:def main():
+src/main.py:2:    return build_main_context()
+src/main.py:5:def build_main_context():
+src/main.py:6:    main_env = "dev"
+src/main.py:7:    return {"env": main_env, "name": "main-app"}
+src/main.py:10:if __name__ == "__main__":
+src/main.py:11:    raise SystemExit(main())
+src/api/router.py:1:from src.main import build_main_context
+src/api/router.py:5:    main_context = build_main_context()
+src/api/router.py:6:    app.state["main_context"] = main_context
+src/api/router.py:7:    app.get("/main")(main_status)
+src/api/router.py:10:def main_status():
+src/api/router.py:11:    return {"service": "main", "ok": True}
+src/jobs/scheduler.py:1:MAIN_QUEUE = "main-jobs"
+src/jobs/scheduler.py:4:def enqueue_main_job(job_name: str) -> str:
+src/jobs/scheduler.py:8:def run_main_batch(batch_name: str) -> str:
+src/jobs/scheduler.py:9:    return f"running {batch_name} on main worker"
