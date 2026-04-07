@@ -53,8 +53,11 @@ class FixturesGitTests(unittest.TestCase):
     def test_branch_vv(self):
         f, result = self._run("branch_vv")
         self.assertEqual(result.filter_name, f["filter_name"])
-        self.assertIn("feature/login 1234567", result.output)
+        self.assertIn("feature/login", result.output)
+        self.assertIn("feature/search", result.output)
+        self.assertIn("release/1.0", result.output)
         self.assertIn("* main", result.output)
+        self.assertRegex(result.output, r"\b[0-9a-f]{7}\b")
 
     def test_add_warning(self):
         f, result = self._run("add_warning")

@@ -11,6 +11,7 @@
 ## History
 
 
+- 2026-04-07: Re-captured `tests/fixtures/git/branch_vv.stdout` from a real `git branch -vv` run with multiple local branches in mixed tracking states, and updated the fixture test to assert on real branch names and short-hash shape instead of a synthetic placeholder hash.
 - 2026-04-07: Re-captured `tests/fixtures/git/log_full.stdout` from a real `git log -2` run with full commit bodies in a disposable repository, and updated the fixture test to derive the short hash from the captured log instead of asserting against a synthetic placeholder.
 - 2026-04-07: Re-captured `tests/fixtures/git/diff_multifile.stdout` from a real multi-file `git diff` in a disposable repository, replacing the one-hunk placeholder with a broader tracked diff spanning config, docs, app, auth, frontend, and a deleted script while keeping the existing git diff fixture assertions green.
 - 2026-04-07: Expanded `tests/fixtures/git/status_dirty.stdout` again to use a substantially richer real `git status` capture from a diverged feature branch with staged renames/new files/deletions/modifications, multiple unstaged tracked changes, and several untracked paths so the fixture better reflects real repository noise.

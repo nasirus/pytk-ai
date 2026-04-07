@@ -1,3 +1,5 @@
-  feature/login 1234567 [origin/feature/login] Add login flow
-* main          89abcde [origin/main] Ship phase 1
-  release/1.0   fedcba9 [origin/release/1.0: gone] Prepare release
+  chore/docs     bf28947 [origin/chore/docs] Document fixture refresh plan
+  feature/login  bc40814 [origin/feature/login] Add login flow
+  feature/search 7ef79bb [origin/feature/search: ahead 1] Refine search ranking
+* main           2ee2e89 [origin/main] bootstrap repository
+  release/1.0    d22346b [origin/release/1.0: gone] Prepare release notes
