@@ -41,9 +41,14 @@ class FixturesGitTests(unittest.TestCase):
 
     def test_commit_success(self):
         f, result = self._run("commit_success")
+        match = re.search(
+            r"^\[[^\]]+ ([0-9a-f]{7,})\] Add compact filter$", f["stdout"], re.MULTILINE
+        )
         self.assertEqual(result.filter_name, "git.commit")
-        self.assertIn("abc1234", result.output)
+        self.assertIsNotNone(match)
+        self.assertIn(match.group(1)[:7], result.output)
         self.assertIn("ok", result.output)
+        self.assertIn("Add compact filter", result.output)
 
     def test_pull_fastforward(self):
         f, result = self._run("pull_fastforward")

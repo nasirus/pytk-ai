@@ -11,6 +11,8 @@
 ## History
 
 
+- 2026-04-07: Re-captured `tests/fixtures/git/commit_success.stdout` from a real `git commit -m "Add compact filter"` run with modified, renamed, deleted, and created files, and updated the fixture test to derive the short hash from the captured commit summary instead of asserting against a synthetic placeholder.
+- 2026-04-07: Re-captured `tests/fixtures/git/show_failure.stderr` from a real `git show missing` run in a disposable repository, expanding the fixture to include Git's follow-up `Use '--' to separate paths from revisions` guidance emitted by this toolchain.
 - 2026-04-07: Re-captured `tests/fixtures/git/add_warning.stderr` from a real `git add vendor/lib` run against an embedded nested repository so the fixture now contains Git's full submodule guidance block instead of a truncated warning snippet.
 - 2026-04-07: Re-captured `tests/fixtures/git/branch_vv.stdout` from a real `git branch -vv` run with multiple local branches in mixed tracking states, and updated the fixture test to assert on real branch names and short-hash shape instead of a synthetic placeholder hash.
 - 2026-04-07: Re-captured `tests/fixtures/git/log_full.stdout` from a real `git log -2` run with full commit bodies in a disposable repository, and updated the fixture test to derive the short hash from the captured log instead of asserting against a synthetic placeholder.

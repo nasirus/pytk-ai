@@ -23,8 +23,8 @@ Capture flow:
 - [x] `git log -2` -> `git/log_full`
 - [x] `git branch -vv` -> `git/branch_vv`
 - [x] `git add vendor/lib` -> `git/add_warning`
-- [ ] `git show missing` -> `git/show_failure`
-- [ ] `git commit -m "Add compact filter"` -> `git/commit_success`
+- [x] `git show missing` -> `git/show_failure`
+- [x] `git commit -m "Add compact filter"` -> `git/commit_success`
 - [ ] `git pull` -> `git/pull_fastforward`
 - [ ] `rg main` -> `files/rg_matches`
 - [ ] `rg [ src` -> `files/rg_error`

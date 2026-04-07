@@ -1,2 +1,5 @@
-[main abc1234] Add compact filter
- 2 files changed, 5 insertions(+)
+[main 7052432] Add compact filter
+ 5 files changed, 6 insertions(+), 4 deletions(-)
+ rename docs/{notes.md => compact-filter.md} (100%)
+ delete mode 100644 scripts/old-helper.sh
+ create mode 100644 src/formatter.py
