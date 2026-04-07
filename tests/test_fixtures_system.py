@@ -23,6 +23,7 @@ class FixturesSystemTests(unittest.TestCase):
     def test_tail_repeated(self):
         f, result = self._run("tail_repeated")
         self.assertEqual(result.filter_name, "system.read.tail")
+        self.assertIn("... repeated line omitted", result.output)
         self.assertIn("INFO", result.output)
         self.assertIn("ERROR", result.output)
 
@@ -34,7 +35,7 @@ class FixturesSystemTests(unittest.TestCase):
     def test_cat_tailwind(self):
         f, result = self._run("cat_tailwind")
         self.assertEqual(result.filter_name, "system.read.cat")
-        self.assertEqual(result.output, "same\nsame\nsame\nsame")
+        self.assertEqual(result.output, f["stdout"].rstrip())
 
     def test_ls_la(self):
         f, result = self._run("ls_la")

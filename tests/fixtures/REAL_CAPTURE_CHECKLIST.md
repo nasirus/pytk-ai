@@ -34,11 +34,11 @@ Capture flow:
 - [x] `diff -u a.txt b.txt` -> `files/diff_unified`
 - [x] `ls -la` -> `system/ls_la`
 - [x] `cat missing.txt` -> `system/cat_missing`
-- [ ] `cat tailwind.config.js` -> `system/cat_tailwind`
-- [ ] `tail server.log` -> `system/tail_repeated`
-- [ ] `ruff check .` -> `python/ruff_check`
-- [ ] `mypy src` -> `python/mypy_errors`
-- [ ] `pytest -q` -> `python/pytest_failures`
+- [x] `cat tailwind.config.js` -> `system/cat_tailwind`
+- [x] `tail server.log` -> `system/tail_repeated`
+- [x] `ruff check .` -> `python/ruff_check`
+- [x] `mypy src` -> `python/mypy_errors`
+- [x] `pytest -q` -> `python/pytest_failures`
 
 ## P1: Real project/toolchain capture, still local
 

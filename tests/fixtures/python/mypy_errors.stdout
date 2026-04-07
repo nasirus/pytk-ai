@@ -1,11 +1,8 @@
-src/app.py:10: error: Incompatible return value type (got "str", expected "int")  [return-value]
-src/app.py:12: note: Revealed type is "builtins.str"
-src/app.py:25: error: Argument 1 to "process" has incompatible type "str"; expected "int"  [arg-type]
-src/lib.py:3: error: Name "missing" is not defined  [name-defined]
-src/lib.py:8: error: Need type annotation for "value"  [var-annotated]
-src/models/user.py:12: error: Unexpected keyword argument "age" for "User"  [call-arg]
-src/models/user.py:15: error: Incompatible types in assignment (expression has type "str", variable has type "int")  [assignment]
-src/services/email.py:5: error: Argument 1 to "send" has incompatible type "None"; expected "str"  [arg-type]
-src/services/email.py:20: error: Name "logger" is not defined  [name-defined]
-src/utils.py:10: error: Incompatible return value type (got "None", expected "str")  [return-value]
-Found 10 errors in 5 files (checked 8 source files)
+src/utils.py:8: error: Incompatible return value type (got "str | None", expected "str")  [return-value]
+src/pkg/core.py:5: note: Revealed type is "int"
+src/pkg/core.py:6: error: Incompatible return value type (got "int", expected "str")  [return-value]
+src/models/user.py:7: error: Argument "name" to "User" has incompatible type "int"; expected "str"  [arg-type]
+src/models/user.py:8: error: Name "missing" is not defined  [name-defined]
+src/app.py:7: error: Argument 1 to "send_email" has incompatible type "None"; expected "str"  [arg-type]
+src/app.py:8: error: Incompatible return value type (got "str", expected "int")  [return-value]
+Found 6 errors in 4 files (checked 9 source files)

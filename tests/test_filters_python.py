@@ -42,21 +42,30 @@ Found 2 errors in 2 files (checked 3 source files)
 
     def test_pytest_keeps_failures_richer_than_summary_only(self):
         stdout = """============================= test session starts ==============================
-collected 2 items
+collected 5 items
 
-tests/test_app.py .F                                                    [100%]
+.F..F                                                                    [100%]
 
 =================================== FAILURES ===================================
-_______________________________ test_failure _______________________________
+_______________________________ test_divide_fail _______________________________
 
-    def test_failure():
->       assert 1 == 2
-E       assert 1 == 2
+    def test_divide_fail():
+>       assert divide(5, 2) == 3
+E       assert 2.5 == 3
+E        +  where 2.5 = divide(5, 2)
 
-tests/test_app.py:7: AssertionError
+tests/test_math.py:9: AssertionError
+________________________________ test_contains _________________________________
+
+    def test_contains():
+>       assert "pytest" in "python"
+E       AssertionError: assert 'pytest' in 'python'
+
+tests/test_strings.py:7: AssertionError
 =========================== short test summary info ============================
-FAILED tests/test_app.py::test_failure - assert 1 == 2
-========================= 1 failed, 1 passed in 0.12s =========================
+FAILED tests/test_math.py::test_divide_fail - assert 2.5 == 3
+FAILED tests/test_strings.py::test_contains - AssertionError: assert 'pytest'...
+2 failed, 3 passed in 0.01s
 """
         result = filter_output(
             "pytest -q",
@@ -66,9 +75,10 @@ FAILED tests/test_app.py::test_failure - assert 1 == 2
             plan=plan_command("pytest -q"),
         )
         self.assertEqual(result.filter_name, "python.pytest")
-        self.assertIn("Pytest:", result.output)
-        self.assertIn("[FAIL] test_failure", result.output)
-        self.assertIn("assert 1 == 2", result.output)
+        self.assertIn("Pytest: 2 failed, 3 passed in 0.01s", result.output)
+        self.assertIn("[FAIL] test_divide_fail", result.output)
+        self.assertIn("[FAIL] test_contains", result.output)
+        self.assertNotIn("FAILED tests/test_math.py::test_divide_fail", result.output)
 
     def test_ruff_format_check_lists_files_needing_formatting(self):
         stdout = """Would reformat: src/app.py

@@ -37,6 +37,14 @@ def _pytest_summary(text: str) -> str | None:
                 failures.append("\n".join(current_failure))
                 current_failure = []
             continue
+        if re.match(
+            r"^\d+\s+(?:failed|passed|errors?|skipped|deselected|xfailed|xpassed)"
+            r"(?:,\s+\d+\s+(?:failed|passed|errors?|skipped|deselected|xfailed|xpassed))*"
+            r"\s+in\s+.+$",
+            stripped,
+        ):
+            summary_line = stripped
+            continue
         if in_failures:
             if stripped.startswith("___"):
                 if current_failure:
@@ -47,7 +55,8 @@ def _pytest_summary(text: str) -> str | None:
                 current_failure.append(stripped)
             continue
         if in_summary and stripped.startswith(("FAILED ", "ERROR ")):
-            failures.append(stripped)
+            if not failures and not current_failure:
+                failures.append(stripped)
 
     if current_failure:
         failures.append("\n".join(current_failure))
@@ -159,6 +168,10 @@ def _mypy_summary(text: str) -> str | None:
 
 _RUFF_TEXT_RE = re.compile(
     r"^(?P<path>.+?):(?P<line>\d+):(?P<col>\d+):\s+(?P<code>[A-Z]+\d+)\s+(?P<message>.+)$"
+)
+_RUFF_BLOCK_HEADER_RE = re.compile(r"^(?P<code>[A-Z]+\d+)(?P<fixable>\s+\[\*\])?\s+.+$")
+_RUFF_BLOCK_LOCATION_RE = re.compile(
+    r"^\s*-->\s+(?P<path>.+?):(?P<line>\d+):(?P<col>\d+)$"
 )
 _RUFF_FORMAT_SUMMARY_RE = re.compile(
     r"(?P<count>\d+)\s+files?\s+(?P<kind>would be reformatted|reformatted|left unchanged)",
@@ -302,6 +315,31 @@ def _ruff_summary(text: str, exit_code: int) -> str | None:
                 "fixable": False,
             }
         )
+    if issues:
+        return _format_ruff_summary(issues)
+
+    pending_issue: dict[str, object] | None = None
+    for line in stripped.splitlines():
+        header_match = _RUFF_BLOCK_HEADER_RE.match(line.strip())
+        if header_match:
+            pending_issue = {
+                "code": header_match.group("code"),
+                "fixable": bool(header_match.group("fixable")),
+            }
+            continue
+        if pending_issue is None:
+            continue
+        location_match = _RUFF_BLOCK_LOCATION_RE.match(line)
+        if not location_match:
+            continue
+        issues.append(
+            {
+                "filename": location_match.group("path"),
+                "code": pending_issue["code"],
+                "fixable": pending_issue["fixable"],
+            }
+        )
+        pending_issue = None
     if issues:
         return _format_ruff_summary(issues)
     return None

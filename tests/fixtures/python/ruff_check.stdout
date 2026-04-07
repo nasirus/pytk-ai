@@ -1,3 +1,51 @@
-src/app.py:1:1: F401 `os` imported but unused
-src/app.py:5:1: E402 module level import not at top of file
-src/lib/util.py:3:7: F401 `sys` imported but unused
+F401 [*] `sys` imported but unused
+ --> src/app.py:2:8
+  |
+1 | import os
+2 | import sys
+  |        ^^^
+3 | import json
+  |
+help: Remove unused import: `sys`
+
+F401 [*] `json` imported but unused
+ --> src/app.py:3:8
+  |
+1 | import os
+2 | import sys
+3 | import json
+  |        ^^^^
+4 |
+5 | x = 1
+  |
+help: Remove unused import: `json`
+
+F401 [*] `contextlib` imported but unused
+ --> src/lib/extra.py:1:8
+  |
+1 | import contextlib
+  |        ^^^^^^^^^^
+2 | import pathlib
+  |
+help: Remove unused import: `contextlib`
+
+F841 Local variable `unused` is assigned to but never used
+ --> src/lib/util.py:6:5
+  |
+5 | def helper():
+6 |     unused = value + 1
+  |     ^^^^^^
+7 |     return sqrt(4)
+  |
+help: Remove assignment to unused variable `unused`
+
+F401 [*] `src.app.x` imported but unused
+ --> tests/test_app.py:1:27
+  |
+1 | from src.app import main, x
+  |                           ^
+  |
+help: Remove unused import: `src.app.x`
+
+Found 5 errors.
+[*] 4 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
