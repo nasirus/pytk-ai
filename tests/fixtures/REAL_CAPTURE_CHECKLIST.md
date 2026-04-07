@@ -19,7 +19,7 @@ Capture flow:
 ## P0: Local, high-leverage, easy to reproduce
 
 - [x] `git status` -> `git/status_dirty`
-- [ ] `git diff` -> `git/diff_multifile`
+- [x] `git diff` -> `git/diff_multifile`
 - [ ] `git log -2` -> `git/log_full`
 - [ ] `git branch -vv` -> `git/branch_vv`
 - [ ] `git add vendor/lib` -> `git/add_warning`

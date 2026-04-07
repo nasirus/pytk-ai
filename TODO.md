@@ -11,6 +11,7 @@
 ## History
 
 
+- 2026-04-07: Re-captured `tests/fixtures/git/diff_multifile.stdout` from a real multi-file `git diff` in a disposable repository, replacing the one-hunk placeholder with a broader tracked diff spanning config, docs, app, auth, frontend, and a deleted script while keeping the existing git diff fixture assertions green.
 - 2026-04-07: Expanded `tests/fixtures/git/status_dirty.stdout` again to use a substantially richer real `git status` capture from a diverged feature branch with staged renames/new files/deletions/modifications, multiple unstaged tracked changes, and several untracked paths so the fixture better reflects real repository noise.
 - 2026-04-07: Re-captured `tests/fixtures/git/status_dirty.stdout` from a real `git status` run in a disposable dirty repository, replacing placeholder paths with real tracked and untracked file names and validating the existing git fixture test against the captured output.
 - 2026-04-07: Added `tests/fixtures/REAL_CAPTURE_CHECKLIST.md`, a prioritized handoff checklist of unique fixture command lines to recapture from real bash runs, with local-first ordering and explicit fixture targets for a follow-up session.
