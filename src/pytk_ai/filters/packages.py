@@ -231,7 +231,7 @@ def _summarize_uv_sync(stdout: str, stderr: str) -> str | None:
     ]
 
     if (
-        any("Audited " in line for line in lines)
+        any(line.startswith(("Audited ", "Checked ")) for line in lines)
         and not package_changes
         and not summaries
     ):
@@ -265,7 +265,10 @@ def _summarize_uv_pip_install(stdout: str, stderr: str) -> str | None:
             continue
         kept.append(stripped)
 
-    if any("Audited " in line for line in lines) and len(kept) <= len(warnings) + 2:
+    if (
+        any(line.startswith(("Audited ", "Checked ")) for line in lines)
+        and len(kept) <= len(warnings) + 2
+    ):
         output = ["uv pip install: ok (up to date)"]
         output.extend(warnings[:5])
         return "\n".join(output)

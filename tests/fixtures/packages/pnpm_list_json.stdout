@@ -1,8 +1,100 @@
-{
-  "name": "demo",
-  "version": "1.0.0",
-  "dependencies": {
-    "react": {"version": "18.2.0"},
-    "vitest": {"version": "2.1.0"}
+[
+  {
+    "name": "pnpm-fixture",
+    "version": "1.0.0",
+    "path": "/tmp/tmp.xnOC0pAZMK",
+    "private": true,
+    "dependencies": {
+      "@testing-library/jest-dom": {
+        "from": "@testing-library/jest-dom",
+        "version": "6.1.5",
+        "resolved": "https://registry.npmjs.org/@testing-library/jest-dom/-/jest-dom-6.1.5.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/@testing-library+jest-dom@6.1.5_@jest+globals@29.7.0_jest@29.7.0_@types+node@25.5.2_/node_modules/@testing-library/jest-dom"
+      },
+      "@testing-library/react": {
+        "from": "@testing-library/react",
+        "version": "14.1.2",
+        "resolved": "https://registry.npmjs.org/@testing-library/react/-/react-14.1.2.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/@testing-library+react@14.1.2_@types+react@18.3.28_react-dom@18.2.0_react@18.2.0__react@18.2.0/node_modules/@testing-library/react"
+      },
+      "axios": {
+        "from": "axios",
+        "version": "1.6.2",
+        "resolved": "https://registry.npmjs.org/axios/-/axios-1.6.2.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/axios@1.6.2/node_modules/axios"
+      },
+      "eslint": {
+        "from": "eslint",
+        "version": "8.55.0",
+        "resolved": "https://registry.npmjs.org/eslint/-/eslint-8.55.0.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/eslint@8.55.0/node_modules/eslint"
+      },
+      "jest": {
+        "from": "jest",
+        "version": "29.7.0",
+        "resolved": "https://registry.npmjs.org/jest/-/jest-29.7.0.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/jest@29.7.0_@types+node@25.5.2/node_modules/jest"
+      },
+      "lodash": {
+        "from": "lodash",
+        "version": "4.17.21",
+        "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/lodash@4.17.21/node_modules/lodash"
+      },
+      "moment": {
+        "from": "moment",
+        "version": "2.29.4",
+        "resolved": "https://registry.npmjs.org/moment/-/moment-2.29.4.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/moment@2.29.4/node_modules/moment"
+      },
+      "prettier": {
+        "from": "prettier",
+        "version": "3.1.1",
+        "resolved": "https://registry.npmjs.org/prettier/-/prettier-3.1.1.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/prettier@3.1.1/node_modules/prettier"
+      },
+      "react": {
+        "from": "react",
+        "version": "18.2.0",
+        "resolved": "https://registry.npmjs.org/react/-/react-18.2.0.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/react@18.2.0/node_modules/react"
+      },
+      "react-dom": {
+        "from": "react-dom",
+        "version": "18.2.0",
+        "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-18.2.0.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/react-dom@18.2.0_react@18.2.0/node_modules/react-dom"
+      },
+      "react-router-dom": {
+        "from": "react-router-dom",
+        "version": "6.20.0",
+        "resolved": "https://registry.npmjs.org/react-router-dom/-/react-router-dom-6.20.0.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/react-router-dom@6.20.0_react-dom@18.2.0_react@18.2.0__react@18.2.0/node_modules/react-router-dom"
+      },
+      "typescript": {
+        "from": "typescript",
+        "version": "5.4.2",
+        "resolved": "https://registry.npmjs.org/typescript/-/typescript-5.4.2.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/typescript@5.4.2/node_modules/typescript"
+      },
+      "webpack": {
+        "from": "webpack",
+        "version": "5.89.0",
+        "resolved": "https://registry.npmjs.org/webpack/-/webpack-5.89.0.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/webpack@5.89.0_webpack-cli@5.1.4/node_modules/webpack"
+      },
+      "webpack-cli": {
+        "from": "webpack-cli",
+        "version": "5.1.4",
+        "resolved": "https://registry.npmjs.org/webpack-cli/-/webpack-cli-5.1.4.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/webpack-cli@5.1.4_webpack@5.89.0/node_modules/webpack-cli"
+      },
+      "zod": {
+        "from": "zod",
+        "version": "3.23.8",
+        "resolved": "https://registry.npmjs.org/zod/-/zod-3.23.8.tgz",
+        "path": "/tmp/tmp.xnOC0pAZMK/node_modules/.pnpm/zod@3.23.8/node_modules/zod"
+      }
+    }
   }
-}
+]

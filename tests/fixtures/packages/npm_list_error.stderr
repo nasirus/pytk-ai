@@ -1,2 +1,3 @@
-npm ERR! code ELSPROBLEMS
-npm ERR! invalid: react@18.2.0 /repo/node_modules/react
+npm error code ELSPROBLEMS
+npm error missing: react@18.2.0, required by tmp.zjcfpfgisf@1.0.0
+npm error A complete log of this run can be found in: /home/nasirus/.npm/_logs/2026-04-07T12_14_37_113Z-debug-0.log

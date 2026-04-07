@@ -68,6 +68,20 @@ Audited 42 packages in 0.05ms
         self.assertEqual(result.filter_name, "uv.sync")
         self.assertEqual(result.output, "uv sync: ok (up to date)")
 
+    def test_uv_sync_short_circuits_checked_output(self):
+        stderr = """Resolved 24 packages in 0.68ms
+Checked 22 packages in 0.24ms
+"""
+        result = filter_output(
+            "uv sync",
+            "",
+            stderr,
+            0,
+            plan=plan_command("uv sync"),
+        )
+        self.assertEqual(result.filter_name, "uv.sync")
+        self.assertEqual(result.output, "uv sync: ok (up to date)")
+
     def test_uv_pip_install_strips_download_chatter(self):
         stdout = """  Downloading requests-2.31.0-py3-none-any.whl (62.6 kB)
   Using cached certifi-2023.11.17-py3-none-any.whl (162 kB)

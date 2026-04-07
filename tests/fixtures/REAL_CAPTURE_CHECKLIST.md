@@ -8,6 +8,7 @@ Realism rule for every capture:
 - [ ] Prefer representative real-world output over tiny toy snippets.
 - [ ] When a command naturally produces richer output, capture a scenario with multiple sections, multiple entries, realistic file or resource names, and mixed states or severities.
 - [ ] Avoid minimal one-item demos unless the command is inherently terse.
+- [ ] Preserve the real stdout/stderr split; if a tool writes its human-facing log to stderr, keep it there instead of inventing stdout content.
 
 Capture flow:
 - [ ] Create or reuse a minimal real project/environment for the target command.
@@ -42,13 +43,13 @@ Capture flow:
 
 ## P1: Real project/toolchain capture, still local
 
-- [ ] `pip list` -> `packages/pip_list`
-- [ ] `uv pip list --outdated --format json` -> `packages/pip_outdated_json`
-- [ ] `uv sync` -> `packages/uv_sync_ok`
-- [ ] `npm list` -> `packages/npm_list`, `packages/npm_list_error`
-- [ ] `pnpm list --json` -> `packages/pnpm_list_json`
+- [x] `pip list` -> `packages/pip_list`
+- [x] `uv pip list --outdated --format json` -> `packages/pip_outdated_json`
+- [x] `uv sync` -> `packages/uv_sync_ok`
+- [x] `npm list` -> `packages/npm_list`, `packages/npm_list_error`
+- [x] `pnpm list --json` -> `packages/pnpm_list_json`
 - [ ] `bundle install` -> `packages/bundle_install`
-- [ ] `npx prisma generate` -> `packages/prisma_generate`
+- [x] `npx prisma generate` -> `packages/prisma_generate`
 - [ ] `cargo build` -> `build/cargo_build_error`
 - [ ] `cargo clippy --all-targets` -> `build/cargo_clippy`
 - [ ] `cargo fmt --check` -> `build/cargo_fmt_check`

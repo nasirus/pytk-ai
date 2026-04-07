@@ -1,5 +1,23 @@
 Prisma schema loaded from prisma/schema.prisma
 
-✔ Generated Prisma Client (v5.12.0) to ./node_modules/@prisma/client in 120ms
+✔ Generated Prisma Client (v5.12.0) to ./node_modules/@prisma/client in 53ms
 
-Generated 14 models, 2 enums, 1 types for Prisma Client
+Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+```
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
+```
+or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+```
+import { PrismaClient } from '@prisma/client/edge'
+const prisma = new PrismaClient()
+```
+
+See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
+┌────────────────────────────────────────────────────────────────┐
+│  Supercharge your Prisma Client with global database caching,  │
+│  scalable connection pooling and real-time database events.    │
+│  Explore Prisma Accelerate: https://pris.ly/cli/-accelerate    │
+│  Explore Prisma Pulse: https://pris.ly/cli/-pulse              │
+└────────────────────────────────────────────────────────────────┘
