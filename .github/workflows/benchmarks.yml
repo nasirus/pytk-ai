@@ -32,15 +32,16 @@ jobs:
           python -m pip install -e .
 
       - name: Run benchmarks
-        run: python -m benchmarks.runner
+        run: python -m benchmarks.runner --engines pytk
 
       - name: Print summary
         run: |
           python -c "
           import json
-          results = json.load(open('benchmarks/results/latest.json'))
+          document = json.load(open('benchmarks/results/latest.json'))
+          results = document['results']
           total_raw = sum(r['raw_tokens'] for r in results)
-          total_filtered = sum(r['filtered_tokens'] for r in results)
+          total_filtered = sum((r['filtered_tokens'] or 0) for r in results)
           saved = total_raw - total_filtered
           pct = (saved / total_raw * 100) if total_raw else 0
           print(f'Scenarios: {len(results)}')
