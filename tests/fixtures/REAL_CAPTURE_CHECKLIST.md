@@ -20,7 +20,7 @@ Capture flow:
 
 - [x] `git status` -> `git/status_dirty`
 - [x] `git diff` -> `git/diff_multifile`
-- [ ] `git log -2` -> `git/log_full`
+- [x] `git log -2` -> `git/log_full`
 - [ ] `git branch -vv` -> `git/branch_vv`
 - [ ] `git add vendor/lib` -> `git/add_warning`
 - [ ] `git show missing` -> `git/show_failure`

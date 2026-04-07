@@ -1,4 +1,5 @@
 import unittest
+import re
 
 try:
     from tests.helpers import load_fixture
@@ -22,10 +23,13 @@ class FixturesGitTests(unittest.TestCase):
 
     def test_log_full(self):
         f, result = self._run("log_full")
+        commits = re.findall(r"^commit ([0-9a-f]{7,40})$", f["stdout"], re.MULTILINE)
         self.assertEqual(result.filter_name, f["filter_name"])
         self.assertLess(len(result.output), len(f["stdout"]))
-        self.assertIn("abc1234", result.output)
-        self.assertIn("Add planner coverage", result.output)
+        self.assertGreaterEqual(len(commits), 2)
+        self.assertIn(commits[0][:7], result.output)
+        self.assertIn("Document fixture capture workflow", result.output)
+        self.assertIn("Normalize runner input before execution", result.output)
         self.assertNotIn("Author:", result.output)
 
     def test_diff_multifile(self):

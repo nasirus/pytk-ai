@@ -1,11 +1,19 @@
-commit abc1234567890 (HEAD -> main)
-Author: Test User <test@example.com>
-Date:   Sun Apr 5 12:00:00 2026 +0000
+commit a2bbbda90eb5745ff415cbb9c442e9b280577a6a
+Author: Fixture Bot <fixture@example.com>
+Date:   Tue Apr 7 10:45:08 2026 +0200
 
-    Add planner coverage
+    Document fixture capture workflow
+    
+    Add notes for richer bash captures and a tiny helper entrypoint.
+    
+    The follow-up fixture refreshes rely on this repository shape to produce realistic git logs.
 
-commit def4567890abcd
-Author: Test User <test@example.com>
-Date:   Sat Apr 4 12:00:00 2026 +0000
+commit a1908e3ccd483dc4055dca215857c3ce7cfb657a
+Author: Fixture Bot <fixture@example.com>
+Date:   Tue Apr 7 10:45:08 2026 +0200
 
-    Fix filter fallback
+    Normalize runner input before execution
+    
+    Trim leading and trailing whitespace before dispatching commands.
+    
+    This keeps fixture captures consistent when shell invocations vary between environments.
