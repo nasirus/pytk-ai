@@ -24,7 +24,7 @@ class FiltersGitTests(unittest.TestCase):
         self.assertEqual(result.filter_name, "git.status")
         self.assertEqual(
             result.output,
-            "master (no commits)\n? .gitignore .python-version README.md main.py pyproject.toml uv.lock",
+            "* No commits yet on master\n? Untracked: 6 files\n   .gitignore\n   .python-version\n   README.md\n   main.py\n   pyproject.toml\n   uv.lock",
         )
 
     def test_git_status_groups_paths_by_directory_symbolically(self):
@@ -51,10 +51,10 @@ class FiltersGitTests(unittest.TestCase):
         )
         self.assertEqual(
             result.output,
-            "main\nM README.md TODO.md src/pytk_ai/filters/{git.py,system.py} src/pytk_ai/plan/planner.py tests/{test_filters_git.py,test_live_git.py,test_plan_execution_rewrites.py,test_plan_planner.py}\n? src/pytk_ai/plan/execution_rewrites.py tests/test_plan_execution_rewrites.py",
+            "* main\n~ Modified: 9 files\n   README.md\n   TODO.md\n   src/pytk_ai/filters/git.py\n   src/pytk_ai/filters/system.py\n   src/pytk_ai/plan/planner.py\n   tests/test_filters_git.py\n   tests/test_live_git.py\n   tests/test_plan_execution_rewrites.py\n   tests/test_plan_planner.py\n? Untracked: 2 files\n   src/pytk_ai/plan/execution_rewrites.py\n   tests/test_plan_execution_rewrites.py",
         )
 
-    def test_git_status_never_returns_longer_text_than_raw_porcelain(self):
+    def test_git_status_formats_porcelain_as_counted_sections(self):
         stdout = """## main
  M a/very/deeply/nested/path/with/a/long_filename_that_repeats.py
 """
@@ -65,7 +65,10 @@ class FiltersGitTests(unittest.TestCase):
             0,
             plan=plan_command("git status"),
         )
-        self.assertLessEqual(len(result.output), len(stdout.strip()))
+        self.assertEqual(
+            result.output,
+            "* main\n~ Modified: 1 files\n   a/very/deeply/nested/path/with/a/long_filename_that_repeats.py",
+        )
 
     def test_git_status_human_output_falls_back_without_porcelain_parse(self):
         stdout = """On branch master
@@ -84,8 +87,7 @@ nothing added to commit but untracked files present
             0,
             plan=plan_command("git status"),
         )
-        self.assertIn("On branch master", result.output)
-        self.assertIn("Untracked files:", result.output)
+        self.assertEqual(result.output, "* master\n? Untracked: 1 files\n   README.md")
 
     def test_git_log_reduces_full_commit_blocks_to_one_line(self):
         stdout = """commit abc1234567890 (HEAD -> main)
@@ -191,7 +193,7 @@ index 1111111..2222222 100644
             0,
             plan=plan_command('git commit -m "Add compact git commit filter"'),
         )
-        self.assertEqual(result.output, "ok abc1234 Add compact git commit filter")
+        self.assertEqual(result.output, "ok abc1234")
 
     def test_git_pull_success_keeps_only_change_totals(self):
         stdout = """Updating abc1234..def5678
@@ -232,7 +234,7 @@ Fast-forward
             plan=plan_command("git add vendor/lib"),
         )
         self.assertEqual(result.filter_name, "git.add")
-        self.assertIn("warning: adding embedded git repository", result.output)
+        self.assertEqual(result.output, "ok")
 
     def test_git_add_rewritten_output_uses_shortstat_summary(self):
         stdout = " 1 file changed, 2 insertions(+), 1 deletion(-)\n"

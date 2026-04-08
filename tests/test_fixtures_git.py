@@ -48,7 +48,6 @@ class FixturesGitTests(unittest.TestCase):
         self.assertIsNotNone(match)
         self.assertIn(match.group(1)[:7], result.output)
         self.assertIn("ok", result.output)
-        self.assertIn("Add compact filter", result.output)
 
     def test_pull_fastforward(self):
         f, result = self._run("pull_fastforward")
@@ -75,7 +74,7 @@ class FixturesGitTests(unittest.TestCase):
     def test_add_warning(self):
         f, result = self._run("add_warning")
         self.assertEqual(result.filter_name, "git.add")
-        self.assertIn("warning: adding embedded git repository", result.output)
+        self.assertEqual(result.output, "ok")
 
     def test_show_failure(self):
         f, result = self._run("show_failure")
@@ -86,7 +85,8 @@ class FixturesGitTests(unittest.TestCase):
         f, result = self._run("status_dirty")
         self.assertEqual(result.filter_name, "git.status")
         self.assertLess(len(result.output), len(f["stdout"]))
-        self.assertIn("modified:", result.output)
+        self.assertIn("~ Modified:", result.output)
+        self.assertIn("? Untracked:", result.output)
 
     def test_output_shorter_than_input(self):
         """Every successful git fixture should produce shorter output."""

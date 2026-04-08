@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import re
-from collections import defaultdict
-from pathlib import PurePath
 import shlex
 
 from ..models import FilterResult
@@ -264,20 +262,16 @@ def _summarize_branch_list(text: str) -> str:
 def _summarize_commit(text: str) -> str:
     match = re.search(r"^\[(?:[^\]]+\s)?([0-9a-f]{7,})\]\s+(.+)$", text, re.MULTILINE)
     if match:
-        return f"ok {match.group(1)[:7]} {match.group(2).strip()}"
+        return f"ok {match.group(1)[:7]}"
     hash_match = re.search(r"^commit\s+([0-9a-f]{7,40})$", text, re.MULTILINE)
-    subject = _compact_subject(text.splitlines())
     if hash_match:
-        output = f"ok {hash_match.group(1)[:7]}"
-        if subject:
-            output += f" {subject}"
-        return output
+        return f"ok {hash_match.group(1)[:7]}"
     return "ok"
 
 
 def _summarize_push(text: str) -> str:
     if "Everything up-to-date" in text:
-        return "ok up-to-date"
+        return "ok (up-to-date)"
     target = None
     for line in text.splitlines():
         if "->" in line:
@@ -287,7 +281,7 @@ def _summarize_push(text: str) -> str:
 
 def _summarize_pull(text: str) -> str:
     if "Already up to date." in text:
-        return "ok up-to-date"
+        return "ok (up-to-date)"
     match = re.search(
         r"(\d+)\s+files? changed(?:,\s+(\d+)\s+insertions?\(\+\))?(?:,\s+(\d+)\s+deletions?\(-\))?",
         text,
@@ -357,7 +351,16 @@ def _summarize_add(text: str) -> str:
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     if not lines:
         return "ok (nothing to add)"
-    short = lines[-1]
+    short = next(
+        (
+            line
+            for line in reversed(lines)
+            if "file changed" in line or "insertion" in line or "deletion" in line
+        ),
+        "",
+    )
+    if not short:
+        return "ok"
     return f"ok {short}" if short else "ok"
 
 
@@ -365,31 +368,98 @@ def _summarize_status(text: str) -> str:
     lines = [line.rstrip() for line in text.splitlines() if line.strip()]
     if not lines:
         return "clean"
-    if not lines[0].startswith("## "):
-        return text
 
-    branch = ""
-    ahead = behind = 0
+    def render_status(
+        branch_summary: str,
+        staged: list[str],
+        modified: list[str],
+        untracked: list[str],
+        conflicts: int,
+    ) -> str:
+        result = [branch_summary]
+
+        def append_files(header: str, items: list[str], *, limit: int) -> None:
+            if not items:
+                return
+            result.append(f"{header}: {len(items)} files")
+            for item in items[:limit]:
+                result.append(f"   {item}")
+            if len(items) > limit:
+                result.append(f"   ... +{len(items) - limit} more")
+
+        append_files("+ Staged", staged, limit=len(staged))
+        append_files("~ Modified", modified, limit=len(modified))
+        append_files("? Untracked", untracked, limit=len(untracked))
+        if conflicts:
+            result.append(f"conflicts: {conflicts} files")
+
+        if len(result) == 1:
+            result.append("clean - nothing to commit")
+
+        return "\n".join(result)
+
+    if not lines[0].startswith("## "):
+        branch = next(
+            (
+                line.removeprefix("On branch ").strip()
+                for line in lines
+                if line.startswith("On branch ")
+            ),
+            "status",
+        )
+        staged: list[str] = []
+        modified: list[str] = []
+        untracked: list[str] = []
+        conflicts = 0
+        section: str | None = None
+
+        for line in lines:
+            stripped = line.strip()
+            if stripped == "Changes to be committed:":
+                section = "staged"
+                continue
+            if stripped == "Changes not staged for commit:":
+                section = "modified"
+                continue
+            if stripped == "Untracked files:":
+                section = "untracked"
+                continue
+            if stripped == "Unmerged paths:":
+                section = "conflicts"
+                continue
+            if stripped.startswith(("On branch ", "Your branch ", "nothing ")):
+                continue
+            if not stripped or stripped.startswith("("):
+                continue
+
+            entry = stripped
+            if ":" in stripped:
+                _, _, entry = stripped.partition(":")
+                entry = entry.strip()
+
+            if section == "staged":
+                staged.append(entry)
+            elif section == "modified":
+                modified.append(entry)
+            elif section == "untracked":
+                untracked.append(entry)
+            elif section == "conflicts":
+                conflicts += 1
+
+        return render_status(
+            f"* {branch}",
+            staged,
+            modified,
+            untracked,
+            conflicts,
+        )
+
     branch_line = lines[0][3:]
     lines = lines[1:]
-    if branch_line.startswith("No commits yet on "):
-        branch = f"{branch_line.removeprefix('No commits yet on ')} (no commits)"
-    else:
-        state, _, tracking = branch_line.partition("...")
-        branch = state.strip()
-        match = re.search(r"ahead (\d+)", tracking)
-        if match:
-            ahead = int(match.group(1))
-        match = re.search(r"behind (\d+)", tracking)
-        if match:
-            behind = int(match.group(1))
-
     staged: list[str] = []
     modified: list[str] = []
-    deleted: list[str] = []
-    renamed: list[str] = []
     untracked: list[str] = []
-    conflicts: list[str] = []
+    conflicts = 0
 
     for line in lines:
         if line == "??":
@@ -401,83 +471,24 @@ def _summarize_status(text: str) -> str:
             continue
         status = line[:2]
         path = line[3:]
-        if " -> " in path and status[0] == "R":
-            renamed.append(path)
         if "U" in status or status in {"AA", "DD"}:
-            conflicts.append(path)
+            conflicts += 1
             continue
-        if status[0] in {"M", "A", "C"}:
-            staged.append(path)
-        elif status[0] == "D":
-            deleted.append(path)
-        elif status[0] == "R":
+        if status[0] in {"M", "A", "C", "D", "R"}:
             staged.append(path)
 
         if status[1] == "M":
             modified.append(path)
         elif status[1] == "D":
-            deleted.append(path)
+            modified.append(path)
 
-    raw_porcelain = "\n".join([f"## {branch_line}", *lines])
-
-    def compress_paths(items: list[str]) -> str:
-        by_dir: dict[str, list[str]] = defaultdict(list)
-        root_files: list[str] = []
-        for item in items:
-            if " -> " in item:
-                root_files.append(item)
-                continue
-            path = PurePath(item)
-            parent = str(path.parent)
-            if parent in {"", "."}:
-                root_files.append(path.name or item)
-            else:
-                by_dir[parent].append(path.name or item)
-
-        parts: list[str] = []
-        if root_files:
-            parts.extend(sorted(root_files))
-        for directory in sorted(by_dir):
-            names = sorted(by_dir[directory])
-            if len(names) == 1:
-                parts.append(f"{directory}/{names[0]}")
-            else:
-                parts.append(f"{directory}/{{{','.join(names)}}}")
-        return " ".join(parts)
-
-    result: list[str] = []
-    if branch:
-        suffix: list[str] = []
-        if ahead:
-            suffix.append(f"ahead {ahead}")
-        if behind:
-            suffix.append(f"behind {behind}")
-        if suffix and "(no commits)" not in branch:
-            branch = f"{branch} ({', '.join(suffix)})"
-        result.append(branch)
-
-    buckets = (
-        ("+", staged),
-        ("M", modified),
-        ("D", deleted),
-        ("R", renamed),
-        ("?", untracked),
-        ("U", conflicts),
+    return render_status(
+        f"* {branch_line}",
+        staged,
+        modified,
+        untracked,
+        conflicts,
     )
-
-    for symbol, items in buckets:
-        if not items:
-            continue
-        result.append(f"{symbol} {compress_paths(items)}")
-
-    if not result:
-        return "clean"
-    if len(result) == 1 and branch:
-        return f"{branch}\nclean"
-    summarized = "\n".join(result)
-    if len(summarized) >= len(raw_porcelain):
-        return raw_porcelain
-    return summarized
 
 
 def filter_git_output(
@@ -516,7 +527,7 @@ def filter_git_output(
     elif subcommand == "show":
         text = _summarize_show(combined)
     elif subcommand == "add":
-        text = combined if stderr.strip() else _summarize_add(combined)
+        text = _summarize_add(combined)
     elif subcommand == "commit":
         text = _summarize_commit(combined)
     elif subcommand == "push":
