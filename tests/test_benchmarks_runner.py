@@ -3,8 +3,10 @@ import unittest
 from pathlib import Path
 
 from benchmarks.runner import (
+    build_argument_parser,
     build_rtk_replay_plan,
     parse_rewritten_command,
+    parse_engines,
     run_benchmarks,
 )
 from benchmarks.scenarios import Scenario
@@ -38,6 +40,16 @@ raise SystemExit(1)
     def test_parse_rewritten_command_replaces_rtk_binary(self):
         argv = parse_rewritten_command("rtk git status", rtk_bin="/tmp/custom-rtk")
         self.assertEqual(argv, ["/tmp/custom-rtk", "git", "status"])
+
+    def test_argument_parser_accepts_fixture_only_flag(self):
+        args = build_argument_parser().parse_args(["--fixture-only"])
+
+        self.assertTrue(args.fixture_only)
+
+    def test_parse_engines_uses_pytk_for_fixture_only_runs(self):
+        engines = parse_engines(engines_arg="pytk,rtk", fixture_only=True)
+
+        self.assertEqual(engines, ("pytk",))
 
     def test_build_rtk_replay_plan_creates_temp_file_for_read_commands(self):
         scenario = Scenario(

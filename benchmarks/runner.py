@@ -2,6 +2,7 @@
 
 Usage:
     python -m benchmarks.runner [--category git] [--iterations 10]
+    python -m benchmarks.runner --fixture-only
 """
 
 from __future__ import annotations
@@ -445,7 +446,7 @@ def _print_summary(document: dict) -> None:
         )
 
 
-def main() -> None:
+def build_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run PTK/RTK fixture benchmarks")
     parser.add_argument("--category", type=str, default=None, help="filter by category")
     parser.add_argument(
@@ -458,6 +459,11 @@ def main() -> None:
         help="comma-separated engine list (pytk,rtk)",
     )
     parser.add_argument(
+        "--fixture-only",
+        action="store_true",
+        help="benchmark fixture filtering only (equivalent to --engines pytk)",
+    )
+    parser.add_argument(
         "--rtk-bin",
         type=str,
         default=None,
@@ -466,12 +472,23 @@ def main() -> None:
     parser.add_argument(
         "--output", type=str, default=None, help="output JSON file path"
     )
-    args = parser.parse_args()
+    return parser
 
-    engines = (
-        tuple(engine.strip() for engine in args.engines.split(",") if engine.strip())
+
+def parse_engines(*, engines_arg: str, fixture_only: bool) -> tuple[str, ...]:
+    if fixture_only:
+        return ("pytk",)
+    return (
+        tuple(engine.strip() for engine in engines_arg.split(",") if engine.strip())
         or DEFAULT_ENGINES
     )
+
+
+def main() -> None:
+    parser = build_argument_parser()
+    args = parser.parse_args()
+
+    engines = parse_engines(engines_arg=args.engines, fixture_only=args.fixture_only)
     document = run_benchmarks(
         category=args.category,
         iterations=args.iterations,
