@@ -22,10 +22,7 @@ class FiltersGitTests(unittest.TestCase):
             plan=plan_command("git status"),
         )
         self.assertEqual(result.filter_name, "git.status")
-        self.assertEqual(
-            result.output,
-            "* No commits yet on master\n? Untracked: 6 files\n   .gitignore\n   .python-version\n   README.md\n   main.py\n   pyproject.toml\n   uv.lock",
-        )
+        self.assertEqual(result.output, stdout.strip())
 
     def test_git_status_groups_paths_by_directory_symbolically(self):
         stdout = """## main
@@ -49,10 +46,7 @@ class FiltersGitTests(unittest.TestCase):
             plan=plan_command("git status"),
             max_output_lines=20,
         )
-        self.assertEqual(
-            result.output,
-            "* main\n~ Modified: 9 files\n   README.md\n   TODO.md\n   src/pytk_ai/filters/git.py\n   src/pytk_ai/filters/system.py\n   src/pytk_ai/plan/planner.py\n   tests/test_filters_git.py\n   tests/test_live_git.py\n   tests/test_plan_execution_rewrites.py\n   tests/test_plan_planner.py\n? Untracked: 2 files\n   src/pytk_ai/plan/execution_rewrites.py\n   tests/test_plan_execution_rewrites.py",
-        )
+        self.assertEqual(result.output, stdout.strip())
 
     def test_git_status_formats_porcelain_as_counted_sections(self):
         stdout = """## main
@@ -67,7 +61,7 @@ class FiltersGitTests(unittest.TestCase):
         )
         self.assertEqual(
             result.output,
-            "* main\n~ Modified: 1 files\n   a/very/deeply/nested/path/with/a/long_filename_that_repeats.py",
+            "## main\n M a/very/deeply/nested/path/with/a/long_filename_that_repeats.py",
         )
 
     def test_git_status_human_output_falls_back_without_porcelain_parse(self):
@@ -88,6 +82,22 @@ nothing added to commit but untracked files present
             plan=plan_command("git status"),
         )
         self.assertEqual(result.output, "* master\n? Untracked: 1 files\n   README.md")
+
+    def test_git_status_human_output_preserves_detached_head_state(self):
+        stdout = """HEAD detached at abc1234
+
+nothing to commit, working tree clean
+"""
+        result = filter_output(
+            "git status",
+            stdout,
+            "",
+            0,
+            plan=plan_command("git status"),
+        )
+        self.assertEqual(
+            result.output, "* HEAD detached at abc1234\nclean - nothing to commit"
+        )
 
     def test_git_log_reduces_full_commit_blocks_to_one_line(self):
         stdout = """commit abc1234567890 (HEAD -> main)
@@ -235,7 +245,10 @@ Fast-forward
             plan=plan_command("git add vendor/lib"),
         )
         self.assertEqual(result.filter_name, "git.add")
-        self.assertEqual(result.output, "ok")
+        self.assertEqual(
+            result.output,
+            "ok\nwarning: adding embedded git repository: vendor/lib\nhint: You've added another git repository inside your current repository.",
+        )
 
     def test_git_add_rewritten_output_uses_shortstat_summary(self):
         stdout = " 1 file changed, 2 insertions(+), 1 deletion(-)\n"

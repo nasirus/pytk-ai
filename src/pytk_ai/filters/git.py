@@ -373,6 +373,9 @@ def _summarize_add(text: str) -> str:
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     if not lines:
         return "ok (nothing to add)"
+    warnings = [
+        line for line in lines if line.startswith(("warning:", "hint:", "error:"))
+    ]
     short = next(
         (
             line
@@ -381,15 +384,30 @@ def _summarize_add(text: str) -> str:
         ),
         "",
     )
-    if not short:
-        return "ok"
-    return f"ok {short}" if short else "ok"
+    if short and warnings:
+        return "\n".join([f"ok {short}", *warnings])
+    if short:
+        return f"ok {short}"
+    return "\n".join(["ok", *warnings]) if warnings else "\n".join(["ok", *lines])
+
+
+def _human_status_branch_summary(lines: list[str]) -> str | None:
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("On branch "):
+            return f"* {stripped.removeprefix('On branch ').strip()}"
+        if stripped.startswith("HEAD detached "):
+            return f"* {stripped}"
+        if stripped == "Not currently on any branch.":
+            return f"* {stripped}"
+    return None
 
 
 def _summarize_status(text: str) -> str:
     lines = [line.rstrip() for line in text.splitlines() if line.strip()]
     if not lines:
         return "clean"
+    raw = "\n".join(lines)
 
     def render_status(
         branch_summary: str,
@@ -399,36 +417,28 @@ def _summarize_status(text: str) -> str:
         conflicts: int,
     ) -> str:
         result = [branch_summary]
-
-        def append_files(header: str, items: list[str], *, limit: int) -> None:
+        sections = (
+            ("+ Staged", staged),
+            ("~ Modified", modified),
+            ("? Untracked", untracked),
+        )
+        for header, items in sections:
             if not items:
-                return
+                continue
             result.append(f"{header}: {len(items)} files")
-            for item in items[:limit]:
+            for item in items:
                 result.append(f"   {item}")
-            if len(items) > limit:
-                result.append(f"   ... +{len(items) - limit} more")
-
-        append_files("+ Staged", staged, limit=len(staged))
-        append_files("~ Modified", modified, limit=len(modified))
-        append_files("? Untracked", untracked, limit=len(untracked))
         if conflicts:
             result.append(f"conflicts: {conflicts} files")
-
         if len(result) == 1:
             result.append("clean - nothing to commit")
-
-        return "\n".join(result)
+        summary = "\n".join(result)
+        return summary if len(summary) < len(raw) else raw
 
     if not lines[0].startswith("## "):
-        branch = next(
-            (
-                line.removeprefix("On branch ").strip()
-                for line in lines
-                if line.startswith("On branch ")
-            ),
-            "status",
-        )
+        branch_summary = _human_status_branch_summary(lines)
+        if branch_summary is None:
+            return raw
         staged: list[str] = []
         modified: list[str] = []
         untracked: list[str] = []
@@ -449,7 +459,15 @@ def _summarize_status(text: str) -> str:
             if stripped == "Unmerged paths:":
                 section = "conflicts"
                 continue
-            if stripped.startswith(("On branch ", "Your branch ", "nothing ")):
+            if stripped.startswith(
+                (
+                    "On branch ",
+                    "Your branch ",
+                    "nothing ",
+                    "HEAD detached ",
+                    "Not currently on any branch.",
+                )
+            ):
                 continue
             if not stripped or stripped.startswith("("):
                 continue
@@ -469,7 +487,7 @@ def _summarize_status(text: str) -> str:
                 conflicts += 1
 
         return render_status(
-            f"* {branch}",
+            branch_summary,
             staged,
             modified,
             untracked,

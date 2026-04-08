@@ -75,7 +75,10 @@ class FixturesGitTests(unittest.TestCase):
     def test_add_warning(self):
         f, result = self._run("add_warning")
         self.assertEqual(result.filter_name, "git.add")
-        self.assertEqual(result.output, "ok")
+        self.assertTrue(result.output.startswith("ok\n"))
+        self.assertIn(
+            "warning: adding embedded git repository: vendor/lib", result.output
+        )
 
     def test_show_failure(self):
         f, result = self._run("show_failure")

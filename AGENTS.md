@@ -24,8 +24,8 @@ python -m unittest tests/test_filters_git.py
 python -m unittest tests.test_filters_git.TestGitStatusFilter.test_basic
 
 # Lint and format (run before finishing any change)
-uv ruff check
-uv ruff format
+uv run ruff check
+uv run ruff format
 
 # CLI usage
 pytk-ai run "git status"
