@@ -218,8 +218,9 @@ Fast-forward
         )
         self.assertEqual(result.filter_name, "git.branch")
         self.assertIn("feature/login 1234567", result.output)
-        self.assertIn("* main          89abcde", result.output)
-        self.assertIn("release/1.0   fedcba9", result.output)
+        self.assertIn("* main 89abcde [origin/main]", result.output)
+        self.assertIn("release/1.0 fedcba9 [origin/release/1.0: gone]", result.output)
+        self.assertNotIn("Ship phase 1", result.output)
 
     def test_git_add_preserves_success_warnings(self):
         stderr = (

@@ -70,6 +70,7 @@ class FixturesGitTests(unittest.TestCase):
         self.assertIn("release/1.0", result.output)
         self.assertIn("* main", result.output)
         self.assertRegex(result.output, r"\b[0-9a-f]{7}\b")
+        self.assertNotIn("Document fixture refresh plan", result.output)
 
     def test_add_warning(self):
         f, result = self._run("add_warning")

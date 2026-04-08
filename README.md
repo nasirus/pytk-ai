@@ -99,23 +99,22 @@ Compared against `rtk 0.35.0`
 |----------|-----------|----------------|-------------------|--------------------|--------------|------------------|-------------------|
 | build | 8 | 386 | 215 | 44.3% | 8/8 | 113 | 70.8% |
 | files | 6 | 114 | 70 | 38.4% | 6/6 | 91 | 20.1% |
-| generic | 2 | 82 | 42 | 49.4% | 2/2 | 25 | 69.5% |
-| git | 8 | 151 | 81 | 46.2% | 7/8 | 31 | 73.7% |
+| generic | 2 | 82 | 26 | 68.9% | 2/2 | 25 | 69.5% |
+| git | 8 | 151 | 52 | 65.6% | 7/8 | 31 | 73.7% |
 | go | 2 | 320 | 192 | 39.9% | 1/2 | 6 | 94.8% |
 | infra | 11 | 3,605 | 74 | 98.0% | 10/11 | 3,811 | 3.6% |
-| packages | 8 | 359 | 78 | 78.3% | 8/8 | 75 | 79.0% |
+| packages | 8 | 359 | 78 | 78.3% | 8/8 | 72 | 79.9% |
 | python | 3 | 219 | 98 | 55.4% | 3/3 | 163 | 25.6% |
 | ruby | 2 | 435 | 302 | 30.6% | 2/2 | 172 | 60.3% |
 | system | 4 | 106 | 56 | 46.4% | 4/4 | 65 | 38.2% |
 | tests | 2 | 430 | 126 | 70.7% | 2/2 | 270 | 37.4% |
-| **Total** | **56** | **913** | **108** | **88.1%** | **53/56** | **794** | **16.0%** |
+| **Total** | **56** | **913** | **104** | **88.7%** | **53/56** | **793** | **16.1%** |
 
 #### Scenario Comparison (Top 25)
 
 | Scenario | Command | Raw | PYTK | PYTK Red. | RTK | RTK Red. | Winner |
 |----------|---------|-----|------|-----------|-----|----------|--------|
 | infra/kubectl_pods_json | `kubectl get pods -A -o json` | 37,112 | 32 | 99.9% | 37,112 | 0.0% | PYTK +99.9pp |
-| git/add_warning | `git add vendor/lib` | 137 | 136 | 0.7% | 5 | 96.4% | RTK +95.7pp |
 | files/wc_multi | `wc src/app.py tests/test_app.py` | 20 | 39 | -95.0% | 20 | 0.0% | RTK +95.0pp |
 | infra/kubectl_pods_table | `kubectl get pods -A` | 369 | 33 | 91.1% | 369 | 0.0% | PYTK +91.1pp |
 | infra/aws_ec2 | `aws ec2 describe-instances --output json` | 7 | 10 | -42.9% | 4 | 42.9% | RTK +85.8pp |
@@ -126,19 +125,20 @@ Compared against `rtk 0.35.0`
 | go/go_test_fail | `go test ./...` | 116 | 88 | 24.1% | 6 | 94.8% | RTK +70.7pp |
 | build/next_build_fail | `next build` | 298 | 222 | 25.5% | 20 | 93.3% | RTK +67.8pp |
 | infra/docker_logs | `docker logs web` | 27 | 49 | -81.5% | 31 | -14.8% | RTK +66.7pp |
-| git/status_dirty | `git status` | 265 | 183 | 30.9% | 23 | 91.3% | RTK +60.4pp |
 | infra/kubectl_services | `kubectl get services` | 78 | 34 | 56.4% | 78 | 0.0% | PYTK +56.4pp |
 | packages/uv_sync_ok | `uv sync` | 135 | 67 | 50.4% | 135 | 0.0% | PYTK +50.4pp |
 | system/tail_repeated | `tail server.log` | 68 | 34 | 50.0% | 68 | 0.0% | PYTK +50.0pp |
 | build/eslint_stylish | `eslint src` | 504 | 283 | 43.8% | 54 | 89.3% | RTK +45.5pp |
 | ruby/rubocop_offenses | `rubocop` | 745 | 529 | 29.0% | 223 | 70.1% | RTK +41.1pp |
+| git/branch_vv | `git branch -vv` | 88 | 56 | 36.4% | 91 | -3.4% | PYTK +39.8pp |
 | files/tree_output | `tree` | 94 | 50 | 46.8% | 87 | 7.4% | PYTK +39.4pp |
 | infra/docker_ps | `docker ps` | 306 | 122 | 60.1% | 6 | 98.0% | RTK +37.9pp |
 | ruby/rspec_failures | `rspec` | 125 | 75 | 40.0% | 122 | 2.4% | PYTK +37.6pp |
+| git/status_dirty | `git status` | 265 | 121 | 54.3% | 23 | 91.3% | RTK +37.0pp |
 | build/cargo_build_error | `cargo build` | 192 | 70 | 63.5% | 131 | 31.8% | PYTK +31.7pp |
 | files/rg_matches | `rg main` | 384 | 228 | 40.6% | 345 | 10.2% | PYTK +30.4pp |
-| generic/git_status_hints | `git status` | 137 | 63 | 54.0% | 23 | 83.2% | RTK +29.2pp |
 | system/cat_missing | `cat missing.txt` | 11 | 11 | 0.0% | 14 | -27.3% | PYTK +27.3pp |
+| packages/pip_list | `pip list` | 192 | 71 | 63.0% | 20 | 89.6% | RTK +26.6pp |
 
 <!-- BENCHMARK-END -->
 

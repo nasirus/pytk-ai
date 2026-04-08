@@ -223,6 +223,28 @@ def _summarize_branch(text: str) -> str:
     return "\n".join(result)
 
 
+def _summarize_branch_verbose(text: str) -> str:
+    result: list[str] = []
+    for raw in text.splitlines():
+        line = raw.rstrip()
+        if not line.strip():
+            continue
+        match = re.match(
+            r"^(?P<current>\*?)\s*(?P<branch>\S+)\s+(?P<hash>[0-9a-f]{7,40})(?:\s+(?P<tracking>\[[^\]]+\]))?",
+            line,
+        )
+        if not match:
+            result.append(line.strip())
+            continue
+        prefix = "* " if match.group("current") == "*" else "  "
+        summary = f"{prefix}{match.group('branch')} {match.group('hash')[:7]}"
+        tracking = match.group("tracking")
+        if tracking:
+            summary += f" {tracking}"
+        result.append(summary)
+    return "\n".join(result) if result else text
+
+
 def _summarize_branch_list(text: str) -> str:
     current = ""
     local: list[str] = []
@@ -537,6 +559,8 @@ def filter_git_output(
     elif subcommand == "branch":
         if any(arg == "--show-current" for arg in subcommand_args):
             text = combined.strip() or "ok"
+        elif any(arg in {"-v", "-vv"} for arg in subcommand_args):
+            text = _summarize_branch_verbose(combined)
         elif any(not arg.startswith("-") for arg in subcommand_args) and not any(
             arg in {"-a", "--all", "-r", "--remotes", "--list"}
             or arg.startswith("--format")
