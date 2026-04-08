@@ -39,6 +39,7 @@ pip install -e .
 
 ```bash
 pytk-ai run git status
+pytk-ai run --timeout 10 git status
 pytk-ai run "cargo test && git push"
 pytk-ai run "docker ps"
 ```
@@ -49,6 +50,7 @@ pytk-ai run "docker ps"
 from pytk_ai.runner import run_command
 
 result = run_command("git status")
+slow_result = run_command("pytest -q", timeout=120)
 print(result.filtered_output)
 print(result.exit_code)
 ```

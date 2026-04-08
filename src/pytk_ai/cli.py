@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 import shlex
 import sys
 from typing import Any
 
+from .config import DEFAULT_TIMEOUT_SECONDS
 from .filters.files import render_read_output
 from .rewrite import rewrite_command
 from .runner import (
@@ -37,14 +39,14 @@ def _normalize_wrapper_argv(argv: list[str] | None) -> list[str] | None:
         return argv
 
     known_option_values = {
-        "run": {"--exclude", "--max-output-lines", "--usage-mode"},
-        "test": {"--max-output-lines"},
-        "err": {"--max-output-lines"},
-        "dotnet": {"--max-output-lines"},
-        "format": {"--max-output-lines"},
-        "gt": {"--max-output-lines"},
-        "summary": {"--max-output-lines"},
-        "psql": {"--max-output-lines"},
+        "run": {"--exclude", "--max-output-lines", "--usage-mode", "--timeout"},
+        "test": {"--max-output-lines", "--timeout"},
+        "err": {"--max-output-lines", "--timeout"},
+        "dotnet": {"--max-output-lines", "--timeout"},
+        "format": {"--max-output-lines", "--timeout"},
+        "gt": {"--max-output-lines", "--timeout"},
+        "summary": {"--timeout"},
+        "psql": {"--max-output-lines", "--timeout"},
     }
     subcommand = argv[0]
     if subcommand not in known_option_values:
@@ -92,6 +94,13 @@ def _read_stdin_json() -> dict[str, Any] | None:
     return None
 
 
+def _parse_timeout(value: str) -> float:
+    timeout = float(value)
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise argparse.ArgumentTypeError("timeout must be > 0")
+    return timeout
+
+
 def _hook_command_from_payload(payload: dict[str, Any]) -> str | None:
     tool_input = payload.get("tool_input")
     if isinstance(tool_input, dict):
@@ -133,6 +142,7 @@ def _run_command(args: argparse.Namespace) -> int:
     result = run_command(
         command,
         excluded=tuple(args.exclude or ()),
+        timeout=args.timeout,
         max_output_lines=args.max_output_lines,
         usage_mode=args.usage_mode,
     )
@@ -147,6 +157,7 @@ def _run_test(args: argparse.Namespace) -> int:
     command = _join_command(args.args)
     result = run_test_command(
         command,
+        timeout=args.timeout,
         max_output_lines=args.max_output_lines,
     )
     if result.filtered_output:
@@ -160,6 +171,7 @@ def _run_err(args: argparse.Namespace) -> int:
     command = _join_command(args.args)
     result = run_err_command(
         command,
+        timeout=args.timeout,
         max_output_lines=args.max_output_lines,
     )
     if result.filtered_output:
@@ -173,6 +185,7 @@ def _run_format(args: argparse.Namespace) -> int:
     command = _join_command(args.args)
     result = run_format_command(
         command,
+        timeout=args.timeout,
         max_output_lines=args.max_output_lines,
     )
     if result.filtered_output:
@@ -186,6 +199,7 @@ def _run_dotnet(args: argparse.Namespace) -> int:
     command = _join_command(args.args)
     result = run_dotnet_command(
         command,
+        timeout=args.timeout,
         max_output_lines=args.max_output_lines,
     )
     if result.filtered_output:
@@ -199,6 +213,7 @@ def _run_gt(args: argparse.Namespace) -> int:
     command = _join_command(args.args)
     result = run_gt_command(
         command,
+        timeout=args.timeout,
         max_output_lines=args.max_output_lines,
     )
     if result.filtered_output:
@@ -252,7 +267,7 @@ def _run_deps(args: argparse.Namespace) -> int:
 
 def _run_summary(args: argparse.Namespace) -> int:
     command = _join_command(args.args)
-    result = run_summary_command(command)
+    result = run_summary_command(command, timeout=args.timeout)
     if result.filtered_output:
         sys.stdout.write(result.filtered_output)
         if not result.filtered_output.endswith("\n"):
@@ -273,6 +288,7 @@ def _run_psql(args: argparse.Namespace) -> int:
     command = _join_command(args.args)
     result = run_psql_command(
         command,
+        timeout=args.timeout,
         max_output_lines=args.max_output_lines,
     )
     if result.filtered_output:
@@ -362,6 +378,12 @@ def build_parser() -> argparse.ArgumentParser:
         default="interactive",
         help="record whether filtering is being used directly or via a hook",
     )
+    run.add_argument(
+        "--timeout",
+        type=_parse_timeout,
+        default=DEFAULT_TIMEOUT_SECONDS,
+        help="command timeout in seconds",
+    )
     run.set_defaults(func=_run_command)
 
     test = sub.add_parser("test", help="execute a test command and keep failures only")
@@ -372,6 +394,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=200,
         help="maximum number of filtered output lines",
     )
+    test.add_argument(
+        "--timeout",
+        type=_parse_timeout,
+        default=DEFAULT_TIMEOUT_SECONDS,
+        help="command timeout in seconds",
+    )
     test.set_defaults(func=_run_test)
 
     err = sub.add_parser("err", help="execute a command and keep errors/warnings only")
@@ -381,6 +409,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=200,
         help="maximum number of filtered output lines",
+    )
+    err.add_argument(
+        "--timeout",
+        type=_parse_timeout,
+        default=DEFAULT_TIMEOUT_SECONDS,
+        help="command timeout in seconds",
     )
     err.set_defaults(func=_run_err)
 
@@ -396,6 +430,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=200,
         help="maximum number of filtered output lines",
     )
+    format_parser.add_argument(
+        "--timeout",
+        type=_parse_timeout,
+        default=DEFAULT_TIMEOUT_SECONDS,
+        help="command timeout in seconds",
+    )
     format_parser.set_defaults(func=_run_format)
 
     dotnet = sub.add_parser("dotnet", help="execute dotnet and compact .NET output")
@@ -406,6 +446,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=200,
         help="maximum number of filtered output lines",
     )
+    dotnet.add_argument(
+        "--timeout",
+        type=_parse_timeout,
+        default=DEFAULT_TIMEOUT_SECONDS,
+        help="command timeout in seconds",
+    )
     dotnet.set_defaults(func=_run_dotnet)
 
     gt = sub.add_parser("gt", help="execute Graphite commands and compact stack output")
@@ -415,6 +461,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=200,
         help="maximum number of filtered output lines",
+    )
+    gt.add_argument(
+        "--timeout",
+        type=_parse_timeout,
+        default=DEFAULT_TIMEOUT_SECONDS,
+        help="command timeout in seconds",
     )
     gt.set_defaults(func=_run_gt)
 
@@ -462,6 +514,12 @@ def build_parser() -> argparse.ArgumentParser:
     summary_parser.add_argument(
         "args", nargs=argparse.REMAINDER, help="raw command tokens"
     )
+    summary_parser.add_argument(
+        "--timeout",
+        type=_parse_timeout,
+        default=DEFAULT_TIMEOUT_SECONDS,
+        help="command timeout in seconds",
+    )
     summary_parser.set_defaults(func=_run_summary)
 
     smart_parser = sub.add_parser(
@@ -477,6 +535,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=200,
         help="maximum number of filtered output lines",
+    )
+    psql.add_argument(
+        "--timeout",
+        type=_parse_timeout,
+        default=DEFAULT_TIMEOUT_SECONDS,
+        help="command timeout in seconds",
     )
     psql.set_defaults(func=_run_psql)
 

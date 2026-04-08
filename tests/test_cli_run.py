@@ -2,9 +2,10 @@ import io
 import json
 import sys
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from unittest.mock import patch
 
+from pytk_ai.config import DEFAULT_TIMEOUT_SECONDS
 from pytk_ai.cli import main
 from pytk_ai.models import CommandResult
 
@@ -31,6 +32,77 @@ class CliRunTests(unittest.TestCase):
         self.assertEqual(exit_code, 5)
         self.assertIn("bad", buffer.getvalue())
 
+    @patch("pytk_ai.cli.run_command")
+    def test_main_run_passes_default_timeout(self, run_command):
+        run_command.return_value = CommandResult(
+            original_command="echo ok",
+            executed_command="echo ok",
+            planned_command="echo ok",
+            managed=False,
+            changed=False,
+            stdout="ok\n",
+            stderr="",
+            filtered_output="ok",
+            exit_code=0,
+            filter_name="generic",
+        )
+
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            exit_code = main(["run", "echo", "ok"])
+
+        self.assertEqual(exit_code, 0)
+        run_command.assert_called_once_with(
+            "echo ok",
+            excluded=(),
+            timeout=DEFAULT_TIMEOUT_SECONDS,
+            max_output_lines=200,
+            usage_mode="interactive",
+        )
+
+    @patch("pytk_ai.cli.run_command")
+    def test_main_run_passes_explicit_timeout(self, run_command):
+        run_command.return_value = CommandResult(
+            original_command="echo ok",
+            executed_command="echo ok",
+            planned_command="echo ok",
+            managed=False,
+            changed=False,
+            stdout="ok\n",
+            stderr="",
+            filtered_output="ok",
+            exit_code=0,
+            filter_name="generic",
+        )
+
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            exit_code = main(["run", "--timeout", "5", "echo", "ok"])
+
+        self.assertEqual(exit_code, 0)
+        run_command.assert_called_once_with(
+            "echo ok",
+            excluded=(),
+            timeout=5.0,
+            max_output_lines=200,
+            usage_mode="interactive",
+        )
+
+    @patch("pytk_ai.cli.run_command")
+    def test_main_run_rejects_non_finite_timeout_values(self, run_command):
+        for invalid_value in ("nan", "inf"):
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            with self.subTest(timeout=invalid_value):
+                with redirect_stdout(stdout), redirect_stderr(stderr):
+                    with self.assertRaises(SystemExit) as exc:
+                        main(["run", "--timeout", invalid_value, "echo", "ok"])
+
+                self.assertEqual(exc.exception.code, 2)
+                self.assertIn("timeout must be > 0", stderr.getvalue())
+
+        run_command.assert_not_called()
+
     @patch("pytk_ai.cli.run_test_command")
     def test_main_test_executes_wrapper_surface(self, run_test_command):
         run_test_command.return_value = CommandResult(
@@ -52,7 +124,11 @@ class CliRunTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 0)
         self.assertEqual(buffer.getvalue(), "Pytest: 1 passed\n")
-        run_test_command.assert_called_once_with("pytest -q", max_output_lines=200)
+        run_test_command.assert_called_once_with(
+            "pytest -q",
+            timeout=DEFAULT_TIMEOUT_SECONDS,
+            max_output_lines=200,
+        )
 
     @patch("pytk_ai.cli.run_format_command")
     def test_main_format_executes_wrapper_surface(self, run_format_command):
@@ -78,7 +154,9 @@ class CliRunTests(unittest.TestCase):
             buffer.getvalue(), "Format (prettier): 1 files need formatting\n"
         )
         run_format_command.assert_called_once_with(
-            "prettier --check .", max_output_lines=200
+            "prettier --check .",
+            timeout=DEFAULT_TIMEOUT_SECONDS,
+            max_output_lines=200,
         )
 
     @patch("pytk_ai.cli.run_dotnet_command")
@@ -106,7 +184,9 @@ class CliRunTests(unittest.TestCase):
             "ok dotnet build: 1 projects, 0 errors, 0 warnings (00:00:01.24)\n",
         )
         run_dotnet_command.assert_called_once_with(
-            "build src/App.csproj", max_output_lines=200
+            "build src/App.csproj",
+            timeout=DEFAULT_TIMEOUT_SECONDS,
+            max_output_lines=200,
         )
 
     @patch("pytk_ai.cli.run_gt_command")
@@ -132,7 +212,11 @@ class CliRunTests(unittest.TestCase):
         self.assertEqual(
             buffer.getvalue(), "pushed feat/add-auth\ncreated PR #42 feat/add-auth\n"
         )
-        run_gt_command.assert_called_once_with("submit", max_output_lines=200)
+        run_gt_command.assert_called_once_with(
+            "submit",
+            timeout=DEFAULT_TIMEOUT_SECONDS,
+            max_output_lines=200,
+        )
 
     @patch("pytk_ai.cli.run_json_command")
     def test_main_json_executes_wrapper_surface(self, run_json_command):
@@ -238,7 +322,9 @@ class CliRunTests(unittest.TestCase):
             exit_code = main(["summary", "pytest", "-q"])
         self.assertEqual(exit_code, 1)
         self.assertEqual(buffer.getvalue(), "[FAIL] Command: pytest -q\n")
-        run_summary_command.assert_called_once_with("pytest -q")
+        run_summary_command.assert_called_once_with(
+            "pytest -q", timeout=DEFAULT_TIMEOUT_SECONDS
+        )
 
     @patch("pytk_ai.cli.run_smart_command")
     def test_main_smart_executes_wrapper_surface(self, run_smart_command):
@@ -285,7 +371,9 @@ class CliRunTests(unittest.TestCase):
         self.assertEqual(exit_code, 1)
         self.assertEqual(buffer.getvalue(), "RuntimeError: boom\n")
         run_err_command.assert_called_once_with(
-            "python -m pytest -q", max_output_lines=200
+            "python -m pytest -q",
+            timeout=DEFAULT_TIMEOUT_SECONDS,
+            max_output_lines=200,
         )
 
     @patch("pytk_ai.cli.run_psql_command")
@@ -309,7 +397,11 @@ class CliRunTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 0)
         self.assertEqual(buffer.getvalue(), "?column?\n1\n")
-        run_psql_command.assert_called_once_with("-c 'select 1'", max_output_lines=200)
+        run_psql_command.assert_called_once_with(
+            "-c 'select 1'",
+            timeout=DEFAULT_TIMEOUT_SECONDS,
+            max_output_lines=200,
+        )
 
     def test_hook_cursor_emits_updated_input_for_rewritten_command(self):
         stdin = io.StringIO(json.dumps({"tool_input": {"command": "git status"}}))

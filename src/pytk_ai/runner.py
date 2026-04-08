@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import shlex
 
+from .config import DEFAULT_TIMEOUT_SECONDS
 from .filters import filter_output
 from .filters.generic import filter_errors_only_output
 from .filters.system_tools import (
@@ -27,7 +28,7 @@ def run_test_command(
     *,
     cwd: str | None = None,
     env: dict[str, str] | None = None,
-    timeout: float | None = None,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
     max_output_lines: int = 200,
     usage_mode: FilterUsageMode = "interactive",
 ) -> CommandResult:
@@ -87,7 +88,7 @@ def run_err_command(
     *,
     cwd: str | None = None,
     env: dict[str, str] | None = None,
-    timeout: float | None = None,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
     max_output_lines: int = 200,
     usage_mode: FilterUsageMode = "interactive",
 ) -> CommandResult:
@@ -198,7 +199,7 @@ def run_format_command(
     *,
     cwd: str | None = None,
     env: dict[str, str] | None = None,
-    timeout: float | None = None,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
     max_output_lines: int = 200,
     usage_mode: FilterUsageMode = "interactive",
 ) -> CommandResult:
@@ -265,7 +266,7 @@ def run_psql_command(
     *,
     cwd: str | None = None,
     env: dict[str, str] | None = None,
-    timeout: float | None = None,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
     max_output_lines: int = 200,
     usage_mode: FilterUsageMode = "interactive",
 ) -> CommandResult:
@@ -326,7 +327,7 @@ def run_dotnet_command(
     *,
     cwd: str | None = None,
     env: dict[str, str] | None = None,
-    timeout: float | None = None,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
     max_output_lines: int = 200,
     usage_mode: FilterUsageMode = "interactive",
 ) -> CommandResult:
@@ -391,7 +392,7 @@ def run_gt_command(
     *,
     cwd: str | None = None,
     env: dict[str, str] | None = None,
-    timeout: float | None = None,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
     max_output_lines: int = 200,
     usage_mode: FilterUsageMode = "interactive",
 ) -> CommandResult:
@@ -626,7 +627,7 @@ def run_summary_command(
     *,
     cwd: str | None = None,
     env: dict[str, str] | None = None,
-    timeout: float | None = None,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
     usage_mode: FilterUsageMode = "interactive",
 ) -> CommandResult:
     if not command.strip():
@@ -684,7 +685,7 @@ def run_command(
     *,
     cwd: str | None = None,
     env: dict[str, str] | None = None,
-    timeout: float | None = None,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
     plan: bool = True,
     excluded: tuple[str, ...] | None = None,
     max_output_lines: int = 200,

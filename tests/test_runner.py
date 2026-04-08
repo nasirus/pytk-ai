@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from pytk_ai.config import DEFAULT_TIMEOUT_SECONDS
 from pytk_ai.models import ExecutionResult
 from pytk_ai.runner import (
     run_command,
@@ -43,6 +44,42 @@ class RunnerTests(unittest.TestCase):
         )
         self.assertEqual(result.exit_code, 124)
         self.assertIn("timeout", result.error)
+
+    @patch("pytk_ai.runner.execute_raw")
+    def test_run_command_uses_default_timeout_when_omitted(self, execute_raw):
+        execute_raw.return_value = ExecutionResult(
+            command="echo ok",
+            stdout="ok\n",
+            stderr="",
+            exit_code=0,
+        )
+
+        run_command("echo ok")
+
+        execute_raw.assert_called_once_with(
+            "echo ok",
+            cwd=None,
+            env=None,
+            timeout=DEFAULT_TIMEOUT_SECONDS,
+        )
+
+    @patch("pytk_ai.runner.execute_raw")
+    def test_run_command_allows_overriding_default_timeout(self, execute_raw):
+        execute_raw.return_value = ExecutionResult(
+            command="echo ok",
+            stdout="ok\n",
+            stderr="",
+            exit_code=0,
+        )
+
+        run_command("echo ok", timeout=5.0)
+
+        execute_raw.assert_called_once_with(
+            "echo ok",
+            cwd=None,
+            env=None,
+            timeout=5.0,
+        )
 
     def test_run_command_accepts_env_overrides(self):
         result = run_command(
